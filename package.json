@@ -1,0 +1,28 @@
+{
+  "name": "measure-loop",
+  "version": "0.0.1",
+  "description": "A very accurate measure loop for benchmarking purposes",
+  "keywords": [],
+  "homepage": "",
+  "license": "MIT",
+  "repository": "",
+  "type": "module",
+  "scripts": {
+    "task": "bun scripts/task.ts",
+    "fmt": "oxfmt",
+    "bench:node": "node --expose-gc --allow-natives-syntax",
+    "bench:deno": "deno run --allow-all --v8-flags=--expose-gc,--allow-natives-syntax"
+  },
+  "devDependencies": {
+    "@swc/core": "^1.15.21",
+    "chokidar": "^5.0.0",
+    "mitata": "^1.0.34",
+    "oxc-transform": "^0.121.0",
+    "oxfmt": "^0.41.0",
+    "picocolors": "^1.1.1",
+    "typescript": "^6.0.2"
+  },
+  "trustedDependencies": [
+    "@swc/core"
+  ]
+}
