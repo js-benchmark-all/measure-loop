@@ -1,11 +1,11 @@
 {
   "name": "measure-loop",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A very accurate measure loop for benchmarking purposes",
-  "keywords": [],
+  "keywords": ["bench", "accurate", "measure"],
   "homepage": "",
   "license": "MIT",
-  "repository": "",
+  "repository": "js-benchmark-all/measure-loop",
   "type": "module",
   "scripts": {
     "task": "bun scripts/task.ts",
