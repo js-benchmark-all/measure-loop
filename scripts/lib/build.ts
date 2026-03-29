@@ -1,9 +1,8 @@
-import { basename, dirname, join } from 'node:path';
+import { basename, dirname, join, sep } from 'node:path';
 import {
   readFileSync,
   rmSync,
   writeFileSync,
-  symlinkSync,
   unlinkSync as fsUnlinkSync,
   mkdirSync,
 } from 'node:fs';
@@ -13,7 +12,7 @@ import { transformSync, type TransformOptions } from 'oxc-transform';
 
 import pkg from '../../package.json';
 
-import { LIB, NODE_MODULES, ROOT, SOURCE } from './constants.ts';
+import { LIB, ROOT, SOURCE } from './constants.ts';
 import { fmt } from './fmt.ts';
 
 import { build as CONFIG } from '../config.ts';
@@ -111,14 +110,14 @@ export const linkSync = (file: string) => {
   const fromFile = join(ROOT, file);
   const toFile = join(LIB, file);
 
-  if (file.includes('/'))
+  if (file.includes(sep))
     try {
       mkdirSync(dirname(toFile), { recursive: true });
     } catch {}
 
   let time = Bun.nanoseconds();
   try {
-    symlinkSync(fromFile, toFile);
+    writeFileSync(toFile, readFileSync(fromFile));
   } catch (e) {
     if ((e as ErrnoException).code !== 'EEXIST') {
       console.error(e);

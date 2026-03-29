@@ -4,28 +4,25 @@ A very accurate measure loop for benchmarking purposes.
 ```ts
 import { gc } from 'measure-loop/detect/gc';
 import { hrtime } from 'measure-loop/detect/hrtime';
-
+import { sideEffect } from 'measure-loop/side-effect';
 import { createLoop } from 'measure-loop';
-
-import { format } from 'oxfmt';
 
 const loop = await createLoop({
   // Auto detected functions
   gc, hrtime,
   // Function to benchmark
-  fn: () => performance.now(),
+  fn: () => {
+    sideEffect(performance.now())
+  },
   // Number of iterations
   iters: 1000,
   // Number of calls in an iteration
-  batchIters: 128
+  batch: 128
 });
 
 const runs: number[] = [];
 const gcs: number[] = [];
 const heaps: number[] = [];
-
-// Warmup everything
-loop([], [], []);
 
 // Run and collect timings
 loop(runs, gcs, heaps);

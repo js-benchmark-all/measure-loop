@@ -1,4 +1,7 @@
-export const heapUsage = async (): Promise<void | (() => number)> => {
+/**
+ * Try to detect a heap usage function.
+ */
+export const getHeapUsage = async (): Promise<void | (() => number)> => {
   // @ts-ignore
   if (globalThis.Bun) {
     // @ts-ignore
