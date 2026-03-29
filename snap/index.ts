@@ -30,13 +30,22 @@ const print = async (name: string, runs: number[], code: string) => {
 
   await Promise.all([
     Bun.write(debugPath, (await format(debugPath, code)).code),
-    Bun.write(runsPath, (await format(runsPath, `export default ${JSON.stringify({
-      runs, rsd,
-      avg: runs.reduce((a, b) => a + b, 0) / runs.length,
-      p50: math.percentile(runs, .5),
-      p75: math.percentile(runs, .75),
-      p99: math.percentile(runs, .99)
-    })}`)).code),
+    Bun.write(
+      runsPath,
+      (
+        await format(
+          runsPath,
+          `export default ${JSON.stringify({
+            runs,
+            rsd,
+            avg: runs.reduce((a, b) => a + b, 0) / runs.length,
+            p50: math.percentile(runs, 0.5),
+            p75: math.percentile(runs, 0.75),
+            p99: math.percentile(runs, 0.99),
+          })}`,
+        )
+      ).code,
+    ),
   ]);
 };
 
@@ -53,7 +62,7 @@ const print = async (name: string, runs: number[], code: string) => {
     const loop = await createLoop({
       gc,
       hrtime,
-      fn
+      fn,
     });
 
     // Run
@@ -117,7 +126,7 @@ const print = async (name: string, runs: number[], code: string) => {
       hrtime,
 
       params: [Math.random, Math.random, Math.random],
-      fn
+      fn,
     });
 
     // Run

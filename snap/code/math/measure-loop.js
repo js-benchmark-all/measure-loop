@@ -3,7 +3,7 @@
     let params_0 = new Array(4096),
       params_1 = new Array(4096),
       params_2 = new Array(4096),
-      duration_max = hrtime() + 776503296;
+      duration_max = hrtime() + 567459840;
     hrtime() < duration_max;
   ) {
     {
@@ -13,7 +13,7 @@
         params_1[i] = params[1]();
         params_2[i] = params[2]();
       }
-      duration_max += hrtime() - hrtime_s - 270;
+      duration_max += hrtime() - hrtime_s - 343;
     }
     gc();
     let hrtime_s = hrtime();
@@ -28,6 +28,6 @@
       i++;
     }
     let hrtime_e = hrtime();
-    runs.push((hrtime_e - hrtime_s - 270) / 4096);
+    runs.push((hrtime_e - hrtime_s - 343) / 4096);
   }
 };
