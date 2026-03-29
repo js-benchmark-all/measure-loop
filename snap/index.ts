@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { gc } from '$/detect/gc';
 import { hrtime } from '$/detect/hrtime';
 import { createLoop } from '$';
-import { sideEffect } from '$/side-effect';
+import { createSideEffect } from '$/side-effect';
 
 import { math } from './utils/math.ts';
 
@@ -20,7 +20,7 @@ const print = async (name: string, runs: number[], code: string) => {
   const rsd = math.rsd(runs);
 
   console.log(name + ':');
-  runs.some((x) => x < 10) && console.warn('  optimized out!');
+  runs.some((x) => x < 5) && console.warn('  optimized out!');
   console.log('  variation:', rsd);
 
   console.log('--------------------------------');
@@ -29,7 +29,7 @@ const print = async (name: string, runs: number[], code: string) => {
   const runsPath = join(RUNS, name + '.js');
 
   await Promise.all([
-    Bun.write(debugPath, (await format(debugPath, code)).code),
+    Bun.write(debugPath, '// @ts-nocheck\n' + (await format(debugPath, code)).code),
     Bun.write(
       runsPath,
       (
@@ -51,11 +51,41 @@ const print = async (name: string, runs: number[], code: string) => {
 
 {
   //
+  // noop()
+  //
+  const name = 'noop',
+    fn = () => 0;
+
+  {
+    const loop = await createLoop({
+      gc,
+      hrtime,
+      fn,
+    });
+
+    // Run
+    const runs: number[] = [];
+    loop(runs, [], []);
+
+    await print(join(name, 'measure-loop'), runs, loop.toString());
+  }
+
+  {
+    const { samples, debug } = await measure(fn, {
+      inner_gc: true,
+    });
+
+    await print(join(name, 'mitata'), samples, debug);
+  }
+}
+
+{
+  //
   // hrtime()
   //
   const name = 'hrtime',
     fn = () => {
-      sideEffect(hrtime());
+      createSideEffect(hrtime());
     };
 
   {
@@ -87,7 +117,7 @@ const print = async (name: string, runs: number[], code: string) => {
   //
   const name = 'math',
     fn = (a: number, b: number, c: number) => {
-      sideEffect(
+      createSideEffect(
         a * b +
           Math.ceil((c * b) / 1e3) +
           Math.floor((b * c * a) / 1e2) +

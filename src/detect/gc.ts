@@ -1,12 +1,17 @@
 /**
- * Auto-detected method to run garbage collection **synchronously**.
+ * Run garbage collection **synchronously** (when detected).
+ * @example
+ * ```ts
+ * import { gc, gcDetected } from 'measure-loop/detect/gc';
+ * hrtimeDetected || console.warn('no synchronous GC method detected!');
+ * ```
  */
 export let gc: () => void;
 
 /**
  * Whether a synchronous garbage collection method is detected.
  */
-export let detected = true;
+export let gcDetected = true;
 
 try {
   // @ts-ignore
@@ -48,7 +53,7 @@ try {
             if (globalThis.Graal) gc = () => new Uint8Array(2 ** 29);
             else {
               gc = () => new Uint8Array(2 ** 30);
-              detected = false;
+              gcDetected = false;
             }
           }
         }

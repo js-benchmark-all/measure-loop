@@ -1,12 +1,17 @@
 /**
- * Auto-detected method to return a high resolution timestamp in nanosecond.
+ * @returns A high resolution timestamp in nanosecond (when detected).
+ * @example
+ * ```ts
+ * import { hrtime, hrtimeDetected } from 'measure-loop/detect/hrtime';
+ * hrtimeDetected || console.warn('no high resolution timestamp method detected!');
+ * ```
  */
 export let hrtime: () => number;
 
 /**
  * Whether a high resolution timestamp method is detected.
  */
-export let detected = true;
+export let hrtimeDetected = true;
 
 try {
   // bun
@@ -37,7 +42,7 @@ try {
         hrtime = () => 1e6 * fn();
       } catch {
         hrtime = () => 1e6 * Date.now();
-        detected = false;
+        hrtimeDetected = false;
       }
     }
   }

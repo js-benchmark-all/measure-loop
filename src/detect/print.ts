@@ -1,8 +1,5 @@
-/**
- * Auto-detected method to print a value.
- */
 export let print: (value: any) => void;
-export let detected = true;
+export let printDetected = true;
 
 // @ts-ignore
 if (globalThis.console?.log) print = globalThis.console.log;
@@ -12,5 +9,5 @@ else {
   print = () => {
     throw new Error('no print function available!');
   };
-  detected = false;
+  printDetected = false;
 }

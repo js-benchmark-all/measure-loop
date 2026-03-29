@@ -1,5 +1,5 @@
 /**
- * Try to detect a heap usage function.
+ * Try to detect a method to get current heap usage.
  */
 export const getHeapUsage = async (): Promise<void | (() => number)> => {
   // @ts-ignore

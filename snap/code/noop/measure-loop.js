@@ -1,6 +1,6 @@
 // @ts-nocheck
 (runs, gcs, heaps) => {
-  for (let duration_max = hrtime() + 1180819456; hrtime() < duration_max; ) {
+  for (let duration_max = hrtime() + 95363072; hrtime() < duration_max; ) {
     gc();
     let hrtime_s = hrtime();
     for (let i = 0; i < 1024; i++) {

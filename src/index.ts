@@ -4,12 +4,53 @@ export type Params = (() => any)[];
  * Loop options.
  */
 export interface Options<P extends Params = Params, R = any> {
+  /**
+   * @returns A high resolution timestamp in nanosecond.
+   */
   hrtime: () => number;
+
+  /**
+   * @returns Current heap usage in bytes.
+   */
   heapUsage?: () => number;
+
+  /**
+   * Run garbage collection **synchronously**.
+   */
   gc: () => void;
 
   /**
-   * Function parameters.
+   * Dynamic parameters. Use this to prevent loop invariant code motion optimization.
+   *
+   * @example
+   * ```ts
+   * {
+   *   const str = 'abc';
+   *   createLoop({
+   *     ...,
+   *     fn: () => {
+   *       createSideEffect(str.includes('c'));
+   *     }
+   *   });
+   *   // Get optimized to
+   *   const $0 = 'abc'.includes('c');
+   *   createLoop({
+   *     ...,
+   *     fn: () => {
+   *       createSideEffect($0);
+   *     }
+   *   });
+   * }
+   *
+   * // Do this instead
+   * createLoop({
+   *   ...,
+   *   params: [() => 'abc'],
+   *   fn: (str) => {
+   *     createSideEffect(str.includes('c'));
+   *   }
+   * });
+   * ```
    */
   params?: P;
 
@@ -23,7 +64,7 @@ export interface Options<P extends Params = Params, R = any> {
   ) => R;
 
   /**
-   * Number of calls in an iteration.
+   * Number of calls in an iteration. Defaults to `4096`.
    */
   batch?: number;
 
@@ -41,27 +82,17 @@ export interface Options<P extends Params = Params, R = any> {
    * Max duration to run the benchmark in ns.
    */
   maxDuration?: number;
-
-  /**
-   * Duration to subtract from all runs result.
-   */
-  noopDuration?: number;
 }
 
-/**
- * Sync loop
- */
 export type Loop = (runs: number[], gcs: number[], heaps: number[]) => void;
-
-/**
- * Async loop
- */
 export type AsyncLoop = (runs: number[], gcs: number[], heaps: number[]) => Promise<void>;
 
 /**
  * Create a benchmark loop
  */
-export const createLoop = async <const P extends Params = [], R = any>({
+export const createLoop: <const P extends Params = [], R = any>(
+  options: Options<P, R>,
+) => Promise<R | ReturnType<P[number]> extends Promise<any> ? AsyncLoop : Loop> = async ({
   hrtime,
   heapUsage,
   gc,
@@ -74,9 +105,8 @@ export const createLoop = async <const P extends Params = [], R = any>({
 
   measureGC,
 
-  maxDuration,
-  noopDuration = 0,
-}: Options<P, R>): Promise<R | ReturnType<P[number]> extends Promise<any> ? AsyncLoop : Loop> => {
+  maxDuration
+}) => {
   let isFnAsync: boolean,
     paramLen = params?.length ?? 0,
     noHeap = heapUsage == null,
@@ -87,9 +117,7 @@ export const createLoop = async <const P extends Params = [], R = any>({
   // Calculate max duration if not exists
   {
     // Calculate noop time
-    let hrtime_s = hrtime(),
-      hrtime_e = hrtime();
-    noopDuration += hrtime_e - hrtime_s;
+    let hrtime_s: number;
 
     // Detect
     {
@@ -112,10 +140,10 @@ export const createLoop = async <const P extends Params = [], R = any>({
           (res = fn()) instanceof Promise;
       }
       isFnAsync && (await res);
-      hrtime_e = hrtime();
+      hrtime_s = hrtime() - hrtime_s;
     }
 
-    maxDuration ??= (hrtime_e - hrtime_s - noopDuration) * batch * 6;
+    maxDuration ??= hrtime_s * batch * 2;
   }
 
   // Build loop
@@ -135,7 +163,7 @@ export const createLoop = async <const P extends Params = [], R = any>({
     content += `{let hrtime_s=hrtime();for(let i=0;i<${batch};i++){`;
     for (let i = 0; i < paramLen; i++)
       content += `params_${i}[i]=${(asyncParams >>> i) & 1 ? 'await ' : ''}params[${i}]();`;
-    content += `}duration_max+=hrtime()-hrtime_s-${noopDuration}}`;
+    content += `}duration_max+=hrtime()-hrtime_s}`;
   }
 
   // Start measuring
@@ -178,8 +206,8 @@ export const createLoop = async <const P extends Params = [], R = any>({
   // Calculate results
   const hrtimeRes =
     batch > 1
-      ? `(hrtime_e-hrtime_s-${noopDuration})/${batch}`
-      : 'hrtime_e-hrtime_s-' + noopDuration;
+      ? `(hrtime_e-hrtime_s)/${batch}`
+      : 'hrtime_e-hrtime_s';
   content += `let hrtime_e=hrtime();runs.push(${hrtimeRes});${
     // Stop tracking heap usage
     noHeap

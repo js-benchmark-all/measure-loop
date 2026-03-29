@@ -2,9 +2,9 @@ import { print } from './detect/print.ts';
 
 let $: any;
 /**
- * Create a side effect for a variable.
+ * Prevent a value from being optimized out.
  */
-export const sideEffect = (v: any): void => {
+export const createSideEffect = (v: any): void => {
   $ = v;
 };
 $ = () => print($);

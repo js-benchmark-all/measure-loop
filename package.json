@@ -1,7 +1,7 @@
 {
   "name": "measure-loop",
-  "version": "0.0.3",
-  "description": "A very accurate measure loop for benchmarking purposes",
+  "version": "0.0.4",
+  "description": "An accurate, runtime-agnostic benchmarking loop.",
   "keywords": ["bench", "accurate", "measure"],
   "homepage": "",
   "license": "MIT",

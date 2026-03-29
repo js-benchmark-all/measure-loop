@@ -1,3 +1,4 @@
+// @ts-nocheck
 async function anonymous($fn, $gc, $now, $heap, $params, $counters) {
   let _ = 0;
   let t = 0;
