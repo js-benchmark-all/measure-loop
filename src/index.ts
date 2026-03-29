@@ -79,10 +79,13 @@ export const createLoop = async <const P extends Params = [], R = any>({
   if (paramLen > 31)
     throw new Error('cannot have more than 31 params!');
 
+
+    // Calculate noop time
+    let hrtime_s = hrtime(), hrtime_e = hrtime();
+    const hrtime_noop =  hrtime_e - hrtime_s;
+
   // Calculate max duration if not exists
   {
-    let hrtime_s: number;
-
     // Detect
     {
       let res;
@@ -103,15 +106,11 @@ export const createLoop = async <const P extends Params = [], R = any>({
           (res = fn()) instanceof Promise;
       }
       isFnAsync && (await res);
+      hrtime_e = hrtime();
     }
 
-    // runtime * batch * 12 iter
-    maxDuration ??= (hrtime() - hrtime_s) * batch * 12;
+    maxDuration ??= (hrtime_e - hrtime_s - hrtime_noop) * batch * 6;
   }
-
-  // Calculate noop time
-  let hrtime_s = hrtime(), hrtime_e = hrtime();
-  const hrtime_noop =  hrtime_e - hrtime_s;
 
   // Build loop
   let content = `return${

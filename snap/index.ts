@@ -17,9 +17,11 @@ const RUNS = join(SNAP, 'runs');
 const print = async (name: string, runs: number[], code: string) => {
   runs = runs.toSorted((a, b) => a - b);
 
+  const rsd = math.rsd(runs);
+
   console.log(name + ':');
   runs.some((x) => x < 10) && console.warn('  optimized out!');
-  console.log('  variation:', math.rsd(runs));
+  console.log('  variation:', rsd);
 
   console.log('--------------------------------');
 
@@ -28,7 +30,13 @@ const print = async (name: string, runs: number[], code: string) => {
 
   await Promise.all([
     Bun.write(debugPath, (await format(debugPath, code)).code),
-    Bun.write(runsPath, (await format(runsPath, 'export default ' + JSON.stringify(runs))).code),
+    Bun.write(runsPath, (await format(runsPath, `export default ${JSON.stringify({
+      runs, rsd,
+      avg: runs.reduce((a, b) => a + b, 0) / runs.length,
+      p50: math.percentile(runs, .5),
+      p75: math.percentile(runs, .75),
+      p99: math.percentile(runs, .99)
+    })}`)).code),
   ]);
 };
 
@@ -56,9 +64,7 @@ const print = async (name: string, runs: number[], code: string) => {
   }
 
   {
-    const { samples, debug } = await measure(() => {
-      sideEffect(hrtime());
-    }, {
+    const { samples, debug } = await measure(fn, {
       inner_gc: true,
     });
 
