@@ -1,24 +1,33 @@
 (runs, gcs, heaps) => {
-  var hrtime_noop;
-  {
-    let s = hrtime(),
-      e = hrtime();
-    hrtime_noop = e - s;
-  }
-  for (let iter = 0, duration_max = hrtime() + 1000000000; iter < 1000000; iter++) {
-    if (hrtime() > duration_max) break;
-    let params_0 = params[0](),
-      params_1 = params[1](),
-      params_2 = params[2]();
+  for (
+    let params_0 = new Array(4096),
+      params_1 = new Array(4096),
+      params_2 = new Array(4096),
+      duration_max = hrtime() + 971096064;
+    hrtime() < duration_max;
+  ) {
+    {
+      let hrtime_s = hrtime();
+      for (let i = 0; i < 4096; i++) {
+        params_0[i] = params[0]();
+        params_1[i] = params[1]();
+        params_2[i] = params[2]();
+      }
+      duration_max += hrtime() - hrtime_s - 111;
+    }
     gc();
     let hrtime_s = hrtime();
-    for (let i = 0; i < 1024; i++) {
-      fn(params_0, params_1, params_2);
-      fn(params_0, params_1, params_2);
-      fn(params_0, params_1, params_2);
-      fn(params_0, params_1, params_2);
+    for (let i = 0; i < 4096; ) {
+      fn(params_0[i], params_1[i], params_2[i]);
+      i++;
+      fn(params_0[i], params_1[i], params_2[i]);
+      i++;
+      fn(params_0[i], params_1[i], params_2[i]);
+      i++;
+      fn(params_0[i], params_1[i], params_2[i]);
+      i++;
     }
     let hrtime_e = hrtime();
-    runs.push((hrtime_e - hrtime_s - hrtime_noop) / 4096);
+    runs.push((hrtime_e - hrtime_s - 111) / 4096);
   }
 };

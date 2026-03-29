@@ -1,6 +1,6 @@
 {
   "name": "measure-loop",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A very accurate measure loop for benchmarking purposes",
   "keywords": ["bench", "accurate", "measure"],
   "homepage": "",

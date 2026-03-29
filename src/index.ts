@@ -23,14 +23,9 @@ export interface Options<P extends Params = Params, R = any> {
   ) => R;
 
   /**
-   * Number of iterations
-   */
-  iters: number;
-
-  /**
    * Number of calls in an iteration.
    */
-  batch: number;
+  batch?: number;
 
   /**
    * Number of calls or concurrent calls to inline. Defaults to `4`.
@@ -38,17 +33,12 @@ export interface Options<P extends Params = Params, R = any> {
   inlineCalls?: number;
 
   /**
-   * Number of calls to run concurrently in every iteration.
-   */
-  concurrentBatch?: number;
-
-  /**
    * Whether to measure GC time.
    */
   measureGC?: boolean;
 
   /**
-   * Max duration in ns.
+   * Max duration to run the benchmark in ns.
    */
   maxDuration?: number;
 }
@@ -63,6 +53,9 @@ export type Loop = (runs: number[], gcs: number[], heaps: number[]) => void;
  */
 export type AsyncLoop = (runs: number[], gcs: number[], heaps: number[]) => Promise<void>;
 
+/**
+ * Create a benchmark loop
+ */
 export const createLoop = async <const P extends Params = [], R = any>({
   hrtime,
   heapUsage,
@@ -71,128 +64,130 @@ export const createLoop = async <const P extends Params = [], R = any>({
   params,
   fn,
 
-  iters,
-  batch,
-  inlineCalls,
-  concurrentBatch,
+  batch = 4096,
+  inlineCalls = 4,
 
   measureGC,
 
-  maxDuration,
+  maxDuration
 }: Options<P, R>): Promise<R | ReturnType<P[number]> extends Promise<any> ? AsyncLoop : Loop> => {
   let isFnAsync: boolean,
     paramLen = params?.length ?? 0,
     noHeap = heapUsage == null,
-    isParamAsync = false;
+    asyncParams = 0;
 
-  // Detect
+  if (paramLen > 31)
+    throw new Error('cannot have more than 31 params!');
+
+  // Calculate max duration if not exists
   {
-    let res;
-    if (paramLen > 0) {
-      let ps = new Array(paramLen);
-      for (let i = 0; i < paramLen; i++) isParamAsync ||= (ps[i] = params![i]()) instanceof Promise;
-      isFnAsync =
-        (res = fn(
-          ...// Wait for params
-          ((isParamAsync ? await Promise.all(ps) : ps) as any),
-        )) instanceof Promise;
-    } else
-      isFnAsync =
-        // @ts-ignore
-        (res = fn()) instanceof Promise;
-    isFnAsync && (await res);
+    let hrtime_s: number;
+
+    // Detect
+    {
+      let res;
+      if (paramLen > 0) {
+        let ps = new Array(paramLen);
+        for (let i = 0; i < paramLen; i++) asyncParams |= ((ps[i] = params![i]()) instanceof Promise) ? 1 << i : 0;
+
+        hrtime_s = hrtime();
+        isFnAsync =
+          (res = fn(
+            ...// Wait for params
+            ((asyncParams > 0 ? await Promise.all(ps) : ps) as any),
+          )) instanceof Promise;
+      } else {
+        hrtime_s = hrtime();
+        isFnAsync =
+          // @ts-ignore
+          (res = fn()) instanceof Promise;
+      }
+      isFnAsync && (await res);
+    }
+
+    // runtime * batch * 12 iter
+    maxDuration ??= (hrtime() - hrtime_s) * batch * 12;
   }
+
+  // Calculate noop time
+  let hrtime_s = hrtime(), hrtime_e = hrtime();
+  const hrtime_noop =  hrtime_e - hrtime_s;
 
   // Build loop
-  let content = `return ${
+  let content = `return${
     // Whether the loop needs to be async
-    isFnAsync || isParamAsync ? 'async' : ''
-  }(runs,gcs,heaps)=>{var hrtime_noop;{let s=hrtime(),e=hrtime();hrtime_noop=e-s}for(let iter=0,duration_max=hrtime()+${maxDuration ?? 1284000000};iter<${iters};iter++){if(hrtime()>duration_max)break;`;
+    isFnAsync || asyncParams > 0 ? ' async' : ''
+  }(runs,gcs,heaps)=>{for(let `;
 
-  let args = '';
+  // Declare param array for batches
+  for (let i = 0; i < paramLen; i++)
+    content += `params_${i}=new Array(${batch}),`;
 
-  // Parse params
+  content += `duration_max=hrtime()+${maxDuration};hrtime()<duration_max;){`;
+
+  // Calculate params
   if (paramLen > 0) {
-    // Add args
-    args = 'params_0';
-
-    if (isParamAsync) {
-      if (paramLen > 1) {
-        content += 'let{0:params_0';
-
-        for (let i = 0; i < paramLen; i++) {
-          // Add args
-          args += `,params_${i}`;
-          content += `,${i}:params_${i}`;
-        }
-
-        content += '}=await Promise.all(params.map(f=>f()));';
-      } else content += 'let params_0=await params[0]();';
-    } else {
-      content += 'let params_0=params[0]()';
-      for (let i = 1; i < paramLen; i++) {
-        // Add args
-        args += `,params_${i}`;
-        content += `,params_${i}=params[${i}]()`;
-      }
-      content += ';';
-    }
+    // Adjust the duration
+    content += `{let hrtime_s=hrtime();for(let i=0;i<${batch};i++){`;
+    for (let i = 0; i < paramLen; i++)
+      content += `params_${i}[i]=${(asyncParams >>> i & 1) ? 'await ' : ''}params[${i}]();`;
+    content += `}duration_max+=hrtime()-hrtime_s-${hrtime_noop}}`;
   }
 
-  // Measure fn
-  content += `gc();${
+  // Start measuring
+  content += `gc();let ${
     // Start tracking heap usage
-    noHeap ? '' : 'let heap_s=heapUsage();'
-  }let hrtime_s=hrtime();`;
+    noHeap ? '' : 'heap=heapUsage(),'
+  }hrtime_s=hrtime();`;
 
   // Inline calls
   {
-    let call: string,
-      callCnt = batch;
+    let remainingCalls = batch % inlineCalls;
 
-    if (isFnAsync) {
-      // Concurrently run `concurrentBatch` calls
-      if ((concurrentBatch ?? 1) > 1) {
-        const begin = `await Promise.all([fn(${args})`,
-          res = `,fn(${args})`;
+    if (paramLen > 0) {
+      const callStart = isFnAsync ? 'await fn(' : 'fn(';
 
-        call = begin;
-        for (let i = 1; i < concurrentBatch!; i++) call += res;
-        call += ']);';
+      // Inline batch
+      {
+        let call = callStart + 'params_0[i]';
+        for (let i = 1; i < paramLen; i++)
+          call += `,params_${i}[i]`;
+        call += ');i++;';
 
-        // Concurrently run remainingCalls
-        let remainingCalls = batch % concurrentBatch!;
-        if (remainingCalls > 0) {
-          content += begin;
-          for (let i = 1; i < remainingCalls; i++) content += res;
-          content += ']);';
-        }
+        content += `for(let i=0;i<${batch - remainingCalls};){${call.repeat(inlineCalls)}}`;
+      }
 
-        callCnt = (batch - remainingCalls) / concurrentBatch!;
-      } else call = `await fn(${args});`;
-    } else call = `fn(${args});`;
+      // Inline remainingCalls
+      for (let i = batch - remainingCalls; i < batch; i++) {
+        const offsetAccess = `[${i}]`;
 
-    inlineCalls ??= 4;
-    let remainingCalls = callCnt % inlineCalls;
-    const batchedCall = call.repeat(inlineCalls);
-
-    content += `for(let i=0;i<${(callCnt - remainingCalls) / inlineCalls};i++){${batchedCall}}`;
-    while (remainingCalls-- > 0) content += call;
+        content += callStart + 'params_0' + offsetAccess;
+        for (let i = 1; i < paramLen; i++)
+          content += ',params_' + i + offsetAccess;
+        content += ');';
+      }
+    } else {
+      const call = isFnAsync
+        ? 'await fn();'
+        : 'fn();';
+      content += `for(let i=0;i<${(batch - remainingCalls) / inlineCalls};i++){${call.repeat(inlineCalls)}}`;
+      while (remainingCalls-- > 0) content += call;
+    }
   }
 
-  content += `let hrtime_e=hrtime();runs.push(${
-    batch > 1 ? `(hrtime_e-hrtime_s-hrtime_noop)/${batch}` : 'hrtime_e-hrtime_s-hrtime_noop'
-  });${
+  // Calculate results
+  const hrtimeRes = batch > 1 ? `(hrtime_e-hrtime_s-${hrtime_noop})/${batch}` : 'hrtime_e-hrtime_s-' + hrtime_noop;
+  content += `let hrtime_e=hrtime();runs.push(${hrtimeRes});${
     // Stop tracking heap usage
     noHeap
       ? ''
-      : `let heap_e=heapUsage();heap_e>heap_s&&heaps.push(${
-          batch > 1 ? `(heap_e-heap_s)/${batch}` : 'heap_e-heap_s'
+      : `heap=heapUsage()-heap;heap>0&&heaps.push(${
+          batch > 1 ? `heap/${batch}` : 'heap'
         });`
   }${
     // Whether to measure iteration GC
     measureGC
-      ? `hrtime_s=hrtime();gc();hrtime_e=hrtime();gcs.push(hrtime_e-hrtime_s-hrtime_noop);`
+      ? `hrtime_s=hrtime();gc();hrtime_e=hrtime();gcs.push(${hrtimeRes});`
       : ''
   }}}`;
 
@@ -206,7 +201,7 @@ export const createLoop = async <const P extends Params = [], R = any>({
   )(hrtime, heapUsage, gc, params, fn);
 
   // Loop warmup
-  isFnAsync || isParamAsync ? await loop([], [], []) : loop([], [], []);
+  isFnAsync || asyncParams > 0 ? await loop([], [], []) : loop([], [], []);
 
   return loop;
 };

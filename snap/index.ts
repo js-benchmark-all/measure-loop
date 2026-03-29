@@ -38,17 +38,14 @@ const print = async (name: string, runs: number[], code: string) => {
   //
   const name = 'hrtime',
     fn = () => {
-      sideEffect(performance.now());
+      sideEffect(hrtime());
     };
 
   {
     const loop = await createLoop({
       gc,
       hrtime,
-      fn,
-      iters: 1e6,
-      batch: 4096,
-      maxDuration: 1e9,
+      fn
     });
 
     // Run
@@ -59,7 +56,9 @@ const print = async (name: string, runs: number[], code: string) => {
   }
 
   {
-    const { samples, debug } = await measure(fn, {
+    const { samples, debug } = await measure(() => {
+      sideEffect(hrtime());
+    }, {
       inner_gc: true,
     });
 
@@ -112,11 +111,7 @@ const print = async (name: string, runs: number[], code: string) => {
       hrtime,
 
       params: [Math.random, Math.random, Math.random],
-      fn,
-
-      iters: 1e6,
-      batch: 4096,
-      maxDuration: 1e9,
+      fn
     });
 
     // Run
