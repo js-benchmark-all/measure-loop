@@ -1,6 +1,6 @@
 {
   "name": "measure-loop",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "description": "An accurate, runtime-agnostic benchmarking loop.",
   "keywords": ["bench", "accurate", "measure"],
   "homepage": "",
