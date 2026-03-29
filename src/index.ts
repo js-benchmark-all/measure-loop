@@ -79,25 +79,39 @@ export interface Options<P extends Params = Params, R = any> {
   measureGC?: boolean;
 
   /**
-   * Min duration to run the benchmark in ns.
+   * Min number of warmup iterations. Defaults to `2`.
    */
-  minDuration?: number;
+  warmupMinIters?: number;
 
   /**
-   * Min number of iterations to run.
+   * Warmup threshold. Defaults to `5e5`.
    */
-  minIters?: number;
+  warmupThreshold?: number;
 }
 
-export type Loop = (runs: number[], gcs: number[], heaps: number[]) => void;
-export type AsyncLoop = (runs: number[], gcs: number[], heaps: number[]) => Promise<void>;
+export type Loop = (
+  runs: number[],
+  gcs: number[],
+  heaps: number[],
+  threshold?: number,
+  minIter?: number,
+) => void;
+export type AsyncLoop = (
+  runs: number[],
+  gcs: number[],
+  heaps: number[],
+  threshold?: number,
+  minIter?: number,
+) => Promise<void>;
 
 /**
  * Create a benchmark loop
  */
 export const createLoop: <const P extends Params = [], R = any>(
   options: Options<P, R>,
-) => Promise<R | ReturnType<P[number]> extends Promise<any> ? AsyncLoop : Loop> = async ({
+) => Promise<
+  R extends Promise<any> ? AsyncLoop : ReturnType<P[number]> extends Promise<any> ? AsyncLoop : Loop
+> = async ({
   hrtime,
   heapUsage,
   gc,
@@ -110,8 +124,8 @@ export const createLoop: <const P extends Params = [], R = any>(
 
   measureGC,
 
-  minDuration = 642 * 1e6 * 1.1,
-  minIters = 12
+  warmupMinIters = 2,
+  warmupThreshold = 5e5,
 }) => {
   let isFnAsync: boolean,
     paramLen = params?.length ?? 0,
@@ -120,48 +134,45 @@ export const createLoop: <const P extends Params = [], R = any>(
 
   if (paramLen > 31) throw new Error('cannot have more than 31 params!');
 
-  // Calculate max duration if not exists
+  // Detect async
   {
-    // Detect
-    {
-      let res;
-      if (paramLen > 0) {
-        let ps = new Array(paramLen);
-        for (let i = 0; i < paramLen; i++)
-          asyncParams |= (ps[i] = params![i]()) instanceof Promise ? 1 << i : 0;
+    let res;
+    if (paramLen > 0) {
+      let ps = new Array(paramLen);
+      for (let i = 0; i < paramLen; i++)
+        asyncParams |= (ps[i] = params![i]()) instanceof Promise ? 1 << i : 0;
 
-        isFnAsync =
-          (res = fn(
-            ...// Wait for params
-            ((asyncParams > 0 ? await Promise.all(ps) : ps) as any),
-          )) instanceof Promise;
-      } else {
-        isFnAsync =
-          // @ts-ignore
-          (res = fn()) instanceof Promise;
-      }
-      isFnAsync && (await res);
+      isFnAsync =
+        (res = fn(
+          ...// Wait for params
+          ((asyncParams > 0 ? await Promise.all(ps) : ps) as any),
+        )) instanceof Promise;
+    } else {
+      isFnAsync =
+        // @ts-ignore
+        (res = fn()) instanceof Promise;
     }
+    isFnAsync && (await res);
   }
 
   // Build loop
   let content = `return${
     // Whether the loop needs to be async
     isFnAsync || asyncParams > 0 ? ' async' : ''
-  }(runs,gcs,heaps)=>{for(let iters_remain=${minIters}`;
+  }(runs,gcs,heaps,threshold=${924000000 * (noHeap ? 1 : 1.1)},iters_remain=12)=>{for(let `;
 
   // Declare param array for batches
-  for (let i = 0; i < paramLen; i++) content += `,params_${i}=new Array(${batch})`;
+  for (let i = 0; i < paramLen; i++) content += `params_${i}=new Array(${batch}),`;
 
-  content += `,duration_min=hrtime()+${minDuration};iters_remain>0||hrtime()<duration_min;iters_remain--){`;
+  content += `time_min=hrtime()+threshold;iters_remain>0||hrtime()<time_min;iters_remain--){`;
 
-  // Calculate params
+  // Compute params
   if (paramLen > 0) {
     // Adjust the duration
     content += `{let hrtime_s=hrtime();for(let i=0;i<${batch};i++){`;
     for (let i = 0; i < paramLen; i++)
       content += `params_${i}[i]=${(asyncParams >>> i) & 1 ? 'await ' : ''}params[${i}]();`;
-    content += `}duration_min+=hrtime()-hrtime_s}`;
+    content += `}time_min+=hrtime()-hrtime_s}`;
   }
 
   // Start measuring
@@ -170,7 +181,7 @@ export const createLoop: <const P extends Params = [], R = any>(
     noHeap ? '' : 'heap=heapUsage(),'
   }hrtime_s=hrtime();`;
 
-  // Inline calls
+  // Setup calls
   {
     let remainingCalls = batch % inlineCalls;
 
@@ -178,12 +189,18 @@ export const createLoop: <const P extends Params = [], R = any>(
       const callStart = isFnAsync ? 'await fn(' : 'fn(';
 
       // Inline batch
-      {
+      if (paramLen > 1) {
         let call = callStart + 'params_0[i]';
         for (let i = 1; i < paramLen; i++) call += `,params_${i}[i]`;
         call += ');i++;';
 
         content += `for(let i=0;i<${batch - remainingCalls};){${call.repeat(inlineCalls)}}`;
+      } else {
+        // Fast path for 1 param
+        content += `for(let i=0;i<${batch - remainingCalls};i+=${inlineCalls}){${callStart}params_0[i])`;
+        for (let i = 1, callArgStart = ';' + callStart + 'params_0[i+'; i < inlineCalls; i++)
+          content += callArgStart + i + '])';
+        content += '}';
       }
 
       // Inline remainingCalls
@@ -201,11 +218,8 @@ export const createLoop: <const P extends Params = [], R = any>(
     }
   }
 
-  // Calculate results
-  const hrtimeRes =
-    batch > 1
-      ? `(hrtime_e-hrtime_s)/${batch}`
-      : 'hrtime_e-hrtime_s';
+  // Compute results
+  const hrtimeRes = batch > 1 ? `(hrtime_e-hrtime_s)/${batch}` : 'hrtime_e-hrtime_s';
   content += `let hrtime_e=hrtime();runs.push(${hrtimeRes});${
     // Stop tracking heap usage
     noHeap
@@ -216,7 +230,7 @@ export const createLoop: <const P extends Params = [], R = any>(
     measureGC ? `hrtime_s=hrtime();gc();hrtime_e=hrtime();gcs.push(${hrtimeRes});` : ''
   }}}`;
 
-  const loop = Function(
+  const loop: Loop | AsyncLoop = Function(
     'hrtime',
     'heapUsage',
     'gc',
@@ -226,7 +240,9 @@ export const createLoop: <const P extends Params = [], R = any>(
   )(hrtime, heapUsage, gc, params, fn);
 
   // Loop warmup
-  isFnAsync || asyncParams > 0 ? await loop([], [], []) : loop([], [], []);
+  isFnAsync || asyncParams > 0
+    ? await loop([], [], [], warmupThreshold, warmupMinIters)
+    : loop([], [], [], warmupThreshold, warmupMinIters);
 
-  return loop;
+  return loop as any;
 };

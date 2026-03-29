@@ -87,14 +87,5 @@ export const task: import('./task.ts').Config = {
         },
       },
     },
-    snap: {
-      description: `Run and generate snapshots of measure-loop and mitata compiled loops.`,
-      args: {
-        targets: {
-          type: 'string[]',
-          description: 'Targets to run. Defaults to "bun", "node" and "deno".'
-        }
-      }
-    }
   },
 };
