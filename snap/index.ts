@@ -1,6 +1,7 @@
 import { format } from 'oxfmt';
 import { measure } from 'mitata';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
+import { writeFileSync, mkdirSync } from 'node:fs';
 
 import { gc } from '$/detect/gc';
 import { hrtime } from '$/detect/hrtime';
@@ -11,42 +12,49 @@ import { math } from './utils/math.ts';
 
 import { SNAP } from '../scripts/lib/constants.ts';
 
-const CODE = join(SNAP, 'code');
-const RUNS = join(SNAP, 'runs');
+const ID = process.argv[2];
+if (!ID) throw new Error('Require ID');
+
+const CODE = join(SNAP, ID, 'code');
+const RUNS = join(SNAP, ID, 'runs');
 
 const print = async (name: string, runs: number[], code: string) => {
   runs = runs.toSorted((a, b) => a - b);
 
   const rsd = math.rsd(runs);
 
+  console.log('--------------------------------');
   console.log(name + ':');
-  runs.some((x) => x < 5) && console.warn('  optimized out!');
+  if (runs.some((x) => x < 5))
+    console.warn('  maybe optimized out!');
   console.log('  variation:', rsd);
 
-  console.log('--------------------------------');
-
   const debugPath = join(CODE, name + '.js');
-  const runsPath = join(RUNS, name + '.js');
+  try {
+    mkdirSync(dirname(debugPath), { recursive: true });
+  } catch {}
+  writeFileSync(debugPath, '// @ts-nocheck\n' + (await format(debugPath, code)).code);
 
-  await Promise.all([
-    Bun.write(debugPath, '// @ts-nocheck\n' + (await format(debugPath, code)).code),
-    Bun.write(
-      runsPath,
-      (
-        await format(
-          runsPath,
-          `export default ${JSON.stringify({
-            runs,
-            rsd,
-            avg: runs.reduce((a, b) => a + b, 0) / runs.length,
-            p50: math.percentile(runs, 0.5),
-            p75: math.percentile(runs, 0.75),
-            p99: math.percentile(runs, 0.99),
-          })}`,
-        )
-      ).code,
-    ),
-  ]);
+  const runsPath = join(RUNS, name + '.js');
+  try {
+    mkdirSync(dirname(runsPath), { recursive: true });
+  } catch {}
+  writeFileSync(
+    runsPath,
+    (
+      await format(
+        runsPath,
+        `export default ${JSON.stringify({
+          runs,
+          rsd,
+          avg: runs.reduce((a, b) => a + b, 0) / runs.length,
+          p50: math.percentile(runs, 0.5),
+          p75: math.percentile(runs, 0.75),
+          p99: math.percentile(runs, 0.99),
+        })}`,
+      )
+    ).code
+  );
 };
 
 {

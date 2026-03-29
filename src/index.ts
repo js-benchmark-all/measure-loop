@@ -69,7 +69,7 @@ export interface Options<P extends Params = Params, R = any> {
   batch?: number;
 
   /**
-   * Number of calls or concurrent calls to inline. Defaults to `4`.
+   * Number of calls to inline. Defaults to `4`.
    */
   inlineCalls?: number;
 
@@ -79,9 +79,14 @@ export interface Options<P extends Params = Params, R = any> {
   measureGC?: boolean;
 
   /**
-   * Max duration to run the benchmark in ns.
+   * Min duration to run the benchmark in ns.
    */
-  maxDuration?: number;
+  minDuration?: number;
+
+  /**
+   * Min number of iterations to run.
+   */
+  minIters?: number;
 }
 
 export type Loop = (runs: number[], gcs: number[], heaps: number[]) => void;
@@ -105,7 +110,8 @@ export const createLoop: <const P extends Params = [], R = any>(
 
   measureGC,
 
-  maxDuration
+  minDuration = 642 * 1e6 * 1.1,
+  minIters = 12
 }) => {
   let isFnAsync: boolean,
     paramLen = params?.length ?? 0,
@@ -116,9 +122,6 @@ export const createLoop: <const P extends Params = [], R = any>(
 
   // Calculate max duration if not exists
   {
-    // Calculate noop time
-    let hrtime_s: number;
-
     // Detect
     {
       let res;
@@ -127,35 +130,30 @@ export const createLoop: <const P extends Params = [], R = any>(
         for (let i = 0; i < paramLen; i++)
           asyncParams |= (ps[i] = params![i]()) instanceof Promise ? 1 << i : 0;
 
-        hrtime_s = hrtime();
         isFnAsync =
           (res = fn(
             ...// Wait for params
             ((asyncParams > 0 ? await Promise.all(ps) : ps) as any),
           )) instanceof Promise;
       } else {
-        hrtime_s = hrtime();
         isFnAsync =
           // @ts-ignore
           (res = fn()) instanceof Promise;
       }
       isFnAsync && (await res);
-      hrtime_s = hrtime() - hrtime_s;
     }
-
-    maxDuration ??= hrtime_s * batch * 2;
   }
 
   // Build loop
   let content = `return${
     // Whether the loop needs to be async
     isFnAsync || asyncParams > 0 ? ' async' : ''
-  }(runs,gcs,heaps)=>{for(let `;
+  }(runs,gcs,heaps)=>{for(let iters_remain=${minIters}`;
 
   // Declare param array for batches
-  for (let i = 0; i < paramLen; i++) content += `params_${i}=new Array(${batch}),`;
+  for (let i = 0; i < paramLen; i++) content += `,params_${i}=new Array(${batch})`;
 
-  content += `duration_max=hrtime()+${maxDuration};hrtime()<duration_max;){`;
+  content += `,duration_min=hrtime()+${minDuration};iters_remain>0||hrtime()<duration_min;iters_remain--){`;
 
   // Calculate params
   if (paramLen > 0) {
@@ -163,7 +161,7 @@ export const createLoop: <const P extends Params = [], R = any>(
     content += `{let hrtime_s=hrtime();for(let i=0;i<${batch};i++){`;
     for (let i = 0; i < paramLen; i++)
       content += `params_${i}[i]=${(asyncParams >>> i) & 1 ? 'await ' : ''}params[${i}]();`;
-    content += `}duration_max+=hrtime()-hrtime_s}`;
+    content += `}duration_min+=hrtime()-hrtime_s}`;
   }
 
   // Start measuring

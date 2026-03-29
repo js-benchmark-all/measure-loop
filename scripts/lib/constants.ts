@@ -1,6 +1,6 @@
 import { join, resolve } from 'node:path';
 
-export const SCRIPTS = resolve(import.meta.dir, '..');
+export const SCRIPTS = resolve(import.meta.dirname, '..');
 export const ROOT = resolve(SCRIPTS, '..');
 export const SOURCE = join(ROOT, 'src');
 export const NODE_MODULES = join(ROOT, 'node_modules');
