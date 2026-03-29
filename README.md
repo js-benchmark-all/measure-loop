@@ -12,12 +12,8 @@ const loop = await createLoop({
   gc, hrtime,
   // Function to benchmark
   fn: () => {
-    sideEffect(performance.now())
-  },
-  // Number of iterations
-  iters: 1000,
-  // Number of calls in an iteration
-  batch: 128
+    sideEffect(performance.now());
+  }
 });
 
 const runs: number[] = [];
