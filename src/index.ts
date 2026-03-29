@@ -144,8 +144,7 @@ export const createLoop: <const F extends BenchFn>(
         content += '}';
       }
 
-      for (let i = batch - remainingCalls; i < batch; i++)
-        content += prefix + i + ']();';
+      for (let i = batch - remainingCalls; i < batch; i++) content += prefix + i + ']();';
     } else {
       const call = isFnAsync ? 'await fn();' : 'fn();';
       content += `for(let i=0;i<${(batch - remainingCalls) / inlineCalls};i++){${call.repeat(inlineCalls)}}`;

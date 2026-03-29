@@ -43,7 +43,6 @@ export const math = {
   truncate: (n) => (n < 0.01 ? n : Math.round(n * 100) / 100),
 };
 
-
 const toFormatted = (num, unit) => pc.yellowBright(math.truncate(num) + unit);
 
 /**
@@ -58,9 +57,9 @@ export const print = (runs, batchSize) => {
 
   console.log('mean:', toFormatted(math.mean(runs), 'ns'));
 
-  console.log('p50:', toFormatted(math.percentile(runs, .5), 'ns'));
-  console.log('p75:', toFormatted(math.percentile(runs, .75), 'ns'));
-  console.log('p99:', toFormatted(math.percentile(runs, .99), 'ns'));
+  console.log('p50:', toFormatted(math.percentile(runs, 0.5), 'ns'));
+  console.log('p75:', toFormatted(math.percentile(runs, 0.75), 'ns'));
+  console.log('p99:', toFormatted(math.percentile(runs, 0.99), 'ns'));
 
   console.log('variation:', toFormatted(math.rsd(runs) * 100, '%'));
 };
