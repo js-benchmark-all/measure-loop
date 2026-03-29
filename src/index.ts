@@ -1,9 +1,10 @@
-export type Params = (() => any)[];
+type MaybePromise<T> = T | Promise<T>;
+export type BenchFn = () => MaybePromise<void | (() => MaybePromise<void>)>;
 
 /**
  * Loop options.
  */
-export interface Options<P extends Params = Params, R = any> {
+export interface Options<F extends BenchFn = BenchFn> {
   /**
    * @returns A high resolution timestamp in nanosecond.
    */
@@ -20,48 +21,9 @@ export interface Options<P extends Params = Params, R = any> {
   gc: () => void;
 
   /**
-   * Dynamic parameters. Use this to prevent loop invariant code motion optimization.
-   *
-   * @example
-   * ```ts
-   * {
-   *   const str = 'abc';
-   *   createLoop({
-   *     ...,
-   *     fn: () => {
-   *       createSideEffect(str.includes('c'));
-   *     }
-   *   });
-   *   // Get optimized to
-   *   const $0 = 'abc'.includes('c');
-   *   createLoop({
-   *     ...,
-   *     fn: () => {
-   *       createSideEffect($0);
-   *     }
-   *   });
-   * }
-   *
-   * // Do this instead
-   * createLoop({
-   *   ...,
-   *   params: [() => 'abc'],
-   *   fn: (str) => {
-   *     createSideEffect(str.includes('c'));
-   *   }
-   * });
-   * ```
-   */
-  params?: P;
-
-  /**
    * Function to benchmark.
    */
-  fn: (
-    ...args: {
-      [K in keyof P]: Awaited<ReturnType<P[K]>>;
-    }
-  ) => R;
+  fn: F;
 
   /**
    * Number of calls in an iteration. Defaults to `4096`.
@@ -107,16 +69,19 @@ export type AsyncLoop = (
 /**
  * Create a benchmark loop
  */
-export const createLoop: <const P extends Params = [], R = any>(
-  options: Options<P, R>,
+export const createLoop: <const F extends BenchFn>(
+  options: Options<F>,
 ) => Promise<
-  R extends Promise<any> ? AsyncLoop : ReturnType<P[number]> extends Promise<any> ? AsyncLoop : Loop
+  ReturnType<F> extends Promise<any>
+    ? AsyncLoop
+    : ReturnType<F> extends () => Promise<any>
+      ? AsyncLoop
+      : Loop
 > = async ({
   hrtime,
   heapUsage,
   gc,
 
-  params,
   fn,
 
   batch = 4096,
@@ -128,52 +93,36 @@ export const createLoop: <const P extends Params = [], R = any>(
   warmupThreshold = 5e5,
 }) => {
   let isFnAsync: boolean,
-    paramLen = params?.length ?? 0,
-    noHeap = heapUsage == null,
-    asyncParams = 0;
-
-  if (paramLen > 31) throw new Error('cannot have more than 31 params!');
+    // 1: is param, 11: is param and async
+    paramFn: number = 0,
+    noHeap = heapUsage == null;
 
   // Detect async
   {
-    let res;
-    if (paramLen > 0) {
-      let ps = new Array(paramLen);
-      for (let i = 0; i < paramLen; i++)
-        asyncParams |= (ps[i] = params![i]()) instanceof Promise ? 1 << i : 0;
+    let res: any = fn();
+    (isFnAsync = res instanceof Promise) && (res = await res);
 
-      isFnAsync =
-        (res = fn(
-          ...// Wait for params
-          ((asyncParams > 0 ? await Promise.all(ps) : ps) as any),
-        )) instanceof Promise;
-    } else {
-      isFnAsync =
-        // @ts-ignore
-        (res = fn()) instanceof Promise;
+    if (typeof res === 'function') {
+      paramFn = isFnAsync ? 3 : 1;
+
+      res = res();
+      (isFnAsync = res instanceof Promise) && (res = await res);
     }
-    isFnAsync && (await res);
   }
+
+  const isLoopAsync = isFnAsync || (paramFn >>> 1) & 1;
 
   // Build loop
   let content = `return${
     // Whether the loop needs to be async
-    isFnAsync || asyncParams > 0 ? ' async' : ''
-  }(runs,gcs,heaps,threshold=${924000000 * (noHeap ? 1 : 1.1)},iters_remain=12)=>{for(let `;
-
-  // Declare param array for batches
-  for (let i = 0; i < paramLen; i++) content += `params_${i}=new Array(${batch}),`;
-
-  content += `time_min=hrtime()+threshold;iters_remain>0||hrtime()<time_min;iters_remain--){`;
+    isLoopAsync ? ' async' : ''
+  }(runs,gcs,heaps,threshold=${924000000 * (noHeap ? 1 : 1.1)},iters_remain=12)=>{for(let time_min=hrtime()+threshold${
+    paramFn & 1 ? `,fns=new Array(${batch})` : ''
+  };iters_remain>0||hrtime()<time_min;iters_remain--){`;
 
   // Compute params
-  if (paramLen > 0) {
-    // Adjust the duration
-    content += `{let hrtime_s=hrtime();for(let i=0;i<${batch};i++){`;
-    for (let i = 0; i < paramLen; i++)
-      content += `params_${i}[i]=${(asyncParams >>> i) & 1 ? 'await ' : ''}params[${i}]();`;
-    content += `}time_min+=hrtime()-hrtime_s}`;
-  }
+  paramFn & 1 &&
+    (content += `{let hrtime_s=hrtime();for(let i=0;i<${batch};i++){fns[i]=${(paramFn >>> 1) & 1 ? 'await ' : ''}fn()}time_min+=hrtime()-hrtime_s}`);
 
   // Start measuring
   content += `gc();let ${
@@ -185,35 +134,22 @@ export const createLoop: <const P extends Params = [], R = any>(
   {
     let remainingCalls = batch % inlineCalls;
 
-    if (paramLen > 0) {
-      const callStart = isFnAsync ? 'await fn(' : 'fn(';
+    if (paramFn & 1) {
+      const prefix = isFnAsync ? 'await fns[' : 'fns[';
 
-      // Inline batch
-      if (paramLen > 1) {
-        let call = callStart + 'params_0[i]';
-        for (let i = 1; i < paramLen; i++) call += `,params_${i}[i]`;
-        call += ');i++;';
-
-        content += `for(let i=0;i<${batch - remainingCalls};){${call.repeat(inlineCalls)}}`;
-      } else {
-        // Fast path for 1 param
-        content += `for(let i=0;i<${batch - remainingCalls};i+=${inlineCalls}){${callStart}params_0[i])`;
-        for (let i = 1, callArgStart = ';' + callStart + 'params_0[i+'; i < inlineCalls; i++)
-          content += callArgStart + i + '])';
+      {
+        content += `for(let i=0;i<${(batch - remainingCalls) / inlineCalls};i++){${prefix}i]()`;
+        for (let i = 1, callPrefix = `;${prefix}i+`; i < inlineCalls; i++)
+          content += callPrefix + i + ']()';
         content += '}';
       }
 
-      // Inline remainingCalls
-      for (let i = batch - remainingCalls; i < batch; i++) {
-        const offsetAccess = `[${i}]`;
-
-        content += callStart + 'params_0' + offsetAccess;
-        for (let i = 1; i < paramLen; i++) content += ',params_' + i + offsetAccess;
-        content += ');';
-      }
+      for (let i = batch - remainingCalls; i < batch; i++)
+        content += prefix + i + ']();';
     } else {
       const call = isFnAsync ? 'await fn();' : 'fn();';
       content += `for(let i=0;i<${(batch - remainingCalls) / inlineCalls};i++){${call.repeat(inlineCalls)}}`;
+
       while (remainingCalls-- > 0) content += call;
     }
   }
@@ -234,13 +170,12 @@ export const createLoop: <const P extends Params = [], R = any>(
     'hrtime',
     'heapUsage',
     'gc',
-    'params',
     'fn',
     content,
-  )(hrtime, heapUsage, gc, params, fn);
+  )(hrtime, heapUsage, gc, fn);
 
   // Loop warmup
-  isFnAsync || asyncParams > 0
+  isLoopAsync
     ? await loop([], [], [], warmupThreshold, warmupMinIters)
     : loop([], [], [], warmupThreshold, warmupMinIters);
 
