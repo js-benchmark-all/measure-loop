@@ -3,7 +3,7 @@ import { measure, do_not_optimize } from 'mitata';
 
 import { print } from '../../math.js';
 
-const { samples } = await measure(
+const result = await measure(
   function* () {
     yield {
       0: () => '' + Math.random(),
@@ -20,4 +20,4 @@ const { samples } = await measure(
   },
 );
 
-print(samples, 4096);
+print('runs', result.samples, 4096);

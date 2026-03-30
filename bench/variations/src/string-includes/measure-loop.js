@@ -15,6 +15,7 @@ const loop = await createLoop({
       createSideEffect(str.includes('a'));
     };
   },
+  measureGC: false
 });
 
 /**
@@ -22,4 +23,4 @@ const loop = await createLoop({
  */
 const runs = [];
 loop(runs, [], []);
-print(runs, 4096);
+print('runs', runs, 4096);

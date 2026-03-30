@@ -43,17 +43,24 @@ export const math = {
   truncate: (n) => (n < 0.01 ? n : Math.round(n * 100) / 100),
 };
 
+/**
+ * @param {number} num
+ * @param {string} unit
+ */
 const toFormatted = (num, unit) => pc.yellowBright(math.truncate(num) + unit);
 
 /**
+ * @param {string} title
  * @param {number[]} runs
  * @param {number} batchSize
  */
-export const print = (runs, batchSize) => {
+export const print = (title, runs, batchSize) => {
   runs.sort((a, b) => a - b);
 
-  console.log('samples size:', runs.length);
-  console.log('actual runs:', runs.length * batchSize);
+  console.log(pc.bold('\n### ' + title));
+
+  console.log('samples:', runs.length);
+  console.log('runs:', runs.length * batchSize);
 
   console.log('mean:', toFormatted(math.mean(runs), 'ns'));
 
