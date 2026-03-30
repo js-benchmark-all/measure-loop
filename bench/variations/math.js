@@ -1,4 +1,5 @@
 import pc from 'picocolors';
+import { hrtime } from '$/detect/hrtime';
 
 export const math = {
   /**
@@ -49,24 +50,25 @@ export const math = {
  */
 const toFormatted = (num, unit) => pc.yellowBright(math.truncate(num) + unit);
 
+const blueDash = pc.cyanBright('-');
+let lastTime = hrtime();
+
 /**
  * @param {string} title
  * @param {number[]} runs
  * @param {number} batchSize
  */
 export const print = (title, runs, batchSize) => {
+  const currentTime = hrtime();
+
   runs.sort((a, b) => a - b);
 
   console.log(pc.bold('\n### ' + title));
+  console.log(blueDash, 'runtime:', toFormatted((currentTime - lastTime) / 1e6, 'ms'));
 
-  console.log('samples:', runs.length);
-  console.log('runs:', runs.length * batchSize);
+  console.log(blueDash, 'samples:', runs.length);
+  console.log(blueDash, 'runs:', runs.length * batchSize);
 
-  console.log('mean:', toFormatted(math.mean(runs), 'ns'));
-
-  console.log('p50:', toFormatted(math.percentile(runs, 0.5), 'ns'));
-  console.log('p75:', toFormatted(math.percentile(runs, 0.75), 'ns'));
-  console.log('p99:', toFormatted(math.percentile(runs, 0.99), 'ns'));
-
-  console.log('variation:', toFormatted(math.rsd(runs) * 100, '%'));
+  console.log(blueDash, 'mean:', toFormatted(math.mean(runs), 'ns'));
+  console.log(blueDash, 'variation:', toFormatted(math.rsd(runs) * 100, '%'));
 };

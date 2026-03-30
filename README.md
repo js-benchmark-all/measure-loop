@@ -1,6 +1,7 @@
 # measure-loop
 An accurate, runtime-agnostic measure loop for benchmarking purposes.
 
+## Usage
 ```ts
 import { gc } from 'measure-loop/detect/gc';
 import { hrtime } from 'measure-loop/detect/hrtime';
@@ -8,24 +9,20 @@ import { hrtime } from 'measure-loop/detect/hrtime';
 import { createSideEffect } from 'measure-loop/side-effect';
 import { createLoop, warmupLoop } from 'measure-loop';
 
-const loop = await createLoop({
-  // Auto detected functions
-  gc, hrtime,
-  // Function to benchmark
-  fn: () => {
-    createSideEffect(performance.now());
+const loop = await createLoop(
+  { gc, hrtime },
+  {
+    fn: () => {
+      createSideEffect(performance.now());
+    }
   }
-});
+);
 warmupLoop(loop);
 
 // Run and collect timings
 const runs: number[] = [];
-const gcs: number[] = [];
-
-loop(runs, gcs, []);
-
+loop(runs, [], []);
 console.log('runs:', runs);
-console.log('gcs:', gcs);
 ```
 
 To run:
@@ -47,29 +44,48 @@ import { detectHeapUsage } from 'measure-loop/detect/heap-usage';
 import { createSideEffect } from 'measure-loop/side-effect';
 import { createLoop, warmupLoop } from 'measure-loop';
 
-const loop = await createLoop({
-  // Auto detected functions
-  gc, hrtime,
-  // Try to detect a heapUsage() method
-  heapUsage: await detectHeapUsage(),
-  // Function to benchmark
-  fn: () => {
-    createSideEffect(performance.now());
+const loop = await createLoop(
+  {
+    gc, hrtime,
+    heapUsage: await detectHeapUsage()
+  },
+  {
+    fn: () => {
+      createSideEffect(performance.now());
+    }
   }
-});
+);
 warmupLoop(loop);
 
 // Run and collect timings
 const runs: number[] = [];
-const gcs: number[] = [];
 const heaps: number[] = [];
 
-loop(runs, gcs, heaps);
+loop(runs, [], heaps);
 
 console.log('runs:', runs);
-console.log('gcs:', gcs);
 console.log('heaps:', heaps);
 ```
 Note that collecting heap usage can increase variation of other samples.
+
+## Other options
+```ts
+await createLoop({ ... }, {
+  // Whether to collect GC timings
+  measureGC: false,
+
+  // Number of calls in an iteration
+  batch: 4096,
+
+  // Calls to inline
+  inlineCalls: 4
+
+  // With batch = 4097 and inlineCalls = 4:
+  // for (let i = 0; i < 1024; i++){fn();fn();fn();fn()}fn();
+});
+
+// Warmup the loop, stops when running time > threshold and total iterations > iters
+warmupLoop(loop, threshold?, iters?);
+```
 
 The loop implementation is based on [mitata](https://github.com/evanwashere/mitata). Check it out it's a good library :).

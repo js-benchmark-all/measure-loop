@@ -26,7 +26,7 @@ for (const runnerName in RUNNERS) {
   console.log(fmt.pc.bold(`\n# ${runnerName}`));
 
   for (const file of files) {
-    console.log(fmt.pc.bold(`\n## ${file}`));
+    console.log(fmt.pc.bold(`\n## ${file.slice(0, -3)}`));
 
     // @ts-ignore
     RUNNERS[runnerName](file);

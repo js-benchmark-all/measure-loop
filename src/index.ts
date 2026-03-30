@@ -1,12 +1,7 @@
 type MaybePromise<T> = T | Promise<T>;
 export type BenchFn = () => MaybePromise<void | (() => MaybePromise<void>)>;
 
-/**
- * Loop options.
- *
- * Warmup stops when exceeded **both** `warmupIters` and `warmupThreshold`.
- */
-export interface Options<F extends BenchFn = BenchFn> {
+export interface EnvOptions {
   /**
    * @returns A high resolution timestamp in nanosecond.
    */
@@ -21,7 +16,14 @@ export interface Options<F extends BenchFn = BenchFn> {
    * Run garbage collection **synchronously**.
    */
   gc: () => void;
+}
 
+/**
+ * Loop options.
+ *
+ * Warmup stops when exceeded **both** `warmupIters` and `warmupThreshold`.
+ */
+export interface LoopOptions<F extends BenchFn = BenchFn> {
   /**
    * Function to benchmark.
    */
@@ -79,27 +81,22 @@ export type AsyncLoop = (
  * @param threshold
  * @param iters
  */
-export const warmupLoop = <T extends Loop | AsyncLoop>(loop: T, threshold?: number, iters?: number): T extends Loop ? void : Promise<void> => loop([], [], [], threshold ?? 5e5, iters ?? 2) as any;
+export const warmupLoop = <T extends Loop | AsyncLoop>(
+  loop: T,
+  threshold?: number,
+  iters?: number,
+): T extends Loop ? void : Promise<void> => loop([], [], [], threshold ?? 5e5, iters ?? 2) as any;
 
 /**
  * Create a benchmark loop.
  */
 export const createLoop: <const F extends BenchFn>(
-  options: Options<F>,
-) => Promise<
-  ReturnType<F> extends Promise<any> | (() => Promise<any>) ? AsyncLoop : Loop
-> = async ({
-  hrtime,
-  heapUsage,
-  gc,
-
-  fn,
-
-  batch = 4096,
-  inlineCalls = 4,
-
-  measureGC = true
-}) => {
+  env: EnvOptions,
+  options: LoopOptions<F>,
+) => Promise<ReturnType<F> extends Promise<any> | (() => Promise<any>) ? AsyncLoop : Loop> = async (
+  { hrtime, heapUsage, gc },
+  { fn, batch = 4096, inlineCalls = 4, measureGC },
+) => {
   let isFnAsync: boolean,
     hasParam = false,
     isParamAsync = false,
