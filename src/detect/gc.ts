@@ -51,10 +51,9 @@ try {
           } catch {
             // @ts-ignore
             if (globalThis.Graal) gc = () => new Uint8Array(2 ** 29);
-            else {
-              gc = () => new Uint8Array(2 ** 30);
-              gcDetected = false;
-            }
+            else gc = () => new Uint8Array(2 ** 30);
+
+            gcDetected = false;
           }
         }
       }

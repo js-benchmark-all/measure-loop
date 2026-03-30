@@ -1,7 +1,7 @@
 /**
  * Try to detect a method to get current heap usage.
  */
-export const getHeapUsage = async (): Promise<void | (() => number)> => {
+export const detectHeapUsage = async (): Promise<void | (() => number)> => {
   // @ts-ignore
   if (globalThis.Bun) {
     // @ts-ignore
