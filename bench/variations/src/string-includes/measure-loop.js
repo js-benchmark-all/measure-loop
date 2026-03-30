@@ -2,7 +2,7 @@
 import { gc } from '$/detect/gc';
 import { hrtime } from '$/detect/hrtime';
 import { createSideEffect } from '$/side-effect';
-import { createLoop } from '$';
+import { createLoop, warmupLoop } from '$';
 
 import { print } from '../../math.js';
 
@@ -14,9 +14,9 @@ const loop = await createLoop({
     return () => {
       createSideEffect(str.includes('a'));
     };
-  },
-  measureGC: false
+  }
 });
+warmupLoop(loop);
 
 /**
  * @type {number[]}

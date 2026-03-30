@@ -41,16 +41,6 @@ export interface Options<F extends BenchFn = BenchFn> {
    * Whether to collect GC timings. Defaults to `true`.
    */
   measureGC?: boolean;
-
-  /**
-   * Min number of warmup iterations. Defaults to `2`.
-   */
-  warmupIters?: number;
-
-  /**
-   * Warmup threshold in nanosecond. Defaults to `5e5`.
-   */
-  warmupThreshold?: number;
 }
 
 /**
@@ -84,6 +74,14 @@ export type AsyncLoop = (
 ) => Promise<void>;
 
 /**
+ * Warmup a loop
+ * @param loop
+ * @param threshold
+ * @param iters
+ */
+export const warmupLoop = <T extends Loop | AsyncLoop>(loop: T, threshold?: number, iters?: number): T extends Loop ? void : Promise<void> => loop([], [], [], threshold ?? 5e5, iters ?? 2) as any;
+
+/**
  * Create a benchmark loop.
  */
 export const createLoop: <const F extends BenchFn>(
@@ -100,10 +98,7 @@ export const createLoop: <const F extends BenchFn>(
   batch = 4096,
   inlineCalls = 4,
 
-  measureGC = true,
-
-  warmupIters = 2,
-  warmupThreshold = 5e5,
+  measureGC = true
 }) => {
   let isFnAsync: boolean,
     hasParam = false,
@@ -184,11 +179,6 @@ export const createLoop: <const F extends BenchFn>(
     'fn',
     content,
   )(hrtime, heapUsage, gc, fn);
-
-  // Loop warmup
-  isLoopAsync
-    ? await loop([], [], [], warmupThreshold, warmupIters)
-    : loop([], [], [], warmupThreshold, warmupIters);
 
   return loop as any;
 };

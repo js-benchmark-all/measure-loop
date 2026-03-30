@@ -4,8 +4,9 @@ An accurate, runtime-agnostic measure loop for benchmarking purposes.
 ```ts
 import { gc } from 'measure-loop/detect/gc';
 import { hrtime } from 'measure-loop/detect/hrtime';
+
 import { createSideEffect } from 'measure-loop/side-effect';
-import { createLoop } from 'measure-loop';
+import { createLoop, warmupLoop } from 'measure-loop';
 
 const loop = await createLoop({
   // Auto detected functions
@@ -15,11 +16,12 @@ const loop = await createLoop({
     createSideEffect(performance.now());
   }
 });
+warmupLoop(loop);
 
+// Run and collect timings
 const runs: number[] = [];
 const gcs: number[] = [];
 
-// Run and collect timings
 loop(runs, gcs, []);
 
 console.log('runs:', runs);
@@ -41,24 +43,27 @@ To collect heap usage:
 import { gc } from 'measure-loop/detect/gc';
 import { hrtime } from 'measure-loop/detect/hrtime';
 import { detectHeapUsage } from 'measure-loop/detect/heap-usage';
+
 import { createSideEffect } from 'measure-loop/side-effect';
-import { createLoop } from 'measure-loop';
+import { createLoop, warmupLoop } from 'measure-loop';
 
 const loop = await createLoop({
   // Auto detected functions
   gc, hrtime,
+  // Try to detect a heapUsage() method
   heapUsage: await detectHeapUsage(),
   // Function to benchmark
   fn: () => {
     createSideEffect(performance.now());
   }
 });
+warmupLoop(loop);
 
+// Run and collect timings
 const runs: number[] = [];
 const gcs: number[] = [];
 const heaps: number[] = [];
 
-// Run and collect timings
 loop(runs, gcs, heaps);
 
 console.log('runs:', runs);
