@@ -25,6 +25,14 @@ const files = globSync('**/*.js', { cwd });
 for (const runnerName in RUNNERS) {
   console.log(fmt.pc.bold(`\n# ${runnerName}`));
 
+  for (let i = files.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * files.length);
+
+    const a = files[i];
+    files[i] = files[j];
+    files[j] = a;
+  }
+
   for (const file of files) {
     console.log(fmt.pc.bold(`\n## ${file.slice(0, -3)}`));
 

@@ -7,16 +7,20 @@ import { createLoop, warmupLoop } from '$';
 
 import { print } from '../../math.js';
 
-const loop = await createLoop({
-  gc,
-  hrtime,
-  fn: () => {
-    const str = '' + Math.random();
-    return () => {
-      createSideEffect(str.includes('a'));
-    };
+const loop = await createLoop(
+  {
+    gc,
+    hrtime,
   },
-});
+  {
+    fn: () => {
+      const str = '' + Math.random();
+      return () => {
+        createSideEffect(str.includes('a'));
+      };
+    },
+  },
+);
 warmupLoop(loop);
 
 /**
@@ -25,3 +29,5 @@ warmupLoop(loop);
 const runs = [];
 loop(runs, [], []);
 print('runs', runs, 4096);
+
+console.log(loop.toString());
