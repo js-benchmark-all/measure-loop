@@ -8,18 +8,14 @@ import { createLoop, warmupLoop } from '$';
 import { print } from '../../math.js';
 
 const loop = await createLoop(
-  {
-    gc,
-    hrtime,
+  () => {
+    const str = '' + Math.random();
+    return () => {
+      createSideEffect(str.includes('a'));
+    };
   },
-  {
-    fn: () => {
-      const str = '' + Math.random();
-      return () => {
-        createSideEffect(str.includes('a'));
-      };
-    },
-  },
+  gc,
+  hrtime,
 );
 warmupLoop(loop);
 

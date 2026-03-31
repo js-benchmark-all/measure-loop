@@ -3,19 +3,18 @@ An accurate, runtime-agnostic measure loop for benchmarking purposes.
 
 ## Usage
 ```ts
-import { gc } from 'measure-loop/detect/gc';
-import { hrtime } from 'measure-loop/detect/hrtime';
+import { gc } from 'measure-loop/detect/gc'; // Auto detect available sync GC function
+import { hrtime } from 'measure-loop/detect/hrtime'; // Auto detect available hrtime function
 
 import { createSideEffect } from 'measure-loop/side-effect';
 import { createLoop, warmupLoop } from 'measure-loop';
 
 const loop = await createLoop(
-  { gc, hrtime },
-  {
-    fn: () => {
-      createSideEffect(performance.now());
-    }
-  }
+  () => {
+    createSideEffect(performance.now());
+  },
+  gc,
+  hrtime
 );
 warmupLoop(loop);
 
@@ -35,6 +34,35 @@ deno run --v8-flags=--expose-gc bench.ts
 ...
 ```
 
+To collect GC time:
+```ts
+import { gc } from 'measure-loop/detect/gc';
+import { hrtime } from 'measure-loop/detect/hrtime';
+import { detectHeapUsage } from 'measure-loop/detect/heap-usage';
+
+import { createSideEffect } from 'measure-loop/side-effect';
+import { createLoop, warmupLoop } from 'measure-loop';
+
+const loop = await createLoop(
+  () => {
+    createSideEffect(performance.now());
+  },
+  gc,
+  hrtime,
+  { measureGC: true }
+);
+warmupLoop(loop);
+
+// Run and collect timings
+const runs: number[] = [];
+const gcs: number[] = [];
+
+loop(runs, gcs, []);
+
+console.log('runs:', runs);
+console.log('gcs:', gcs);
+```
+
 To collect heap usage:
 ```ts
 import { gc } from 'measure-loop/detect/gc';
@@ -45,14 +73,13 @@ import { createSideEffect } from 'measure-loop/side-effect';
 import { createLoop, warmupLoop } from 'measure-loop';
 
 const loop = await createLoop(
-  {
-    gc, hrtime,
-    heapUsage: await detectHeapUsage()
+  () => {
+    createSideEffect(performance.now());
   },
+  gc,
+  hrtime,
   {
-    fn: () => {
-      createSideEffect(performance.now());
-    }
+    heapUsage: await detectHeapUsage()
   }
 );
 warmupLoop(loop);
@@ -70,19 +97,19 @@ Note that collecting heap usage can increase variation of other samples.
 
 ## Other options
 ```ts
-await createLoop({ ... }, {
-  // Whether to collect GC timings
-  measureGC: false,
+await createLoop(
+  ...,
+  {
+    // Number of calls in an iteration
+    batch: 4096,
 
-  // Number of calls in an iteration
-  batch: 4096,
+    // Calls to inline
+    inlineCalls: 4
 
-  // Calls to inline
-  inlineCalls: 4
-
-  // With batch = 4097 and inlineCalls = 4:
-  // for (let i = 0; i < 1024; i++){fn();fn();fn();fn()}fn();
-});
+    // With batch = 4097 and inlineCalls = 4:
+    // for (let i=0;i<1024;i++){fn();fn();fn();fn()}fn();
+  }
+);
 
 // Warmup the loop, stops when running time > threshold and total iterations > iters
 warmupLoop(loop, threshold?, iters?);

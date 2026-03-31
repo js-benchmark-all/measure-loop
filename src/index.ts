@@ -1,34 +1,12 @@
 type MaybePromise<T> = T | Promise<T>;
 export type BenchFn = () => MaybePromise<void | (() => MaybePromise<void>)>;
 
-export interface EnvOptions {
-  /**
-   * @returns A high resolution timestamp in nanosecond.
-   */
-  hrtime: () => number;
-
-  /**
-   * @returns Current heap usage in bytes.
-   */
-  heapUsage?: () => number;
-
-  /**
-   * Run garbage collection **synchronously**.
-   */
-  gc: () => void;
-}
-
 /**
  * Loop options.
  *
  * Warmup stops when exceeded **both** `warmupIters` and `warmupThreshold`.
  */
-export interface LoopOptions<F extends BenchFn = BenchFn> {
-  /**
-   * Function to benchmark.
-   */
-  fn: F;
-
+export interface LoopOptions {
   /**
    * Number of calls in an iteration. Defaults to `4096`.
    */
@@ -40,9 +18,14 @@ export interface LoopOptions<F extends BenchFn = BenchFn> {
   inlineCalls?: number;
 
   /**
-   * Whether to collect GC timings. Defaults to `true`.
+   * Whether to collect GC timings. Defaults to `false`.
    */
   measureGC?: boolean;
+
+  /**
+   * @returns Current heap usage in bytes.
+   */
+  heapUsage?: () => number;
 }
 
 /**
@@ -91,11 +74,15 @@ export const warmupLoop = <T extends Loop | AsyncLoop>(
  * Create a benchmark loop.
  */
 export const createLoop: <const F extends BenchFn>(
-  env: EnvOptions,
-  options: LoopOptions<F>,
+  fn: BenchFn,
+  gc: () => void,
+  hrtime: () => number,
+  options?: LoopOptions,
 ) => Promise<ReturnType<F> extends Promise<any> | (() => Promise<any>) ? AsyncLoop : Loop> = async (
-  { hrtime, heapUsage, gc },
-  { fn, batch = 4096, inlineCalls = 4, measureGC },
+  fn,
+  gc,
+  hrtime,
+  { batch = 4096, inlineCalls = 4, measureGC, heapUsage } = {},
 ) => {
   let isFnAsync: boolean,
     hasParam = false,
