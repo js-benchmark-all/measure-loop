@@ -1,6 +1,9 @@
-import { globSync } from 'node:fs';
+import { globSync, createWriteStream } from 'node:fs';
 import { join } from 'node:path';
 import { fmt } from '../../scripts/lib/fmt.ts';
+
+process.argv[2] &&
+  process.stdout.pipe(createWriteStream(join(import.meta.dirname, process.argv[2])));
 
 const cwd = join(import.meta.dirname, 'src');
 const options = {
