@@ -119,63 +119,63 @@ export const createLoop: <const F extends BenchFn>(
   const isLoopAsync = isFnAsync || isParamAsync;
 
   // Build loop
-  let content = `return${
+  let content = `{let{0:${constants.FN_HRTIME},1:${constants.FN_HEAP},2:${constants.FN_GC},3:${constants.FN}}=__measure_loop_dat__;${
     // Whether the loop needs to be async
     isLoopAsync ? ' async' : ''
-  }(runs,gcs,heaps,threshold=${924_000_000 * (noHeap ? 1 : 1.1)},iters_remain=12)=>{for(let time_min=hrtime()+threshold${
-    hasParam ? `,fns=new Array(${batch})` : ''
-  };iters_remain>0||hrtime()<time_min;iters_remain--){${
+  }(${constants.SAMPLES},${constants.GCS},${constants.HEAPS},${constants.THRESHOLD}=${924_000_000 * (noHeap ? 1 : 1.1)},${constants.MIN_ITERS}=12)=>{${constants.THRESHOLD}+=${constants.HRTIME};for(${
+    // Store dynamic params
+    hasParam ? `let ${constants.PARAMS}=new Array(${batch})` : ''
+  };${constants.MIN_ITERS}>0||${constants.HRTIME}<${constants.THRESHOLD};${constants.MIN_ITERS}--){${
     // Compute params
     hasParam
-      ? `{let hrtime_s=hrtime();for(let i=0;i<${batch};i++)fns[i]=fn();${isParamAsync ? 'fns=await Promise.all(fns);' : ''}time_min+=hrtime()-hrtime_s}`
+      ? `{${constants.HRTIME_MARK_START}for(let i=0;i<${batch};i++)${constants.PARAMS}[i]=${constants.FN}();${
+          // Compute concurrently
+          isParamAsync ? `${constants.PARAMS}=await Promise.all(${constants.PARAMS});` : ''
+        }${constants.HRTIME_MARK_END}${constants.THRESHOLD}+=${constants.HRTIME_DIFF}}`
       : ''
-  }gc();let ${
+  }${constants.RUN_GC}${
     // Start timings
-    noHeap ? '' : 'heap=heapUsage(),'
-  }hrtime_s=hrtime();`;
+    noHeap ? '' : `let ${constants.HEAP_TMP}=${constants.HEAP};`
+  }${constants.HRTIME_MARK_START}`;
 
   // Setup calls
   {
-    let remainingCalls = batch % inlineCalls;
+    const remainingCalls = batch % inlineCalls;
 
     if (hasParam) {
-      const prefix = isFnAsync ? 'await fns[' : 'fns[';
+      const prefix = isFnAsync ? `await ${constants.PARAMS}[` : `${constants.PARAMS}[`;
+      for (let i = 0; i < remainingCalls; i++) content += prefix + i + ']();';
 
       if (inlineCalls <= batch) {
-        content += `for(let i=0;i<${(batch - remainingCalls) / inlineCalls};i++){${prefix}i]()`;
+        content += `for(let i=${remainingCalls};i<${batch};i+=${inlineCalls}){${prefix}i]()`;
         for (let i = 1, callPrefix = `;${prefix}i+`; i < inlineCalls; i++)
           content += callPrefix + i + ']()';
         content += '}';
       }
-
-      for (let i = batch - remainingCalls; i < batch; i++) content += prefix + i + ']();';
     } else {
-      const call = isFnAsync ? 'await fn();' : 'fn();';
+      const call = isFnAsync ? `await ${constants.FN}();` : `${constants.FN}();`;
+      remainingCalls > 0 && (content += call.repeat(remainingCalls));
       content += `for(let i=0;i<${(batch - remainingCalls) / inlineCalls};i++){${call.repeat(inlineCalls)}}`;
-
-      while (remainingCalls-- > 0) content += call;
     }
   }
 
   // Compute results
-  const hrtimeRes = batch > 1 ? `(hrtime_e-hrtime_s)/${batch}` : 'hrtime_e-hrtime_s';
-  content += `let hrtime_e=hrtime();runs.push(${hrtimeRes});${
-    // Stop tracking heap usage
-    noHeap
-      ? ''
-      : `heap=heapUsage()-heap;heaps.push(heap>0?${batch > 1 ? `heap/${batch}` : 'heap'}:0);`
-  }${
-    // Whether to measure iteration GC
-    measureGC ? `hrtime_s=hrtime();gc();hrtime_e=hrtime();gcs.push(${hrtimeRes});` : ''
-  }}}`;
+  const hrtimeRes = batch > 1 ? `(${constants.HRTIME_DIFF})/${batch}` : constants.HRTIME_DIFF;
+  content += `${constants.HRTIME_MARK_END + constants.SAMPLES}.push(${hrtimeRes})`;
 
-  const loop: Loop | AsyncLoop = Function(
-    'hrtime',
-    'heapUsage',
-    'gc',
-    'fn',
-    content,
-  )(hrtime, heapUsage, gc, fn);
+  // Store heap usage
+  noHeap ||
+    (content += `;${constants.HEAP_TMP}=${constants.HEAP}-${constants.HEAP_TMP};${constants.HEAPS}.push(${constants.HEAP_TMP}>0?${batch > 1 ? `${constants.HEAP_TMP}/${batch}` : constants.HEAP_TMP}:0)`);
 
-  return loop as any;
+  // Measure gc time
+  measureGC &&
+    (content += `;{${constants.HRTIME_MARK_START + constants.RUN_GC + constants.HRTIME_MARK_END + constants.GCS}.push(${hrtimeRes})}`);
+
+  // @ts-ignore
+  globalThis.__measure_loop_dat__ = [hrtime, heapUsage, gc, fn];
+  const loop = (0, eval)(content + '}}}');
+  // @ts-ignore
+  delete globalThis.__measure_loop_dat__;
+
+  return loop;
 };

@@ -1,6 +1,8 @@
 import { LIB, SOURCE } from './lib/constants.ts';
 import { fmt } from './lib/fmt.ts';
 
+import * as constants from '../src/constants.ts';
+
 export const test: import('./lib/test.ts').Config = {
   bun: {
     args: {
@@ -30,6 +32,13 @@ export const build: import('./lib/build.ts').Config = {
       },
     },
     lang: 'ts',
+    define: Object.fromEntries(
+      Object.entries(constants).map(
+        (entry) => (
+          (entry[0] = 'constants.' + entry[0]), (entry[1] = JSON.stringify(entry[1]) as any), entry
+        ),
+      ),
+    ),
   },
   minify: {
     compress: {
