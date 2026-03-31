@@ -4,84 +4,84 @@
 ## string-includes/tinybench
 
 ### runs
-- runtime: 3284.4ms
-- samples: 1259377
-- runs: 1259377
-- mean: 79.4ns
-- variation: 73.42%
-
-## string-includes/mitata
-
-### runs
-- runtime: 1570.88ms
-- samples: 199
-- runs: 815104
-- mean: 24ns
-- variation: 30.52%
+- runtime: 3254.02ms
+- samples: 1923892
+- runs: 1923892
+- mean: 51.98ns
+- variation: 224.38%
 
 ## string-includes/measure-loop
 
 ### runs
-- runtime: 1252.35ms
-- samples: 240
-- runs: 983040
-- mean: 26.92ns
-- variation: 54.44%
+- runtime: 1217.93ms
+- samples: 268
+- runs: 1097728
+- mean: 31.21ns
+- variation: 24.32%
+
+## string-includes/mitata
+
+### runs
+- runtime: 1538.32ms
+- samples: 224
+- runs: 917504
+- mean: 26.34ns
+- variation: 60.57%
 
 # deno
 
 ## string-includes/tinybench
 
 ### runs
-- runtime: 1813.19ms
-- samples: 707315
-- runs: 707315
-- mean: 141.38ns
-- variation: 3389.21%
+- runtime: 1817.31ms
+- samples: 1015866
+- runs: 1015866
+- mean: 98.44ns
+- variation: 145.06%
 
 ## string-includes/mitata
 
 ### runs
-- runtime: 1453.14ms
-- samples: 131
-- runs: 536576
-- mean: 44.47ns
-- variation: 59.01%
+- runtime: 1457.41ms
+- samples: 149
+- runs: 610304
+- mean: 45.08ns
+- variation: 52.89%
 
 ## string-includes/measure-loop
 
 ### runs
-- runtime: 1115.01ms
-- samples: 169
-- runs: 692224
-- mean: 43.92ns
-- variation: 48.66%
+- runtime: 1106.13ms
+- samples: 198
+- runs: 811008
+- mean: 52.85ns
+- variation: 42.64%
 
 # bun
-
-## string-includes/mitata
-
-### runs
-- runtime: 1590.29ms
-- samples: 310
-- runs: 1269760
-- mean: 63.32ns
-- variation: 22.28%
 
 ## string-includes/tinybench
 
 ### runs
-- runtime: 2307.54ms
-- samples: 1154388
-- runs: 1154388
-- mean: 86.63ns
-- variation: 60.64%
+- runtime: 2507.13ms
+- samples: 1716085
+- runs: 1716085
+- mean: 58.27ns
+- variation: 434.33%
+
+## string-includes/mitata
+
+### runs
+- runtime: 1559.19ms
+- samples: 348
+- runs: 1425408
+- mean: 56.72ns
+- variation: 17.29%
 
 ## string-includes/measure-loop
 
 ### runs
-- runtime: 1238.17ms
-- samples: 379
-- runs: 1552384
-- mean: 62.36ns
-- variation: 18.31%
+- runtime: 1175.8ms
+- samples: 404
+- runs: 1654784
+- mean: 53.45ns
+- variation: 28.56%

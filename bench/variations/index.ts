@@ -36,6 +36,8 @@ for (const runnerName in RUNNERS) {
   for (const file of files) {
     console.log(fmt.pc.bold(`\n## ${file.slice(0, -3)}`));
 
+    Bun.gc(true);
+
     // @ts-ignore
     RUNNERS[runnerName](file);
   }

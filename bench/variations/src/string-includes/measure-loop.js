@@ -29,5 +29,3 @@ warmupLoop(loop);
 const runs = [];
 loop(runs, [], []);
 print('runs', runs, 4096);
-
-console.log(loop.toString());
