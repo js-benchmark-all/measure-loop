@@ -108,7 +108,7 @@ export const createLoop: <const F extends BenchFn>(
   // Build loop
   let content = `{let{0:${constants.FN_HRTIME},1:${constants.FN_HEAP},2:${constants.FN_GC},3:${constants.FN}}=__measure_loop_dat__;${
     // Whether the loop needs to be async
-    isLoopAsync ? ' async' : ''
+    isLoopAsync ? 'async' : ''
   }(${constants.SAMPLES},${constants.GCS},${constants.HEAPS},${constants.THRESHOLD}=${924_000_000 * (noHeap ? 1 : 1.1)},${constants.MIN_ITERS}=12)=>{${constants.THRESHOLD}+=${constants.HRTIME};for(${
     // Store dynamic params
     hasParam ? `let ${constants.PARAMS}=new Array(${batch})` : ''
@@ -152,7 +152,7 @@ export const createLoop: <const F extends BenchFn>(
 
   // Store heap usage
   noHeap ||
-    (content += `;${constants.HEAP_TMP}=${constants.HEAP}-${constants.HEAP_TMP};${constants.HEAPS}.push(${constants.HEAP_TMP}>0?${batch > 1 ? `${constants.HEAP_TMP}/${batch}` : constants.HEAP_TMP}:0)`);
+    (content += `;${constants.HEAP_TMP}=${constants.HEAP}-${constants.HEAP_TMP};${constants.HEAPS}.push(${constants.HEAP_TMP}>0?${batch > 1 ? `${constants.HEAP_TMP}/` + batch : constants.HEAP_TMP}:0)`);
 
   // Measure gc time
   measureGC &&

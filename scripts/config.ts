@@ -47,8 +47,6 @@ export const build: import('./lib/build.ts').Config = {
       dead_code: true,
       const_to_let: true,
       conditionals: true,
-      booleans: true,
-      drop_debugger: true,
       evaluate: true,
       join_vars: true,
       inline: 3,

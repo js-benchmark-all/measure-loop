@@ -48,6 +48,8 @@ export interface Config {
 // MAIN
 //
 export const buildSourceSync = (dev: boolean, autoUpdatePkg: boolean, pathFromSource: string) => {
+  if (pathFromSource === 'globals.d.ts' || pathFromSource === 'constants.ts') return;
+
   let time = Bun.nanoseconds();
 
   const fullPath = join(SOURCE, pathFromSource);
