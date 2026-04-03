@@ -1,4 +1,4 @@
-import { print } from "./env/print.ts";
+import { print } from './env/print.ts';
 
 let $ = () => print($);
 /**
