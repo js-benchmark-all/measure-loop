@@ -1,6 +1,11 @@
 type MaybePromise<T> = T | Promise<T>;
 export type BenchFn = () => MaybePromise<void | (() => MaybePromise<void>)>;
 
+export interface LoopResult {
+  runtimes: number[];
+  gcs: number[];
+}
+
 /**
  * Loop options.
  *
@@ -22,72 +27,38 @@ export interface LoopOptions {
    */
   measureGC?: boolean;
 
-  /**
-   * @returns Current heap usage in bytes.
-   */
-  heapUsage?: () => number;
+  threshold?: number;
+  iters?: number;
+
+  warmupThreshold?: number;
+  warmupIters?: number;
 }
 
 /**
- * Describe a sync benchmark loop.
- *
- * The loop stops when exceeded **both** `iters` and `threshold`.
- *
- * @param threshold in nanosecond.
+ * Benchmark a function
  */
-export type Loop = (
-  runs: number[],
-  gcs: number[],
-  heaps: number[],
-  threshold?: number,
-  iters?: number,
-) => void;
-
-/**
- * Describe an async benchmark loop.
- *
- * The loop stops when exceeded **both** `iters` and `threshold`.
- *
- * @param threshold in nanosecond.
- */
-export type AsyncLoop = (
-  runs: number[],
-  gcs: number[],
-  heaps: number[],
-  threshold?: number,
-  iters?: number,
-) => Promise<void>;
-
-/**
- * Warmup a loop
- * @param loop
- * @param threshold
- * @param iters
- */
-export const warmupLoop = <T extends Loop | AsyncLoop>(
-  loop: T,
-  threshold?: number,
-  iters?: number,
-): T extends Loop ? void : Promise<void> => loop([], [], [], threshold ?? 5e5, iters ?? 2) as any;
-
-/**
- * Create a benchmark loop.
- */
-export const createLoop: <const F extends BenchFn>(
+export const measure: (
   fn: BenchFn,
   gc: () => void,
   hrtime: () => number,
   options?: LoopOptions,
-) => Promise<ReturnType<F> extends Promise<any> | (() => Promise<any>) ? AsyncLoop : Loop> = async (
+) => Promise<LoopResult> = async (
   fn,
   gc,
   hrtime,
-  { batch = 4096, inlineCalls = 4, measureGC, heapUsage } = {},
+  {
+    batch = 4096,
+    inlineCalls = 4,
+    measureGC,
+    threshold = 924e6,
+    iters = 12,
+    warmupThreshold = 5e5,
+    warmupIters = 2,
+  } = {},
 ) => {
   let isFnAsync: boolean,
     hasParam = false,
-    isParamAsync = false,
-    noHeap = heapUsage == null;
+    isParamAsync = false;
 
   // Detect async
   {
@@ -106,10 +77,10 @@ export const createLoop: <const F extends BenchFn>(
   const isLoopAsync = isFnAsync || isParamAsync;
 
   // Build loop
-  let content = `{let{0:${constants.FN_HRTIME},1:${constants.FN_HEAP},2:${constants.FN_GC},3:${constants.FN}}=__measure_loop_dat__;${
+  let content = `{let{0:${constants.FN_HRTIME},1:${constants.FN_GC},2:${constants.FN}}=__measure_loop_dat__;${
     // Whether the loop needs to be async
     isLoopAsync ? 'async' : ''
-  }(${constants.SAMPLES},${constants.GCS},${constants.HEAPS},${constants.THRESHOLD}=${924_000_000 * (noHeap ? 1 : 1.1)},${constants.MIN_ITERS}=12)=>{${constants.THRESHOLD}+=${constants.HRTIME};for(${
+  }(${constants.THRESHOLD},${constants.MIN_ITERS})=>{let runtimes=[],gcs=[];${constants.THRESHOLD}+=${constants.HRTIME};for(${
     // Store dynamic params
     hasParam ? `let ${constants.PARAMS}=new Array(${batch})` : ''
   };${constants.MIN_ITERS}>0||${constants.HRTIME}<${constants.THRESHOLD};${constants.MIN_ITERS}--){${
@@ -120,10 +91,7 @@ export const createLoop: <const F extends BenchFn>(
           isParamAsync ? `${constants.PARAMS}=await Promise.all(${constants.PARAMS});` : ''
         }${constants.HRTIME_MARK_END}${constants.THRESHOLD}+=${constants.HRTIME_DIFF}}`
       : ''
-  }${constants.RUN_GC}${
-    // Start timings
-    noHeap ? '' : `let ${constants.HEAP_TMP}=${constants.HEAP};`
-  }${constants.HRTIME_MARK_START}`;
+  }${constants.RUN_GC + constants.HRTIME_MARK_START}`;
 
   // Setup calls
   {
@@ -148,21 +116,18 @@ export const createLoop: <const F extends BenchFn>(
 
   // Compute results
   const hrtimeRes = batch > 1 ? `(${constants.HRTIME_DIFF})/${batch}` : constants.HRTIME_DIFF;
-  content += `${constants.HRTIME_MARK_END + constants.SAMPLES}.push(${hrtimeRes})`;
-
-  // Store heap usage
-  noHeap ||
-    (content += `;${constants.HEAP_TMP}=${constants.HEAP}-${constants.HEAP_TMP};${constants.HEAPS}.push(${constants.HEAP_TMP}>0?${batch > 1 ? `${constants.HEAP_TMP}/` + batch : constants.HEAP_TMP}:0)`);
+  content += `${constants.HRTIME_MARK_END}runtimes.push(${hrtimeRes})`;
 
   // Measure gc time
   measureGC &&
-    (content += `;{${constants.HRTIME_MARK_START + constants.RUN_GC + constants.HRTIME_MARK_END + constants.GCS}.push(${hrtimeRes})}`);
+    (content += `;{${constants.HRTIME_MARK_START + constants.RUN_GC + constants.HRTIME_MARK_END}gcs.push(${hrtimeRes})}`);
 
   // @ts-ignore
-  globalThis.__measure_loop_dat__ = [hrtime, heapUsage, gc, fn];
-  const loop = (0, eval)(content + '}}}');
+  globalThis.__measure_loop_dat__ = [hrtime, gc, fn];
+  const loop = (0, eval)(content + `}return{runtimes,gcs}}}`);
   // @ts-ignore
   delete globalThis.__measure_loop_dat__;
 
-  return loop;
+  isLoopAsync ? await loop(warmupThreshold, warmupIters) : loop(warmupThreshold, warmupIters);
+  return loop(threshold, iters);
 };

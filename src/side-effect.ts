@@ -1,10 +1,12 @@
-import { print } from './detect/print.ts';
-
-let $: any;
+const sym: never[] = [];
 /**
  * Prevent a value from being optimized out.
  */
 export const createSideEffect = (v: any): void => {
-  $ = v;
+  if (v === sym)
+    throw v;
 };
-$ = () => print($);
+
+try {
+  createSideEffect(sym);
+} catch {}

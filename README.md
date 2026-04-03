@@ -3,25 +3,21 @@ An accurate, runtime-agnostic measure loop for benchmarking purposes.
 
 ## Usage
 ```ts
-import { gc } from 'measure-loop/detect/gc'; // Auto detect available sync GC function
-import { hrtime } from 'measure-loop/detect/hrtime'; // Auto detect available hrtime function
+import { gc, hrtime } from 'measure-loop/env'; // Auto detect available functions
 
-import { createSideEffect } from 'measure-loop/side-effect';
-import { createLoop, warmupLoop } from 'measure-loop';
+import { createSideEffect } from 'measure-loop/side-effect'; // Avoid calls from being optimized out
+import { measure } from 'measure-loop/measure';
 
-const loop = await createLoop(
+const result = await measure(
   () => {
     createSideEffect(performance.now());
   },
   gc,
   hrtime
 );
-warmupLoop(loop);
 
 // Run and collect timings
-const runs: number[] = [];
-loop(runs, [], []);
-console.log('runs:', runs);
+console.log('runtimes:', result.runtimes);
 ```
 
 To run:
@@ -36,14 +32,12 @@ deno run --v8-flags=--expose-gc bench.ts
 
 To collect GC time:
 ```ts
-import { gc } from 'measure-loop/detect/gc';
-import { hrtime } from 'measure-loop/detect/hrtime';
-import { detectHeapUsage } from 'measure-loop/detect/heap-usage';
+import { gc, hrtime } from 'measure-loop/env';
 
 import { createSideEffect } from 'measure-loop/side-effect';
-import { createLoop, warmupLoop } from 'measure-loop';
+import { measure } from 'measure-loop/measure';
 
-const loop = await createLoop(
+const result = await measure(
   () => {
     createSideEffect(performance.now());
   },
@@ -51,53 +45,14 @@ const loop = await createLoop(
   hrtime,
   { measureGC: true }
 );
-warmupLoop(loop);
 
-// Run and collect timings
-const runs: number[] = [];
-const gcs: number[] = [];
-
-loop(runs, gcs, []);
-
-console.log('runs:', runs);
-console.log('gcs:', gcs);
+console.log('runtimes:', result.runtimes);
+console.log('gcs:', result.gcs);
 ```
 
-To collect heap usage:
+Other options and their defaults.
 ```ts
-import { gc } from 'measure-loop/detect/gc';
-import { hrtime } from 'measure-loop/detect/hrtime';
-import { detectHeapUsage } from 'measure-loop/detect/heap-usage';
-
-import { createSideEffect } from 'measure-loop/side-effect';
-import { createLoop, warmupLoop } from 'measure-loop';
-
-const loop = await createLoop(
-  () => {
-    createSideEffect(performance.now());
-  },
-  gc,
-  hrtime,
-  {
-    heapUsage: await detectHeapUsage()
-  }
-);
-warmupLoop(loop);
-
-// Run and collect timings
-const runs: number[] = [];
-const heaps: number[] = [];
-
-loop(runs, [], heaps);
-
-console.log('runs:', runs);
-console.log('heaps:', heaps);
-```
-Note that collecting heap usage can increase variation of other samples.
-
-## Other options
-```ts
-await createLoop(
+await measure(
   ...,
   {
     // Number of calls in an iteration
@@ -110,9 +65,6 @@ await createLoop(
     // for (let i=0;i<1024;i++){fn();fn();fn();fn()}fn();
   }
 );
-
-// Warmup the loop, stops when running time > threshold and total iterations > iters
-warmupLoop(loop, threshold?, iters?);
 ```
 
 The loop implementation is based on [mitata](https://github.com/evanwashere/mitata). Check it out it's a good library :).
