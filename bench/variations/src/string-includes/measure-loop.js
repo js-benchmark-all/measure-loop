@@ -1,13 +1,11 @@
 // @ts-check
-import { gc } from '$/detect/gc';
-import { hrtime } from '$/detect/hrtime';
+import { gc, hrtime } from '$/env';
 import { createSideEffect } from '$/side-effect';
-
-import { createLoop, warmupLoop } from '$';
+import { measure } from '$/measure';
 
 import { print } from '../../math.js';
 
-const loop = await createLoop(
+const result = await measure(
   () => {
     const str = '' + Math.random();
     return () => {
@@ -17,11 +15,5 @@ const loop = await createLoop(
   gc,
   hrtime,
 );
-warmupLoop(loop);
 
-/**
- * @type {number[]}
- */
-const runs = [];
-loop(runs, [], []);
-print('runs', runs, 4096);
+print('runs', result.runtimes, 4096);

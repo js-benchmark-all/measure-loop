@@ -1,5 +1,5 @@
 import pc from 'picocolors';
-import { hrtime } from '$/detect/hrtime';
+import { hrtime } from '$/env';
 
 export const math = {
   /**
