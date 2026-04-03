@@ -4,84 +4,84 @@
 ## string-includes/tinybench
 
 ### runs
-- runtime: 3254.02ms
-- samples: 1923892
-- runs: 1923892
-- mean: 51.98ns
-- variation: 224.38%
-
-## string-includes/measure-loop
-
-### runs
-- runtime: 1217.93ms
-- samples: 268
-- runs: 1097728
-- mean: 31.21ns
-- variation: 24.32%
+- runtime: 3294.7ms
+- samples: 1942500
+- runs: 1942500
+- mean: 51.48ns
+- variation: 510.11%
 
 ## string-includes/mitata
 
 ### runs
-- runtime: 1538.32ms
-- samples: 224
-- runs: 917504
-- mean: 26.34ns
-- variation: 60.57%
+- runtime: 1566.28ms
+- samples: 227
+- runs: 929792
+- mean: 47.67ns
+- variation: 42.83%
+
+## string-includes/measure-loop
+
+### runs
+- runtime: 1218.4ms
+- samples: 264
+- runs: 1081344
+- mean: 32.55ns
+- variation: 18.81%
 
 # deno
 
 ## string-includes/tinybench
 
 ### runs
-- runtime: 1817.31ms
-- samples: 1015866
-- runs: 1015866
-- mean: 98.44ns
-- variation: 145.06%
+- runtime: 1832.54ms
+- samples: 991754
+- runs: 991754
+- mean: 100.83ns
+- variation: 4347.02%
 
 ## string-includes/mitata
 
 ### runs
-- runtime: 1457.41ms
-- samples: 149
-- runs: 610304
-- mean: 45.08ns
-- variation: 52.89%
+- runtime: 1449.65ms
+- samples: 148
+- runs: 606208
+- mean: 46.53ns
+- variation: 38.61%
 
 ## string-includes/measure-loop
 
 ### runs
-- runtime: 1106.13ms
-- samples: 198
-- runs: 811008
-- mean: 52.85ns
-- variation: 42.64%
+- runtime: 1103.81ms
+- samples: 200
+- runs: 819200
+- mean: 48.2ns
+- variation: 34.49%
 
 # bun
+
+## string-includes/measure-loop
+
+### runs
+- runtime: 1178.57ms
+- samples: 401
+- runs: 1642496
+- mean: 53.4ns
+- variation: 27.18%
+
+## string-includes/mitata
+
+### runs
+- runtime: 1547.09ms
+- samples: 345
+- runs: 1413120
+- mean: 55.05ns
+- variation: 20.91%
 
 ## string-includes/tinybench
 
 ### runs
-- runtime: 2507.13ms
-- samples: 1716085
-- runs: 1716085
-- mean: 58.27ns
-- variation: 434.33%
-
-## string-includes/mitata
-
-### runs
-- runtime: 1559.19ms
-- samples: 348
-- runs: 1425408
-- mean: 56.72ns
-- variation: 17.29%
-
-## string-includes/measure-loop
-
-### runs
-- runtime: 1175.8ms
-- samples: 404
-- runs: 1654784
-- mean: 53.45ns
-- variation: 28.56%
+- runtime: 2483.09ms
+- samples: 1823041
+- runs: 1823041
+- mean: 54.85ns
+- variation: 96.62%
