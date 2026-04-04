@@ -1,17 +1,15 @@
-type MaybePromise<T> = T | Promise<T>;
-export type BenchFn = () => MaybePromise<void | (() => MaybePromise<void>)>;
+export type BenchFnResult = void | (() => void | Promise<void>);
+export type BenchFn = () => BenchFnResult | Promise<BenchFnResult>;
 
-export interface LoopResult {
+export interface MeasureResult {
   runtimes: number[];
   gcs: number[];
 }
 
 /**
- * Loop options.
- *
- * Warmup stops when exceeded **both** `warmupIters` and `warmupThreshold`.
+ * Describe measure options.
  */
-export interface LoopOptions {
+export interface MeasureOptions {
   /**
    * Number of calls in an iteration. Defaults to `4096`.
    */
@@ -27,22 +25,41 @@ export interface LoopOptions {
    */
   measureGC?: boolean;
 
+  /**
+   * Min time to run the benchmark.
+   */
   threshold?: number;
+
+  /**
+   * Min benchmark iterations.
+   */
   iters?: number;
 
+  /**
+   * Min time to warmup the benchmark.
+   */
   warmupThreshold?: number;
+
+  /**
+   * Min warmup iterations.
+   */
   warmupIters?: number;
+
+  /**
+   * Min sample count.
+   */
+  samples?: number;
 }
 
 /**
- * Benchmark a function
+ * Benchmark a function.
  */
 export const measure: (
   fn: BenchFn,
   gc: () => void,
   hrtime: () => number,
-  options?: LoopOptions,
-) => Promise<LoopResult> = async (
+  options?: MeasureOptions,
+) => Promise<MeasureResult> = async (
   fn,
   gc,
   hrtime,
@@ -54,6 +71,7 @@ export const measure: (
     iters = 12,
     warmupThreshold = 5e5,
     warmupIters = 2,
+    samples = 100,
   } = {},
 ) => {
   let isFnAsync: boolean,
@@ -83,7 +101,7 @@ export const measure: (
   }(${constants.THRESHOLD},${constants.MIN_ITERS})=>{let runtimes=[],gcs=[];${constants.THRESHOLD}+=${constants.HRTIME};for(${
     // Store dynamic params
     hasParam ? `let ${constants.PARAMS}=new Array(${batch})` : ''
-  };${constants.MIN_ITERS}>0||${constants.HRTIME}<${constants.THRESHOLD};${constants.MIN_ITERS}--){${
+  };${constants.MIN_ITERS}>0||${constants.HRTIME}<${constants.THRESHOLD}||runtimes.length<${samples};${constants.MIN_ITERS}--){${
     // Compute params
     hasParam
       ? `{${constants.HRTIME_MARK_START}for(let i=0;i<${batch};i++)${constants.PARAMS}[i]=${constants.FN}();${
