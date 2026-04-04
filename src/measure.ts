@@ -46,7 +46,7 @@ export interface MeasureOptions {
   warmupIters?: number;
 
   /**
-   * Min sample count.
+   * Min samples count.
    */
   samples?: number;
 }
