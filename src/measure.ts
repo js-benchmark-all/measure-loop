@@ -105,9 +105,9 @@ export const measure: (
     // Compute params
     hasParam
       ? `${
-        // Store async params separately to avoid type deopt
-        isParamAsync ? `let ${constants.ASYNC_PARAMS};` : ''
-      }{${constants.HRTIME_MARK_START}for(let i=0;i<${batch};i++)${constants.PARAMS}[i]=${constants.FN}();${
+          // Store async params separately to avoid type deopt
+          isParamAsync ? `let ${constants.ASYNC_PARAMS};` : ''
+        }{${constants.HRTIME_MARK_START}for(let i=0;i<${batch};i++)${constants.PARAMS}[i]=${constants.FN}();${
           // Compute concurrently
           isParamAsync ? `${constants.ASYNC_PARAMS}=await Promise.all(${constants.PARAMS});` : ''
         }${constants.HRTIME_MARK_END}${constants.THRESHOLD}+=${constants.HRTIME_DIFF}}`
@@ -131,7 +131,8 @@ export const measure: (
     } else {
       const call = isFnAsync ? `await ${constants.FN}();` : `${constants.FN}();`;
       remainingCalls > 0 && (content += call.repeat(remainingCalls));
-      content += `for(let i=0;i<${(batch - remainingCalls) / inlineCalls};i++){${call.repeat(inlineCalls)}}`;
+      inlineCalls <= batch &&
+        (content += `for(let i=0;i<${(batch - remainingCalls) / inlineCalls};i++){${call.repeat(inlineCalls)}}`);
     }
   }
 

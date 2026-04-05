@@ -8,7 +8,7 @@ export const math = {
   mean: (arr) => arr.reduce((a, b) => a + b, 0) / arr.length,
 
   /**
-   * p? percentile
+   * p? percentile.
    * @param {number[]} arr
    * @param {number} p
    */
@@ -25,7 +25,7 @@ export const math = {
   },
 
   /**
-   * Relative standard deviation
+   * Relative standard deviation.
    * @param {number[]} arr
    */
   rsd: (arr) => {
@@ -41,7 +41,7 @@ export const math = {
   /**
    * @param {number} n
    */
-  truncate: (n) => (n < 0.01 ? n : Math.round(n * 100) / 100),
+  truncate: (n) => (n < 0.01 ? n : ((n * 100 + 0.5) | 0) / 100),
 };
 
 /**

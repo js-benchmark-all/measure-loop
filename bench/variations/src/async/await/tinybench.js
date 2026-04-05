@@ -2,11 +2,10 @@
 import { createSideEffect } from '$/side-effect';
 import { Bench } from 'tinybench';
 
-import { print } from '../../math.js';
-import { DIGITS, randstring } from '../../random.js';
+import { print } from '../../../math.js';
 
-let str = '';
-createSideEffect(str);
+let p = Promise.resolve(0);
+createSideEffect(p);
 
 const bench = new Bench({
   retainSamples: true,
@@ -14,17 +13,17 @@ const bench = new Bench({
   time: 100,
 }).add(
   'task',
-  () => {
-    createSideEffect(str.includes('a'));
+  async () => {
+    createSideEffect(await p);
   },
   {
     beforeEach: () => {
-      str = randstring(DIGITS, 20);
+      p = Promise.resolve(0);
     },
   },
 );
 
-bench.runSync();
+await bench.run();
 print(
   'runs',
   // @ts-ignore

@@ -1,18 +1,17 @@
 // @ts-check
 import { measure, do_not_optimize } from 'mitata';
 
-import { print } from '../../math.js';
-import { DIGITS, randstring } from '../../random.js';
+import { print } from '../../../math.js';
 
 const result = await measure(
   function* () {
     yield {
-      0: () => randstring(DIGITS, 20),
+      0: () => Promise.resolve(0),
       /**
-       * @param {string} str
+       * @param {Promise<number>} p
        */
-      bench: (str) => {
-        do_not_optimize(str.includes('a'));
+      bench: async (p) => {
+        do_not_optimize(await p);
       },
     };
   },
