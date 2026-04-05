@@ -20,7 +20,7 @@ export interface MeasureResult {
  * Describe measure options.
  *
  * - Warmup stops when either `warmupThreshold` or `warmupIters` is reached.
- * - The run stops when either `samples`, `threshold` or `iters` is reached.
+ * - The run stops when either `threshold` or `iters` is reached.
  */
 export interface MeasureOptions {
   /**
@@ -57,11 +57,6 @@ export interface MeasureOptions {
    * Min warmup iterations.
    */
   warmupIters?: number;
-
-  /**
-   * Min samples count.
-   */
-  samples?: number;
 }
 
 /**
@@ -83,8 +78,7 @@ export const measure: (
     threshold = 924e6,
     iters = 12,
     warmupThreshold = 5e5,
-    warmupIters = 2,
-    samples = 150,
+    warmupIters = 2
   } = {},
 ) => {
   let isFnAsync: boolean,
@@ -114,7 +108,7 @@ export const measure: (
   }(${constants.THRESHOLD},${constants.MIN_ITERS})=>{let runtimes=[],gcs=[];${constants.THRESHOLD}+=${constants.HRTIME};for(${
     // Store dynamic params
     hasParam ? `let ${constants.PARAMS}=new Array(${batch})` : ''
-  };${constants.MIN_ITERS}>0||${constants.HRTIME}<${constants.THRESHOLD}||runtimes.length<${samples};${constants.MIN_ITERS}--){${
+  };${constants.MIN_ITERS}>0||${constants.HRTIME}<${constants.THRESHOLD};${constants.MIN_ITERS}--){${
     // Compute params
     hasParam
       ? `${constants.HRTIME_MARK_START}for(let i=0;i<${batch};i++)${constants.PARAMS}[i]=${constants.FN}();${

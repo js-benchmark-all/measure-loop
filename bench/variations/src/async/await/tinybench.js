@@ -25,7 +25,6 @@ const bench = new Bench({
 
 await bench.run();
 print(
-  'runs',
   // @ts-ignore
   bench.results[0].latency.samples.map((sample) => sample * 1e6),
   1,

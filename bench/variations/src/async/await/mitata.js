@@ -20,4 +20,4 @@ const result = await measure(
   },
 );
 
-print('runs', result.samples, 4096);
+print(result.samples, 4096);

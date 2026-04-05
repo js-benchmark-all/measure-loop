@@ -51,20 +51,14 @@ export const math = {
 const toFormatted = (num, unit) => pc.yellowBright(math.truncate(num) + unit);
 
 const blueDash = pc.cyanBright('-');
-let lastTime = hrtime();
 
 /**
  * @param {string} title
  * @param {number[]} runs
  * @param {number} batchSize
  */
-export const print = (title, runs, batchSize) => {
-  const currentTime = hrtime();
-
+export const print = (runs, batchSize) => {
   runs.sort((a, b) => a - b);
-
-  console.log(pc.bold('\n### ' + title));
-  console.log(blueDash, 'runtime:', toFormatted((currentTime - lastTime) / 1e6, 'ms'));
 
   console.log(blueDash, 'samples:', runs.length);
   console.log(blueDash, 'runs:', runs.length * batchSize);

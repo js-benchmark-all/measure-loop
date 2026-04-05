@@ -16,4 +16,4 @@ const result = await measure(
   hrtime,
 );
 
-print('runs', result.runtimes, 4096);
+print(result.runtimes, 4096);
