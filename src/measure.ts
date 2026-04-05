@@ -71,7 +71,7 @@ export const measure: (
     iters = 12,
     warmupThreshold = 5e5,
     warmupIters = 2,
-    samples = 100,
+    samples = 150,
   } = {},
 ) => {
   let isFnAsync: boolean,
@@ -119,7 +119,7 @@ export const measure: (
     const remainingCalls = batch % inlineCalls;
 
     if (hasParam) {
-      const prefix = isFnAsync ? `await ${constants.ASYNC_PARAMS}[` : `${constants.PARAMS}[`;
+      const prefix = `${isFnAsync ? 'await ' : ''}${isParamAsync ? constants.ASYNC_PARAMS : constants.PARAMS}[`;
       for (let i = 0; i < remainingCalls; i++) content += prefix + i + ']();';
 
       if (inlineCalls <= batch) {

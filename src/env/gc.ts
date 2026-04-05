@@ -6,7 +6,7 @@
  * hrtimeDetected || console.warn('no synchronous GC method detected!');
  * ```
  */
-export let gc: () => void;
+let gcFn: () => void;
 
 /**
  * Whether a synchronous garbage collection method is detected.
@@ -17,41 +17,41 @@ try {
   // @ts-ignore
   Bun.gc(true);
   // @ts-ignore
-  gc = () => Bun.gc(true);
+  gcFn = () => Bun.gc(true);
 } catch {
   try {
     // @ts-ignore
-    globalThis.gc();
+    gc();
     // @ts-ignore
-    gc = () => globalThis.gc();
+    gcFn = gc;
   } catch {
     try {
       // @ts-ignore
-      globalThis.__gc();
+      __gc();
       // @ts-ignore
-      gc = () => globalThis.__gc();
+      gcFn = __gc;
     } catch {
       try {
         // @ts-ignore
-        globalThis.std.gc();
+        std.gc();
         // @ts-ignore
-        gc = () => globalThis.std.gc();
+        gcFn = () => std.gc();
       } catch {
         try {
           // @ts-ignore
-          globalThis.$262.gc();
+          $262.gc();
           // @ts-ignore
-          gc = () => globalThis.$262.gc();
+          gcFn = () => $262.gc();
         } catch {
           try {
             // @ts-ignore
-            globalThis.tjs.engine.gc.run();
+            tjs.engine.gc.run();
             // @ts-ignore
-            gc = () => globalThis.tjs.engine.gc.run();
+            gcFn = () => tjs.engine.gc.run();
           } catch {
             // @ts-ignore
-            if (globalThis.Graal) gc = () => new Uint8Array(2 ** 29);
-            else gc = () => new Uint8Array(2 ** 30);
+            if (globalThis.Graal) gcFn = () => new Uint8Array(2 ** 29);
+            else gcFn = () => new Uint8Array(2 ** 30);
 
             gcDetected = false;
           }
@@ -61,4 +61,4 @@ try {
   }
 }
 
-export default gc;
+export { gcFn as gc };
