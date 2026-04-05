@@ -6,9 +6,10 @@ export const HRTIME_DIFF: string = `c-b`;
 
 export const FN = 'd';
 export const PARAMS = 'e';
+export const ASYNC_PARAMS = 'f';
 
-export const FN_GC = 'f';
-export const RUN_GC: string = 'f();';
+export const FN_GC = 'g';
+export const RUN_GC: string = 'g();';
 
-export const THRESHOLD = 'k';
-export const MIN_ITERS = 'l';
+export const THRESHOLD = 'h';
+export const MIN_ITERS = 'k';

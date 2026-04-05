@@ -104,9 +104,12 @@ export const measure: (
   };${constants.MIN_ITERS}>0||${constants.HRTIME}<${constants.THRESHOLD}||runtimes.length<${samples};${constants.MIN_ITERS}--){${
     // Compute params
     hasParam
-      ? `{${constants.HRTIME_MARK_START}for(let i=0;i<${batch};i++)${constants.PARAMS}[i]=${constants.FN}();${
+      ? `${
+        // Store async params separately to avoid type deopt
+        isParamAsync ? `let ${constants.ASYNC_PARAMS};` : ''
+      }{${constants.HRTIME_MARK_START}for(let i=0;i<${batch};i++)${constants.PARAMS}[i]=${constants.FN}();${
           // Compute concurrently
-          isParamAsync ? `${constants.PARAMS}=await Promise.all(${constants.PARAMS});` : ''
+          isParamAsync ? `${constants.ASYNC_PARAMS}=await Promise.all(${constants.PARAMS});` : ''
         }${constants.HRTIME_MARK_END}${constants.THRESHOLD}+=${constants.HRTIME_DIFF}}`
       : ''
   }${constants.RUN_GC + constants.HRTIME_MARK_START}`;
@@ -116,7 +119,7 @@ export const measure: (
     const remainingCalls = batch % inlineCalls;
 
     if (hasParam) {
-      const prefix = isFnAsync ? `await ${constants.PARAMS}[` : `${constants.PARAMS}[`;
+      const prefix = isFnAsync ? `await ${constants.ASYNC_PARAMS}[` : `${constants.PARAMS}[`;
       for (let i = 0; i < remainingCalls; i++) content += prefix + i + ']();';
 
       if (inlineCalls <= batch) {
