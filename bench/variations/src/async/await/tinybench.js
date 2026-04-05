@@ -2,7 +2,7 @@
 import { createSideEffect } from '$/side-effect';
 import { Bench } from 'tinybench';
 
-import { print } from '../../../math.js';
+import { printRuns } from '../../../result.js';
 
 let p = Promise.resolve(0);
 createSideEffect(p);
@@ -24,8 +24,7 @@ const bench = new Bench({
 );
 
 await bench.run();
-print(
+printRuns(
   // @ts-ignore
-  bench.results[0].latency.samples.map((sample) => sample * 1e6),
-  1,
+  bench.results[0].latency.samples.map((sample) => sample * 1e6)
 );

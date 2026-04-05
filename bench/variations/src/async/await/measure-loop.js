@@ -3,7 +3,7 @@ import { gc, hrtime } from '$/env';
 import { createSideEffect } from '$/side-effect';
 import { measure } from '$/measure';
 
-import { print } from '../../../math.js';
+import { printRuns } from '../../../result.js';
 
 const result = await measure(
   () => {
@@ -16,4 +16,4 @@ const result = await measure(
   hrtime,
 );
 
-print(result.runtimes, 4096);
+printRuns(result.runtimes);

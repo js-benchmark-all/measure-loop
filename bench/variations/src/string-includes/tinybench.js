@@ -2,7 +2,7 @@
 import { createSideEffect } from '$/side-effect';
 import { Bench } from 'tinybench';
 
-import { print } from '../../math.js';
+import { printRuns } from '../../result.js';
 import { DIGITS, randstring } from '../../random.js';
 
 let str = '';
@@ -25,8 +25,7 @@ const bench = new Bench({
 );
 
 bench.runSync();
-print(
+printRuns(
   // @ts-ignore
-  bench.results[0].latency.samples.map((sample) => sample * 1e6),
-  1,
+  bench.results[0].latency.samples.map((sample) => sample * 1e6)
 );

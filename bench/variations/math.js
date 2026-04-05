@@ -57,12 +57,10 @@ const blueDash = pc.cyanBright('-');
  * @param {number[]} runs
  * @param {number} batchSize
  */
-export const print = (runs, batchSize) => {
+export const print = (runs) => {
   runs.sort((a, b) => a - b);
 
   console.log(blueDash, 'samples:', runs.length);
-  console.log(blueDash, 'runs:', runs.length * batchSize);
-
   console.log(blueDash, 'mean:', toFormatted(math.mean(runs), 'ns'));
   console.log(blueDash, 'variation:', toFormatted(math.rsd(runs) * 100, '%'));
 };

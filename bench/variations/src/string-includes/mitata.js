@@ -1,7 +1,7 @@
 // @ts-check
 import { measure, do_not_optimize } from 'mitata';
 
-import { print } from '../../math.js';
+import { printRuns } from '../../result.js';
 import { DIGITS, randstring } from '../../random.js';
 
 const result = await measure(
@@ -21,4 +21,4 @@ const result = await measure(
   },
 );
 
-print(result.samples, 4096);
+printRuns(result.samples);
