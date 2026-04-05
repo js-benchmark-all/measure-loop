@@ -117,15 +117,12 @@ export const measure: (
   };${constants.MIN_ITERS}>0||${constants.HRTIME}<${constants.THRESHOLD}||runtimes.length<${samples};${constants.MIN_ITERS}--){${
     // Compute params
     hasParam
-      ? `${
-          // Store async params separately to avoid type deopt
-          isParamAsync ? `let ${constants.ASYNC_PARAMS};` : ''
-        }{${constants.HRTIME_MARK_START}for(let i=0;i<${batch};i++)${constants.PARAMS}[i]=${constants.FN}();${
+      ? `${constants.HRTIME_MARK_START}for(let i=0;i<${batch};i++)${constants.PARAMS}[i]=${constants.FN}();${
           // Compute concurrently
-          isParamAsync ? `${constants.ASYNC_PARAMS}=await Promise.all(${constants.PARAMS});` : ''
-        }${constants.HRTIME_MARK_END}${constants.THRESHOLD}+=${constants.HRTIME_DIFF}}`
+          isParamAsync ? `let ${constants.ASYNC_PARAMS}=await Promise.all(${constants.PARAMS});` : ''
+        }${constants.HRTIME_MARK_END}${constants.THRESHOLD}+=${constants.HRTIME_DIFF};`
       : ''
-  }${constants.RUN_GC + constants.HRTIME_MARK_START}`;
+  }${constants.RUN_GC}${hasParam ? constants.HRTIME_RESET_START : constants.HRTIME_MARK_START}`;
 
   // Setup calls
   {
@@ -151,7 +148,7 @@ export const measure: (
 
   // Compute results
   const hrtimeRes = batch > 1 ? `(${constants.HRTIME_DIFF})/${batch}` : constants.HRTIME_DIFF;
-  content += `${constants.HRTIME_MARK_END}runtimes.push(${hrtimeRes})`;
+  content += `${hasParam ? constants.HRTIME_RESET_END : constants.HRTIME_MARK_END}runtimes.push(${hrtimeRes})`;
 
   // Measure gc time
   measureGC &&

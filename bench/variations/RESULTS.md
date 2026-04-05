@@ -4,165 +4,165 @@
 ## async/await/mitata
 
 ### runs
-- runtime: 1459.54ms
-- samples: 197
-- runs: 806912
-- mean: 236.51ns
-- variation: 17.3%
+- runtime: 1466.49ms
+- samples: 209
+- runs: 856064
+- mean: 244.02ns
+- variation: 14.96%
 
 ## async/await/tinybench
 
 ### runs
-- runtime: 1176.92ms
-- samples: 420876
-- runs: 420876
-- mean: 237.6ns
-- variation: 1688.32%
+- runtime: 1247.81ms
+- samples: 494876
+- runs: 494876
+- mean: 202.07ns
+- variation: 1195.14%
 
 ## async/await/measure-loop
 
 ### runs
-- runtime: 1668.17ms
-- samples: 226
-- runs: 925696
-- mean: 196.07ns
-- variation: 9.58%
+- runtime: 1691.7ms
+- samples: 221
+- runs: 905216
+- mean: 203.38ns
+- variation: 4.73%
 
 ## string-includes/mitata
 
 ### runs
-- runtime: 1621.54ms
-- samples: 105
-- runs: 430080
-- mean: 352.74ns
-- variation: 8.75%
+- runtime: 1614.75ms
+- samples: 102
+- runs: 417792
+- mean: 346.65ns
+- variation: 10.19%
 
 ## string-includes/tinybench
 
 ### runs
-- runtime: 1474.31ms
-- samples: 371504
-- runs: 371504
-- mean: 269.18ns
-- variation: 219.77%
+- runtime: 1466.2ms
+- samples: 369437
+- runs: 369437
+- mean: 270.68ns
+- variation: 126.26%
 
 ## string-includes/measure-loop
 
 ### runs
-- runtime: 3359.83ms
+- runtime: 3317.38ms
 - samples: 150
 - runs: 614400
-- mean: 350.37ns
-- variation: 15.76%
+- mean: 343.44ns
+- variation: 8.07%
 
 # deno
 
 ## async/await/mitata
 
 ### runs
-- runtime: 1447.81ms
-- samples: 142
-- runs: 581632
-- mean: 275.4ns
-- variation: 10.46%
+- runtime: 1450.47ms
+- samples: 143
+- runs: 585728
+- mean: 278.09ns
+- variation: 9.94%
 
 ## async/await/tinybench
 
 ### runs
-- runtime: 1083.49ms
-- samples: 410025
-- runs: 410025
-- mean: 243.89ns
-- variation: 466.11%
+- runtime: 1085.91ms
+- samples: 417995
+- runs: 417995
+- mean: 239.24ns
+- variation: 453.77%
 
 ## async/await/measure-loop
 
 ### runs
-- runtime: 1822.56ms
-- samples: 166
-- runs: 679936
-- mean: 247.24ns
-- variation: 14.42%
+- runtime: 1820.27ms
+- samples: 167
+- runs: 684032
+- mean: 252.12ns
+- variation: 13.21%
 
 ## string-includes/mitata
 
 ### runs
-- runtime: 1591.46ms
+- runtime: 1598.01ms
 - samples: 88
 - runs: 360448
-- mean: 329.2ns
-- variation: 8.66%
+- mean: 325.16ns
+- variation: 6.45%
 
 ## string-includes/tinybench
 
 ### runs
-- runtime: 1468.2ms
-- samples: 331263
-- runs: 331263
-- mean: 301.88ns
-- variation: 231.46%
+- runtime: 1424.49ms
+- samples: 332798
+- runs: 332798
+- mean: 300.48ns
+- variation: 212.89%
 
 ## string-includes/measure-loop
 
 ### runs
-- runtime: 3682.93ms
+- runtime: 3707.07ms
 - samples: 150
 - runs: 614400
-- mean: 354.43ns
-- variation: 7.7%
+- mean: 364.09ns
+- variation: 7.21%
 
 # bun
 
 ## async/await/mitata
 
 ### runs
-- runtime: 1513.84ms
-- samples: 291
-- runs: 1191936
-- mean: 371.39ns
-- variation: 11.67%
+- runtime: 1511.17ms
+- samples: 295
+- runs: 1208320
+- mean: 369.68ns
+- variation: 12.52%
 
 ## async/await/tinybench
 
 ### runs
-- runtime: 1091.11ms
-- samples: 337433
-- runs: 337433
-- mean: 296.36ns
-- variation: 696.95%
+- runtime: 1079.02ms
+- samples: 335830
+- runs: 335830
+- mean: 297.77ns
+- variation: 785.5%
 
 ## async/await/measure-loop
 
 ### runs
-- runtime: 1468.59ms
-- samples: 277
-- runs: 1134592
-- mean: 343.81ns
-- variation: 17.76%
+- runtime: 1468.91ms
+- samples: 282
+- runs: 1155072
+- mean: 326.36ns
+- variation: 20.96%
 
 ## string-includes/mitata
 
 ### runs
-- runtime: 1994.16ms
-- samples: 166
-- runs: 679936
-- mean: 335.33ns
-- variation: 15.89%
+- runtime: 1972.41ms
+- samples: 165
+- runs: 675840
+- mean: 337.15ns
+- variation: 15.43%
 
 ## string-includes/tinybench
 
 ### runs
-- runtime: 1886.92ms
-- samples: 338007
-- runs: 338007
-- mean: 295.85ns
-- variation: 96.49%
+- runtime: 1854.03ms
+- samples: 338820
+- runs: 338820
+- mean: 295.14ns
+- variation: 73.56%
 
 ## string-includes/measure-loop
 
 ### runs
-- runtime: 2920.25ms
+- runtime: 2916.63ms
 - samples: 162
 - runs: 663552
-- mean: 324.42ns
-- variation: 14.34%
+- mean: 325.27ns
+- variation: 14.57%
