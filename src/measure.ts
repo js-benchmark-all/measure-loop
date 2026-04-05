@@ -1,13 +1,26 @@
 export type BenchFnResult = void | (() => void | Promise<void>);
 export type BenchFn = () => BenchFnResult | Promise<BenchFnResult>;
 
+/**
+ * Describe measured result.
+ */
 export interface MeasureResult {
+  /**
+   * Runtime samples.
+   */
   runtimes: number[];
+
+  /**
+   * GC time samples.
+   */
   gcs: number[];
 }
 
 /**
  * Describe measure options.
+ *
+ * - Warmup stops when either `warmupThreshold` or `warmupIters` is reached.
+ * - The run stops when either `samples`, `threshold` or `iters` is reached.
  */
 export interface MeasureOptions {
   /**
@@ -26,7 +39,7 @@ export interface MeasureOptions {
   measureGC?: boolean;
 
   /**
-   * Min time to run the benchmark.
+   * Min time in nanoseconds to run the benchmark.
    */
   threshold?: number;
 
@@ -36,7 +49,7 @@ export interface MeasureOptions {
   iters?: number;
 
   /**
-   * Min time to warmup the benchmark.
+   * Min time in nanoseconds to warmup the benchmark.
    */
   warmupThreshold?: number;
 
@@ -142,7 +155,7 @@ export const measure: (
 
   // Measure gc time
   measureGC &&
-    (content += `;{${constants.HRTIME_MARK_START + constants.RUN_GC + constants.HRTIME_MARK_END}gcs.push(${hrtimeRes})}`);
+    (content += `;${constants.HRTIME_RESET_START + constants.RUN_GC + constants.HRTIME_RESET_END}gcs.push(${hrtimeRes})`);
 
   // @ts-ignore
   globalThis.__measure_loop_dat__ = [hrtime, gc, fn];

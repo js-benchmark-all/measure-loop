@@ -50,21 +50,4 @@ console.log('runtimes:', result.runtimes);
 console.log('gcs:', result.gcs);
 ```
 
-Other options and their defaults.
-```ts
-await measure(
-  ...,
-  {
-    // Number of calls in an iteration
-    batch: 4096,
-
-    // Calls to inline
-    inlineCalls: 4
-
-    // With batch = 4097 and inlineCalls = 4:
-    // for (let i=0;i<1024;i++){fn();fn();fn();fn()}fn();
-  }
-);
-```
-
 The loop implementation is based on [mitata](https://github.com/evanwashere/mitata). Check it out it's a good library :).
