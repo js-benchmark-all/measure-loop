@@ -6,12 +6,12 @@ import { printRuns } from '../../../result.js';
 const result = await measure(
   function* () {
     yield {
-      0: () => Promise.resolve(0),
+      0: () => [Promise.resolve(0)],
       /**
-       * @param {Promise<number>} p
+       * @param {[Promise<number>]} p
        */
       bench: async (p) => {
-        do_not_optimize(await p);
+        do_not_optimize(await p[0]);
       },
     };
   },

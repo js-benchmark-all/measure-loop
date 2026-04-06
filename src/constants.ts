@@ -8,7 +8,7 @@ export const HRTIME_DIFF = `c-b`;
 
 export const FN = 'd';
 export const PARAMS = 'e';
-export const ASYNC_PARAMS = 'f';
+export const FN_PARAMS = 'f';
 
 export const FN_GC = 'g';
 export const RUN_GC = 'g();';

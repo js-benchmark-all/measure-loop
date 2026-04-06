@@ -7,14 +7,14 @@ import { printRuns } from '../../result.js';
 import { DIGITS, randstring } from '../../random.js';
 
 const result = await measure(
-  () => {
-    const str = randstring(DIGITS, 20);
-    return () => {
-      createSideEffect(str.includes('a'));
-    };
+  [() => randstring(DIGITS, 20)],
+  (str) => {
+    createSideEffect(str.includes('a'));
   },
   gc,
   hrtime,
+  { debug: true }
 );
 
-printRuns(result.runtimes);
+console.error(result.debug);
+printRuns(result.runtimes.slice(2));

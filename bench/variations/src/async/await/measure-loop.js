@@ -5,15 +5,15 @@ import { measure } from '$/measure';
 
 import { printRuns } from '../../../result.js';
 
+
 const result = await measure(
-  () => {
-    const p = Promise.resolve(0);
-    return async () => {
-      createSideEffect(await p);
-    };
+  [() => [Promise.resolve(0)]],
+  async (p) => {
+    createSideEffect(await p[0]);
   },
   gc,
   hrtime,
+  { debug: true }
 );
 
 printRuns(result.runtimes);

@@ -1,6 +1,3 @@
-export type BenchFnResult = void | (() => void | Promise<void>);
-export type BenchFn = () => BenchFnResult | Promise<BenchFnResult>;
-
 /**
  * Describe measured result.
  */
@@ -14,6 +11,13 @@ export interface MeasureResult {
    * GC time samples.
    */
   gcs: number[];
+
+  /**
+   * Debug info.
+   */
+  debug?: {
+    content: string;
+  }
 }
 
 /**
@@ -57,79 +61,126 @@ export interface MeasureOptions {
    * Min warmup iterations.
    */
   warmupIters?: number;
+
+  /**
+   * Whether to include debug info in output.
+   */
+  debug?: boolean;
+}
+
+const buildArgs = (idx: string, paramLen: number) => {
+  let str =  `${constants.PARAMS}0` + idx;
+
+  for (let j = 1; j < paramLen; j++)
+    str += ',' + constants.PARAMS + j + idx;
+
+  return str;
 }
 
 /**
  * Benchmark a function.
  */
-export const measure: (
-  fn: BenchFn,
+export const measure: <const Params extends (() => any)[]>(
+  params: Params,
+  fn: (...args: {
+    [K in keyof Params]: Awaited<ReturnType<Params[K]>>
+  }) => any,
   gc: () => void,
   hrtime: () => number,
   options?: MeasureOptions,
 ) => Promise<MeasureResult> = async (
+  params,
   fn,
   gc,
   hrtime,
   {
     batch = 4096,
     inlineCalls = 4,
+
     measureGC,
+
     threshold = 924e6,
     iters = 12,
+
     warmupThreshold = 5e5,
-    warmupIters = 2
+    warmupIters = 2,
+
+    debug
   } = {},
 ) => {
   let isFnAsync: boolean,
-    hasParam = false,
-    isParamAsync = false;
+    paramLen = params.length,
+    hasParam = paramLen > 0,
+    isParamAsync = false,
+    paramContent: string,
+    loopVars: string;
 
-  // Detect async
-  {
-    let res: any = fn();
-    (isFnAsync = res instanceof Promise) && (res = await res);
+  if (hasParam) {
+    const builtParams = new Array(paramLen);
 
-    if (typeof res === 'function') {
-      hasParam = true;
-      isParamAsync = isFnAsync;
+    loopVars = `let ${constants.PARAMS}0=new Array(${batch})`;
+    paramContent = `{${constants.HRTIME_MARK_START}for(let i=0;i<${batch};i++){`;
 
-      res = res();
-      (isFnAsync = res instanceof Promise) && (res = await res);
+    for (let i = 0; i < paramLen; i++) {
+      paramContent += i > 0 ? ';' + constants.PARAMS + i : `${constants.PARAMS}0`;
+      i > 0 && (loopVars += `,${constants.PARAMS + i}=new Array(${batch})`);
+
+      const res = params[i]();
+      if (isParamAsync ||= res instanceof Promise) {
+        paramContent += `[i]=await ${constants.FN_PARAMS}[${i}]()`;
+        builtParams[i] = await res;
+      } else {
+        paramContent += `[i]=${constants.FN_PARAMS}[${i}]()`;
+        builtParams[i] = res;
+      }
     }
+
+    paramContent += `}${constants.HRTIME_MARK_END}${constants.THRESHOLD}+=${constants.HRTIME_DIFF}}`;
+
+    const res = fn(...builtParams as any);
+    (isFnAsync = res instanceof Promise) && await res;
+  } else {
+    loopVars = '';
+    paramContent = '';
+
+    // @ts-ignore
+    const res = fn();
+    (isFnAsync = res instanceof Promise) && await res;
   }
 
   const isLoopAsync = isFnAsync || isParamAsync;
 
   // Build loop
-  let content = `{let{0:${constants.FN_HRTIME},1:${constants.FN_GC},2:${constants.FN}}=__measure_loop_dat__;${
+  let content = `(${constants.FN_HRTIME},${constants.FN_GC},${constants.FN},${constants.FN_PARAMS})=>${
     // Whether the loop needs to be async
     isLoopAsync ? 'async' : ''
   }(${constants.THRESHOLD},${constants.MIN_ITERS})=>{let runtimes=[],gcs=[];${constants.THRESHOLD}+=${constants.HRTIME};for(${
-    // Store dynamic params
-    hasParam ? `let ${constants.PARAMS}=new Array(${batch})` : ''
+    // Declare params store
+    loopVars
   };${constants.MIN_ITERS}>0||${constants.HRTIME}<${constants.THRESHOLD};${constants.MIN_ITERS}--){${
-    // Compute params
-    hasParam
-      ? `${constants.HRTIME_MARK_START}for(let i=0;i<${batch};i++)${constants.PARAMS}[i]=${constants.FN}();${
-          // Compute concurrently
-          isParamAsync ? `let ${constants.ASYNC_PARAMS}=await Promise.all(${constants.PARAMS});` : ''
-        }${constants.HRTIME_MARK_END}${constants.THRESHOLD}+=${constants.HRTIME_DIFF};`
-      : ''
-  }${constants.RUN_GC}${hasParam ? constants.HRTIME_RESET_START : constants.HRTIME_MARK_START}`;
+    // Build params
+    paramContent
+  }${constants.RUN_GC}${constants.HRTIME_MARK_START}`;
 
   // Setup calls
   {
     const remainingCalls = batch % inlineCalls;
 
     if (hasParam) {
-      const prefix = `${isFnAsync ? 'await ' : ''}${isParamAsync ? constants.ASYNC_PARAMS : constants.PARAMS}[`;
-      for (let i = 0; i < remainingCalls; i++) content += prefix + i + ']();';
+      const callPrefix = isFnAsync ? `await ${constants.FN}(` : constants.FN + '(';
+
+      for (let i = 0; i < remainingCalls; i++)
+        content += callPrefix + buildArgs(`[${i}]`, paramLen) + ');';
 
       if (inlineCalls <= batch) {
-        content += `for(let i=${remainingCalls};i<${batch};i+=${inlineCalls}){${prefix}i]()`;
-        for (let i = 1, callPrefix = `;${prefix}i+`; i < inlineCalls; i++)
-          content += callPrefix + i + ']()';
+        content += `for(let i=${remainingCalls};i<${batch};i+=${inlineCalls}){${
+          // Build first call
+          callPrefix + buildArgs('[i]', paramLen)
+        })`;
+
+        for (let i = 1, prefix = ';' + callPrefix; i < inlineCalls; i++)
+          content += prefix + buildArgs(`[i+${i}]`, paramLen) + ')';
+
         content += '}';
       }
     } else {
@@ -141,19 +192,23 @@ export const measure: (
   }
 
   // Compute results
-  const hrtimeRes = batch > 1 ? `(${constants.HRTIME_DIFF})/${batch}` : constants.HRTIME_DIFF;
-  content += `${hasParam ? constants.HRTIME_RESET_END : constants.HRTIME_MARK_END}runtimes.push(${hrtimeRes})`;
+  {
+    const hrtimeRes = batch > 1 ? `(${constants.HRTIME_DIFF})/${batch}` : constants.HRTIME_DIFF;
+    content += `${constants.HRTIME_MARK_END}runtimes.push(${hrtimeRes})`;
 
-  // Measure gc time
-  measureGC &&
-    (content += `;${constants.HRTIME_RESET_START + constants.RUN_GC + constants.HRTIME_RESET_END}gcs.push(${hrtimeRes})`);
+    measureGC &&
+      (content += `;${constants.HRTIME_RESET_START + constants.RUN_GC + constants.HRTIME_RESET_END}gcs.push(${hrtimeRes})`);
+  }
 
-  // @ts-ignore
-  globalThis.__measure_loop_dat__ = [hrtime, gc, fn];
-  const loop = (0, eval)(content + `}return{runtimes,gcs}}}`);
-  // @ts-ignore
-  delete globalThis.__measure_loop_dat__;
+  content += `}return{runtimes,gcs}}`;
 
+  const loop = (0, eval)(content)(hrtime, gc, fn, params);
   isLoopAsync ? await loop(warmupThreshold, warmupIters) : loop(warmupThreshold, warmupIters);
+
+  if (debug) {
+    const res = isLoopAsync ? await loop(threshold, iters) : loop(threshold, iters);
+    res.debug = { content };
+    return res;
+  }
   return loop(threshold, iters);
 };

@@ -7,12 +7,11 @@ import { getRuns } from './result.js';
 import { print } from './math.js';
 
 const cwd = join(import.meta.dirname, 'src');
-/**
- * @constant
- */
-const options = {
+
+const options = /** @type {const} */ ({
   cwd,
-};
+  stderr: 'inherit'
+});
 
 /**
  * @type {Record<string, (file: string) => Buffer<ArrayBufferLike>>}
@@ -31,7 +30,6 @@ for (const runnerName in RUNNERS) {
   console.log(fmt.pc.bold(`\n# ${runnerName}`));
 
   const runner = RUNNERS[runnerName];
-
   for (const file of files) {
     console.log(fmt.pc.bold(`\n## ${file.slice(0, -3)}`));
 
