@@ -4,9 +4,13 @@ const RUN_START = '__VARIATIONS_RUN_START__';
 const RUN_END = '__VARIATIONS_RUN_END__';
 
 /**
- * @param {number[]} runs 
+ * @param {number[]} runs
  */
-export const printRuns = (runs) => {
+export const printRuns = (runs, d = false) => {
+  if (d) {
+    runs.sort((a, b) => a - b);
+    runs = runs.slice(2, -2);
+  }
   console.log(RUN_START + JSON.stringify(runs) + RUN_END);
 }
 

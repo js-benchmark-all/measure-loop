@@ -16,5 +16,4 @@ const result = await measure(
   { debug: true }
 );
 
-console.error(result.debug);
-printRuns(result.runtimes.slice(2));
+printRuns(result.runtimes, true);

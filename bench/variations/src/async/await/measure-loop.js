@@ -5,7 +5,6 @@ import { measure } from '$/measure';
 
 import { printRuns } from '../../../result.js';
 
-
 const result = await measure(
   [() => [Promise.resolve(0)]],
   async (p) => {
@@ -16,4 +15,4 @@ const result = await measure(
   { debug: true }
 );
 
-printRuns(result.runtimes);
+printRuns(result.runtimes, true);

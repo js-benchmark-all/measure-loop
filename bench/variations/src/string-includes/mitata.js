@@ -21,4 +21,4 @@ const result = await measure(
   },
 );
 
-printRuns(result.samples);
+printRuns(result.samples, true);

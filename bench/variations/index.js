@@ -22,7 +22,7 @@ const RUNNERS = {
   bun: (file) => Bun.spawnSync(['bun', file], options).stdout,
 };
 
-const LOOP_TIME = new Array(5).fill(0);
+const LOOP_TIME = new Array(50).fill(0);
 
 const files = globSync('**/*.js', { cwd });
 
