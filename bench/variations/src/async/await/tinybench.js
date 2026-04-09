@@ -27,5 +27,5 @@ await bench.run();
 printRuns(
   // @ts-ignore
   bench.results[0].latency.samples.map((sample) => sample * 1e6),
-  true
+  true,
 );

@@ -12,10 +12,10 @@ export const printRuns = (runs, d = false) => {
     runs = runs.slice(2, -2);
   }
   console.log(RUN_START + JSON.stringify(runs) + RUN_END);
-}
+};
 
 /**
- * @param {string} str 
+ * @param {string} str
  * @returns {number[]}
  */
 export const getRuns = (str) => {
@@ -27,4 +27,4 @@ export const getRuns = (str) => {
   assert.notStrictEqual(endIdx, -1);
 
   return JSON.parse(str.slice(startIdx, endIdx));
-}
+};

@@ -12,7 +12,7 @@ const result = await measure(
   },
   gc,
   hrtime,
-  { debug: true }
+  { debug: true },
 );
 
 printRuns(result.runtimes, true);

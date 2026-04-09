@@ -10,7 +10,7 @@ const cwd = join(import.meta.dirname, 'src');
 
 const options = /** @type {const} */ ({
   cwd,
-  stderr: 'inherit'
+  stderr: 'inherit',
 });
 
 /**
