@@ -17,7 +17,7 @@ export interface MeasureResult {
    */
   debug?: {
     content: string;
-  }
+  };
 }
 
 /**
@@ -69,22 +69,23 @@ export interface MeasureOptions {
 }
 
 const buildArgs = (idx: string, paramLen: number) => {
-  let str =  `${constants.PARAMS}0` + idx;
+  let str = `${constants.PARAMS}0` + idx;
 
-  for (let j = 1; j < paramLen; j++)
-    str += ',' + constants.PARAMS + j + idx;
+  for (let j = 1; j < paramLen; j++) str += ',' + constants.PARAMS + j + idx;
 
   return str;
-}
+};
 
 /**
  * Benchmark a function.
  */
 export const measure: <const Params extends (() => any)[]>(
   params: Params,
-  fn: (...args: {
-    [K in keyof Params]: Awaited<ReturnType<Params[K]>>
-  }) => any,
+  fn: (
+    ...args: {
+      [K in keyof Params]: Awaited<ReturnType<Params[K]>>;
+    }
+  ) => any,
   gc: () => void,
   hrtime: () => number,
   options?: MeasureOptions,
@@ -105,7 +106,7 @@ export const measure: <const Params extends (() => any)[]>(
     warmupThreshold = 5e5,
     warmupIters = 2,
 
-    debug
+    debug,
   } = {},
 ) => {
   let isFnAsync: boolean,
@@ -126,7 +127,7 @@ export const measure: <const Params extends (() => any)[]>(
       i > 0 && (loopVars += `,${constants.PARAMS + i}=new Array(${batch})`);
 
       const res = params[i]();
-      if (isParamAsync ||= res instanceof Promise) {
+      if ((isParamAsync ||= res instanceof Promise)) {
         paramContent += `[i]=await ${constants.FN_PARAMS}[${i}]()`;
         builtParams[i] = await res;
       } else {
@@ -137,15 +138,15 @@ export const measure: <const Params extends (() => any)[]>(
 
     paramContent += `}${constants.HRTIME_MARK_END}${constants.THRESHOLD}+=${constants.HRTIME_DIFF}}`;
 
-    const res = fn(...builtParams as any);
-    (isFnAsync = res instanceof Promise) && await res;
+    const res = fn(...(builtParams as any));
+    (isFnAsync = res instanceof Promise) && (await res);
   } else {
     loopVars = '';
     paramContent = '';
 
     // @ts-ignore
     const res = fn();
-    (isFnAsync = res instanceof Promise) && await res;
+    (isFnAsync = res instanceof Promise) && (await res);
   }
 
   const isLoopAsync = isFnAsync || isParamAsync;
@@ -205,10 +206,7 @@ export const measure: <const Params extends (() => any)[]>(
   const loop = (0, eval)(content)(hrtime, gc, fn, params);
   isLoopAsync ? await loop(warmupThreshold, warmupIters) : loop(warmupThreshold, warmupIters);
 
-  if (debug) {
-    const res = isLoopAsync ? await loop(threshold, iters) : loop(threshold, iters);
-    res.debug = { content };
-    return res;
-  }
-  return loop(threshold, iters);
+  const res = isLoopAsync ? await loop(threshold, iters) : loop(threshold, iters);
+  debug && (res.debug = { content });
+  return res;
 };
