@@ -1,4 +1,9 @@
-import { measure, type MeasureOptions, type MeasureResult } from '../measure.ts';
+import {
+  measure,
+  mergeMeasureOptions,
+  type MeasureOptions,
+  type MeasureResult,
+} from '../measure.ts';
 
 export interface RuntimeEnv {
   gc: () => void;
@@ -31,18 +36,17 @@ export interface BenchFn {
   ): Promise<MeasureResult>;
 }
 
-const emptyCb = () => {};
-
 export class Category {
   readonly id: string;
   readonly subcats: Category[];
 
+  readonly defaultBenchOptions: MeasureOptions | undefined;
   readonly benchKeys: string[];
   readonly benchParams: any[];
   readonly benchFns: any[];
   readonly benchOptions: any[];
 
-  constructor(id: string) {
+  constructor(id: string, defaultBenchOptions?: MeasureOptions) {
     this.id = id;
     this.subcats = [];
 
@@ -50,6 +54,8 @@ export class Category {
     this.benchParams = [];
     this.benchFns = [];
     this.benchOptions = [];
+
+    this.defaultBenchOptions = defaultBenchOptions;
   }
 
   category(subcat: Category): this {
@@ -70,11 +76,14 @@ export class Category {
     this.benchKeys.push(id);
     this.benchParams.push(params);
     this.benchFns.push(fn);
-    this.benchOptions.push(options);
+    this.benchOptions.push(mergeMeasureOptions(options, this.defaultBenchOptions));
     return this;
   }
 
-  async run<ReporterStore extends {}>(options: RunOptions<ReporterStore>, parentStore?: ReporterStore): Promise<void> {
+  async run<ReporterStore extends {}>(
+    options: RunOptions<ReporterStore>,
+    parentStore?: ReporterStore,
+  ): Promise<void> {
     const reporter = options.reporter;
 
     const isRoot = !parentStore;
@@ -97,17 +106,16 @@ export class Category {
         continue;
       }
 
-      await reporter.benchResult(
-        benchKeys[i],
-        store,
-        result
-      );
+      await reporter.benchResult(benchKeys[i], store, result);
     }
     await reporter.benchEnd(store);
 
     for (let i = 0, subcats = this.subcats; i < subcats.length; i++)
       await subcats[i].run(options, store);
 
-    isRoot && await reporter.end(parentStore!);
+    isRoot && (await reporter.end(parentStore!));
   }
 }
+
+export default (id: string, defaultBenchOptions?: MeasureOptions): Category =>
+  new Category(id, defaultBenchOptions);

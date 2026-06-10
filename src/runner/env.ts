@@ -1,6 +1,6 @@
 import { hrtimeDetected, hrtime } from '../env/hrtime.ts';
 import { gcDetected, gc } from '../env/gc.ts';
-import type { RuntimeEnv } from './runner.ts';
+import type { RuntimeEnv } from './category.ts';
 
 gcDetected ||
   console.warn(
