@@ -3,12 +3,12 @@ An accurate, runtime-agnostic measure loop for benchmarking purposes.
 
 ## Usage
 ```ts
-import { category, env } from 'measure-loop/runner';
+import { bench, env } from 'measure-loop/runner';
 import reporter from 'measure-loop/reporter/compact';
 
-await category('hrtime')
-  .bench('performance.now()', [], () => performance.now())
-  .bench('Date.now()', [], () => Date.now())
+await bench('hrtime')
+  .it('performance.now()', [], () => performance.now())
+  .it('Date.now()', [], () => Date.now())
   .run({ env, reporter });
 ```
 
@@ -24,19 +24,19 @@ deno run --v8-flags=--expose-gc bench.ts
 
 To collect GC time:
 ```ts
-import { category, env } from 'measure-loop/runner';
+import { bench, env } from 'measure-loop/runner';
 import reporter from 'measure-loop/reporter/compact';
 
-// Default options for a category
-await category('hrtime', { measureGC: true })
-  .bench('performance.now()', [], () => performance.now())
-  .bench('Date.now()', [], () => Date.now())
+// Default options
+await bench('hrtime', { measureGC: true })
+  .it('performance.now()', [], () => performance.now())
+  .it('Date.now()', [], () => Date.now())
   .run({ env, reporter });
 ```
 
 To add child categories:
 ```ts
-const child = category('child');
+const child = bench('child');
 parent.category(child);
 ```
 
@@ -46,13 +46,13 @@ const params = [
   () => generateStrings(),
 ] as const;
 
-category('find substring')
-  .bench(
+bench('find substring')
+  .it(
     'knuth-morris-pratt',
     params,
     ({ str, substr }) => kmp(str, substr)
   )
-  .bench(
+  .it(
     'boyer-moore-horspool',
     params,
     ({ str, substr }) => bmh(str, substr)

@@ -63,7 +63,7 @@ export class Category {
     return this;
   }
 
-  bench<const Params extends (() => any)[]>(
+  it<const Params extends (() => any)[]>(
     id: string,
     params: Params,
     fn: (
@@ -76,14 +76,17 @@ export class Category {
     this.benchKeys.push(id);
     this.benchParams.push(params);
     this.benchFns.push(fn);
-    this.benchOptions.push(mergeMeasureOptions(options, this.defaultBenchOptions));
+    this.benchOptions.push(options);
     return this;
   }
 
   async run<ReporterStore extends {}>(
     options: RunOptions<ReporterStore>,
+    defaultBenchOptions: MeasureOptions = {},
     parentStore?: ReporterStore,
   ): Promise<void> {
+    mergeMeasureOptions(defaultBenchOptions, this.defaultBenchOptions);
+
     const reporter = options.reporter;
 
     const isRoot = !parentStore;
@@ -100,7 +103,13 @@ export class Category {
       let result: MeasureResult;
 
       try {
-        result = await measure(benchParams[i], benchFns[i], gc, hrtime, benchOptions[i]);
+        result = await measure(
+          benchParams[i],
+          benchFns[i],
+          gc,
+          hrtime,
+          mergeMeasureOptions(benchOptions[i], defaultBenchOptions),
+        );
       } catch (e) {
         await reporter.benchError(benchKeys[i], store, e);
         continue;
@@ -111,7 +120,7 @@ export class Category {
     await reporter.benchEnd(store);
 
     for (let i = 0, subcats = this.subcats; i < subcats.length; i++)
-      await subcats[i].run(options, store);
+      await subcats[i].run(options, defaultBenchOptions, store);
 
     isRoot && (await reporter.end(parentStore!));
   }
