@@ -27,8 +27,34 @@ To collect GC time:
 import { category, env } from 'measure-loop/runner';
 import reporter from 'measure-loop/reporter/compact';
 
+// Default options for a category
 await category('hrtime', { measureGC: true })
   .bench('performance.now()', [], () => performance.now())
   .bench('Date.now()', [], () => Date.now())
   .run({ env, reporter });
+```
+
+To add child categories:
+```ts
+const child = category('child');
+parent.category(child);
+```
+
+To add computed parameters:
+```ts
+const params = [
+  () => generateStrings(),
+] as const;
+
+category('find substring')
+  .bench(
+    'knuth-morris-pratt',
+    params,
+    ({ str, substr }) => kmp(str, substr)
+  )
+  .bench(
+    'boyer-moore-horspool',
+    params,
+    ({ str, substr }) => bmh(str, substr)
+  );
 ```
