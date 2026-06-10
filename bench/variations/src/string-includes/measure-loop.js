@@ -1,7 +1,7 @@
 // @ts-check
-import { gc, hrtime } from '$/env';
-import { createSideEffect } from '$/side-effect';
-import { measure } from '$/measure';
+import env from 'measure-loop/runner/env';
+import { createSideEffect } from 'measure-loop/side-effect';
+import { measure } from 'measure-loop/measure';
 
 import { printRuns } from '../../result.js';
 import { DIGITS, randstring } from '../../random.js';
@@ -11,8 +11,8 @@ const result = await measure(
   (str) => {
     createSideEffect(str.includes('a'));
   },
-  gc,
-  hrtime,
+  env.gc,
+  env.hrtime,
   { debug: true },
 );
 

@@ -17,6 +17,6 @@
     "isolatedModules": true,
 
     // Types
-    "types": ["./globals.d.ts"]
+    "types": ["./globals.d.ts", "@types/node"]
   }
 }

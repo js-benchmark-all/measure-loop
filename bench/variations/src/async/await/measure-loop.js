@@ -1,7 +1,7 @@
 // @ts-check
-import { gc, hrtime } from '$/env';
-import { createSideEffect } from '$/side-effect';
-import { measure } from '$/measure';
+import env from 'measure-loop/runner/env';
+import { createSideEffect } from 'measure-loop/side-effect';
+import { measure } from 'measure-loop/measure';
 
 import { printRuns } from '../../../result.js';
 
@@ -10,8 +10,8 @@ const result = await measure(
   async (p) => {
     createSideEffect(await p[0]);
   },
-  gc,
-  hrtime,
+  env.gc,
+  env.hrtime,
   { debug: true },
 );
 

@@ -1,0 +1,122 @@
+export const startReset = "\x1b[0m";
+export const endReset = "\x1b[0m";
+
+export const startBold = "\x1b[1m";
+export const endBold = "\x1b[22m";
+
+export const startDim = "\x1b[2m";
+export const endDim = "\x1b[22m";
+
+export const startItalic = "\x1b[3m";
+export const endItalic = "\x1b[23m";
+
+export const startUnderline = "\x1b[4m";
+export const endUnderline = "\x1b[24m";
+
+export const startInverse = "\x1b[7m";
+export const endInverse = "\x1b[27m";
+
+export const startHidden = "\x1b[8m";
+export const endHidden = "\x1b[28m";
+
+export const startStrikethrough = "\x1b[9m";
+export const endStrikethrough = "\x1b[29m";
+
+export const startBlack = "\x1b[30m";
+export const endBlack = "\x1b[39m";
+
+export const startRed = "\x1b[31m";
+export const endRed = "\x1b[39m";
+
+export const startGreen = "\x1b[32m";
+export const endGreen = "\x1b[39m";
+
+export const startYellow = "\x1b[33m";
+export const endYellow = "\x1b[39m";
+
+export const startBlue = "\x1b[34m";
+export const endBlue = "\x1b[39m";
+
+export const startMagenta = "\x1b[35m";
+export const endMagenta = "\x1b[39m";
+
+export const startCyan = "\x1b[36m";
+export const endCyan = "\x1b[39m";
+
+export const startWhite = "\x1b[37m";
+export const endWhite = "\x1b[39m";
+
+export const startGray = "\x1b[90m";
+export const endGray = "\x1b[39m";
+
+export const startBgBlack = "\x1b[40m";
+export const endBgBlack = "\x1b[49m";
+
+export const startBgRed = "\x1b[41m";
+export const endBgRed = "\x1b[49m";
+
+export const startBgGreen = "\x1b[42m";
+export const endBgGreen = "\x1b[49m";
+
+export const startBgYellow = "\x1b[43m";
+export const endBgYellow = "\x1b[49m";
+
+export const startBgBlue = "\x1b[44m";
+export const endBgBlue = "\x1b[49m";
+
+export const startBgMagenta = "\x1b[45m";
+export const endBgMagenta = "\x1b[49m";
+
+export const startBgCyan = "\x1b[46m";
+export const endBgCyan = "\x1b[49m";
+
+export const startBgWhite = "\x1b[47m";
+export const endBgWhite = "\x1b[49m";
+
+export const startBlackBright = "\x1b[90m";
+export const endBlackBright = "\x1b[39m";
+
+export const startRedBright = "\x1b[91m";
+export const endRedBright = "\x1b[39m";
+
+export const startGreenBright = "\x1b[92m";
+export const endGreenBright = "\x1b[39m";
+
+export const startYellowBright = "\x1b[93m";
+export const endYellowBright = "\x1b[39m";
+
+export const startBlueBright = "\x1b[94m";
+export const endBlueBright = "\x1b[39m";
+
+export const startMagentaBright = "\x1b[95m";
+export const endMagentaBright = "\x1b[39m";
+
+export const startCyanBright = "\x1b[96m";
+export const endCyanBright = "\x1b[39m";
+
+export const startWhiteBright = "\x1b[97m";
+export const endWhiteBright = "\x1b[39m";
+
+export const startBgBlackBright = "\x1b[100m";
+export const endBgBlackBright = "\x1b[49m";
+
+export const startBgRedBright = "\x1b[101m";
+export const endBgRedBright = "\x1b[49m";
+
+export const startBgGreenBright = "\x1b[102m";
+export const endBgGreenBright = "\x1b[49m";
+
+export const startBgYellowBright = "\x1b[103m";
+export const endBgYellowBright = "\x1b[49m";
+
+export const startBgBlueBright = "\x1b[104m";
+export const endBgBlueBright = "\x1b[49m";
+
+export const startBgMagentaBright = "\x1b[105m";
+export const endBgMagentaBright = "\x1b[49m";
+
+export const startBgCyanBright = "\x1b[106m";
+export const endBgCyanBright = "\x1b[49m";
+
+export const startBgWhiteBright = "\x1b[107m";
+export const endBgWhiteBright = "\x1b[49m";
