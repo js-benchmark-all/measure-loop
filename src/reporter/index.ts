@@ -46,6 +46,7 @@ export const compact: Reporter<{
       results: []
     };
   },
+
   benchResult: (key, { tab, results }, { runs, gcs }) => {
     console.log(tab + '* ' + boldCyan(key));
     tab += '  ';
@@ -65,10 +66,12 @@ export const compact: Reporter<{
       displayResults(tab + '  ', gcs);
     }
   },
+
   benchError: (key, { tab }, e) => {
     console.error(tab + '+ ' + boldCyan(key));
     console.error(e);
   },
+
   benchEnd: (_, { tab, results }) => {
     if (results.length === 0) return;
 
