@@ -48,18 +48,34 @@ parent.category(child);
 To add computed parameters:
 ```ts
 const params = [
-  () => generateStrings(),
+  () => generateString(),
+  () => 'abc'
 ] as const;
+
+const acTrie = buildTrie('abc');
 
 bench('find substring')
   .it(
     'knuth-morris-pratt',
     params,
-    ({ str, substr }) => kmp(str, substr)
+    (str, substr) => kmp(str, substr)
   )
+  .it(
+    'boyer-moore',
+    params,
+    (str, substr) => bm(str, substr)
+  );
   .it(
     'boyer-moore-horspool',
     params,
-    ({ str, substr }) => bmh(str, substr)
+    (str, substr) => bmh(str, substr)
+  )
+  .it(
+    'aho-corasick',
+    [
+      () => generateString(),
+      () => acTrie
+    ],
+    (str, trie) => ac(str, trie)
   );
 ```
