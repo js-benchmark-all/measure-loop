@@ -103,8 +103,8 @@ export const measure: <const Params extends (() => any)[]>(
     threshold = 924e6,
     iters = 12,
 
-    warmupThreshold = 5e5,
-    warmupIters = 2,
+    warmupThreshold = 924e6,
+    warmupIters = 12,
 
     debug,
   } = {},

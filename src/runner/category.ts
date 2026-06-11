@@ -1,8 +1,4 @@
-import {
-  measure,
-  type MeasureOptions,
-  type MeasureResult,
-} from '../measure.ts';
+import { measure, type MeasureOptions, type MeasureResult } from '../measure.ts';
 
 export interface RuntimeEnv {
   gc: () => void;
@@ -85,11 +81,10 @@ export class Category {
     parentStore?: ReporterStore,
   ): Promise<void> {
     // Add new options if exists
-    this.defaultBenchOptions && (
-      defaultBenchOptions = defaultBenchOptions
+    this.defaultBenchOptions &&
+      (defaultBenchOptions = defaultBenchOptions
         ? { ...defaultBenchOptions, ...this.defaultBenchOptions }
-        : this.defaultBenchOptions
-    );
+        : this.defaultBenchOptions);
 
     const reporter = options.reporter;
 
@@ -107,22 +102,17 @@ export class Category {
       let result: MeasureResult;
 
       try {
-        const benchOption = benchOptionList[i];
-
-        // Write new keys without overwriting existing ones
-        if (defaultBenchOptions)
-          for (const key in defaultBenchOptions) {
-            if (!(key in benchOption))
-              // @ts-ignore
-              benchOption[key] = defaultBenchOptions[key];
-          }
-
         result = await measure(
           benchParams[i],
           benchFns[i],
           gc,
           hrtime,
-          benchOption,
+          defaultBenchOptions
+            ? {
+                ...defaultBenchOptions,
+                ...benchOptionList[i],
+              }
+            : benchOptionList[i],
         );
       } catch (e) {
         await reporter.benchError(benchKeys[i], store, e);
