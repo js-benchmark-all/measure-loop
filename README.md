@@ -4,7 +4,7 @@ An accurate, runtime-agnostic measure loop for benchmarking purposes.
 ## Usage
 ```ts
 import { bench, env } from 'measure-loop/runner';
-import reporter from 'measure-loop/reporter/compact';
+import reporter from 'measure-loop/reporter';
 
 await bench('hrtime')
   .it('performance.now()', [], () => performance.now())
@@ -25,7 +25,7 @@ deno run --v8-flags=--expose-gc bench.ts
 To collect GC time:
 ```ts
 import { bench, env } from 'measure-loop/runner';
-import reporter from 'measure-loop/reporter/compact';
+import reporter from 'measure-loop/reporter';
 
 await bench('hrtime')
   .it('performance.now()', [], () => performance.now(), { measureGC: true })

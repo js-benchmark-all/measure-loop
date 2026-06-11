@@ -3,9 +3,9 @@
  */
 export interface MeasureResult {
   /**
-   * Runtime samples.
+   * Runtime samples in milliseconds.
    */
-  runtimes: number[];
+  runs: number[];
 
   /**
    * GC time samples.
@@ -43,7 +43,7 @@ export interface MeasureOptions {
   measureGC?: boolean;
 
   /**
-   * Min time in nanoseconds to run the benchmark.
+   * Min time in milliseconds to run the benchmark.
    */
   threshold?: number;
 
@@ -53,7 +53,7 @@ export interface MeasureOptions {
   iters?: number;
 
   /**
-   * Min time in nanoseconds to warmup the benchmark.
+   * Min time in milliseconds to warmup the benchmark.
    */
   warmupThreshold?: number;
 
@@ -70,9 +70,7 @@ export interface MeasureOptions {
 
 const buildArgs = (idx: string, paramLen: number) => {
   let str = `${constants.PARAMS}0` + idx;
-
   for (let j = 1; j < paramLen; j++) str += ',' + constants.PARAMS + j + idx;
-
   return str;
 };
 
@@ -100,11 +98,11 @@ export const measure: <const Params extends (() => any)[]>(
 
     measureGC,
 
-    threshold = 924e6,
-    iters = 12,
+    threshold = 256,
+    iters = 64,
 
-    warmupThreshold = 924e6,
-    warmupIters = 12,
+    warmupThreshold = 64,
+    warmupIters = 8,
 
     debug,
   } = {},
@@ -155,7 +153,7 @@ export const measure: <const Params extends (() => any)[]>(
   let content = `(${constants.FN_HRTIME},${constants.FN_GC},${constants.FN},${constants.FN_PARAMS})=>${
     // Whether the loop needs to be async
     isLoopAsync ? 'async' : ''
-  }(${constants.THRESHOLD},${constants.MIN_ITERS})=>{let runtimes=[],gcs=[];${constants.THRESHOLD}+=${constants.HRTIME};for(${
+  }(${constants.THRESHOLD},${constants.MIN_ITERS})=>{let runs=[],gcs=[];${constants.THRESHOLD}+=${constants.HRTIME};for(${
     // Declare params store
     loopVars
   };${constants.MIN_ITERS}>0||${constants.HRTIME}<${constants.THRESHOLD};${constants.MIN_ITERS}--){${
@@ -195,18 +193,18 @@ export const measure: <const Params extends (() => any)[]>(
   // Compute results
   {
     const hrtimeRes = batch > 1 ? `(${constants.HRTIME_DIFF})/${batch}` : constants.HRTIME_DIFF;
-    content += `${constants.HRTIME_MARK_END}runtimes.push(${hrtimeRes})`;
+    content += `${constants.HRTIME_MARK_END}runs.push(${hrtimeRes})`;
 
     measureGC &&
       (content += `;${constants.HRTIME_RESET_START + constants.RUN_GC + constants.HRTIME_RESET_END}gcs.push(${hrtimeRes})`);
   }
 
-  content += `}return{runtimes,gcs}}`;
+  content += `}return{runs,gcs}}`;
 
   const loop = (0, eval)(content)(hrtime, gc, fn, params);
   isLoopAsync ? await loop(warmupThreshold, warmupIters) : loop(warmupThreshold, warmupIters);
 
-  const res = isLoopAsync ? await loop(threshold, iters) : loop(threshold, iters);
+  const res: MeasureResult = isLoopAsync ? await loop(threshold, iters) : loop(threshold, iters);
   debug && (res.debug = { content });
   return res;
 };

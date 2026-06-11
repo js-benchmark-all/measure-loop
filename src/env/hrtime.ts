@@ -1,6 +1,11 @@
 // @ts-nocheck
 /**
- * @returns A high resolution timestamp in nanosecond (when detected).
+ * Whether a high resolution timestamp method is detected.
+ */
+export let hrtimeDetected = true;
+
+/**
+ * @returns A high resolution timestamp in milliseconds (when detected).
  * @example
  * ```ts
  * import { hrtime, hrtimeDetected } from 'measure-loop/detect/hrtime';
@@ -9,24 +14,12 @@
  */
 export let hrtime: () => number;
 
-/**
- * Whether a high resolution timestamp method is detected.
- */
-export let hrtimeDetected = true;
-
-try {
-  // node/deno/... (v8 inline, anti-deopts)
-  const fn = performance.now.bind(performance);
-  fn();
-
-  hrtime = () => 1e6 * fn();
-} catch {
-  try {
-    // jsc
-    $.agent.monotonicNow();
-    hrtime = () => 1e6 * $.agent.monotonicNow();
-  } catch {
-    hrtime = () => 1e6 * Date.now();
-    hrtimeDetected = false;
-  }
+if (globalThis.performance?.now) {
+  // optimized by v8/jsc
+  hrtime = performance.now.bind(performance);
+} else if (globalThis.$?.agent?.monotonicNow) {
+  hrtime = () => $.agent.monotonicNow();
+} else {
+  rtime = Date.now;
+  hrtimeDetected = false;
 }

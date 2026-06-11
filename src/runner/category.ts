@@ -6,12 +6,12 @@ export interface RuntimeEnv {
 }
 
 export interface Reporter<in out Store> {
-  start: () => Store | Promise<Store>;
-  benchStart: (catId: string, parentStore: Store) => Store | Promise<Store>;
+  start: (root: Category) => Store | Promise<Store>;
+  benchStart: (cat: Category, parentStore: Store) => Store | Promise<Store>;
   benchResult: (benchKey: string, store: Store, result: MeasureResult) => any;
   benchError: (benchKey: string, store: Store, error: unknown) => any;
-  benchEnd: (store: Store) => any;
-  end: (store: Store) => any;
+  benchEnd: (cat: Category, store: Store) => any;
+  end: (root: Category, store: Store) => any;
 }
 
 export interface RunOptions<ReporterStore extends {}> {
@@ -89,9 +89,10 @@ export class Category {
     const reporter = options.reporter;
 
     const isRoot = !parentStore;
-    isRoot && (parentStore = await reporter.start());
 
-    const store = await reporter.benchStart(this.id, parentStore!);
+    isRoot && (parentStore = await reporter.start(this));
+    const store = await reporter.benchStart(this, parentStore!);
+
     for (
       let i = 0,
         { benchKeys, benchParams, benchFns, benchOptionList } = this,
@@ -121,12 +122,12 @@ export class Category {
 
       await reporter.benchResult(benchKeys[i], store, result);
     }
-    await reporter.benchEnd(store);
 
     for (let i = 0, { subcats } = this; i < subcats.length; i++)
       await subcats[i].run(options, defaultBenchOptions, store);
 
-    isRoot && (await reporter.end(parentStore!));
+    await reporter.benchEnd(this, store);
+    isRoot && (await reporter.end(this, parentStore!));
   }
 }
 
