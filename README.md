@@ -27,7 +27,12 @@ To collect GC time:
 import { bench, env } from 'measure-loop/runner';
 import reporter from 'measure-loop/reporter/compact';
 
-// Default options
+await bench('hrtime')
+  .it('performance.now()', [], () => performance.now(), { measureGC: true })
+  .it('Date.now()', [], () => Date.now(), { measureGC: true })
+  .run({ env, reporter });
+
+// or using default options
 await bench('hrtime', { measureGC: true })
   .it('performance.now()', [], () => performance.now())
   .it('Date.now()', [], () => Date.now())

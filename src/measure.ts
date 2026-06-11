@@ -210,8 +210,3 @@ export const measure: <const Params extends (() => any)[]>(
   debug && (res.debug = { content });
   return res;
 };
-
-export const mergeMeasureOptions = (
-  origin: MeasureOptions | undefined,
-  more: MeasureOptions | undefined,
-): MeasureOptions | undefined => (origin ? (more ? Object.assign(origin, more) : origin) : more);
