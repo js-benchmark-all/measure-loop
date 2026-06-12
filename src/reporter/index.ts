@@ -1,6 +1,9 @@
+import { clk } from '../env/clk.ts';
 import { supportsColor } from '../env/color.ts';
+import { runtime, runtimeVersion, runtimeArch } from '../env/runtime.ts';
+
 import type { Reporter } from '../runner/category.ts';
-import { calcAvg, calcVariance, formatMs as utilFormatMs, trunc } from './utils.ts';
+import { calcAvg, calcVariance, formatMs as utilFormatMs, trunc, formatHz } from './utils.ts';
 
 type ColorFn = (str: string | number) => string;
 const fallback: ColorFn = (str) => str + '';
@@ -9,6 +12,7 @@ const yellowBright: ColorFn = supportsColor ? (str) => "\x1b[93m" + str + "\x1b[
 const greenBright: ColorFn = supportsColor ? (str) => "\x1b[92m" + str + "\x1b[39m" : fallback;
 const bold: ColorFn = supportsColor ? (str) => "\x1b[1m" + str + "\x1b[22m" : fallback;
 const boldCyan: ColorFn = supportsColor ? (str) => "\x1b[1m\x1b[36m" + str + "\x1b[39m\x1b[22m" : fallback;
+const dim: ColorFn = supportsColor ? (str) => "\x1b[2m" + str + "\x1b[22m" : fallback
 
 const formatMs = (ms: number) => yellowBright(utilFormatMs(ms));
 
@@ -31,10 +35,22 @@ const reporter: Reporter<{
   tab: string,
   results: { key: string, runsAvg: number }[]
 }> = {
-  start: () => ({
-    tab: '',
-    results: []
-  }),
+  start: () => {
+    let str = '$ clk: ~' + formatHz(clk);
+
+    if (runtime) {
+      str += '\n$ runtime: ' + runtime;
+      runtimeVersion && (str += ' ' + runtimeVersion);
+      runtimeArch && (str += ' (' + runtimeArch + ')');
+    }
+
+    console.log(dim(str));
+
+    return {
+      tab: '',
+      results: []
+    };
+  },
 
   benchStart: (cat, { tab }) => {
     console.log('\n' + tab + '# ' + bold(cat.id));

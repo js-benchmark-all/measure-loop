@@ -5,8 +5,8 @@ export interface RuntimeEnv {
   hrtime: () => number;
 }
 
-export interface Reporter<in out Store> {
-  start: (root: Category) => Store | Promise<Store>;
+export interface Reporter<in out Store extends {}> {
+  start: (root: Category, runOptions: RunOptions<Store>, defaultBenchOptions: MeasureOptions | undefined) => Store | Promise<Store>;
   benchStart: (cat: Category, parentStore: Store) => Store | Promise<Store>;
   benchResult: (benchKey: string, store: Store, result: MeasureResult) => any;
   benchError: (benchKey: string, store: Store, error: unknown) => any;
@@ -90,7 +90,7 @@ export class Category {
 
     const isRoot = parentStore == null;
 
-    isRoot && (parentStore = await reporter.start(this));
+    isRoot && (parentStore = await reporter.start(this, options, defaultBenchOptions));
     const store = await reporter.benchStart(this, parentStore!);
 
     for (

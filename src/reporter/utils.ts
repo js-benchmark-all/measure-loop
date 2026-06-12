@@ -24,6 +24,27 @@ export const formatMs = (ms: number): string => {
   return trunc(ms) + unit;
 };
 
+export const formatHz = (hz: number): string => {
+  let unit = 'Hz';
+
+  if (hz >= 1e2) {
+    hz /= 1e3;
+    unit = 'kHz';
+
+    if (hz >= 1e2) {
+      hz /= 1e3;
+      unit = 'MHz';
+
+      if (hz >= 1e2) {
+        hz /= 1e3;
+        unit = 'GHz';
+      }
+    }
+  }
+
+  return trunc(hz) + unit;
+};
+
 export const calcAvg = (results: number[]): number => {
   let total = 0;
   for (let i = 0; i < results.length; i++) total += results[i];
