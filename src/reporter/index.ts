@@ -1,9 +1,9 @@
 import { supportsColor } from '../env/color.ts';
 import type { Reporter } from '../runner/category.ts';
-import { calcAvg, calcPercentile, calcVariance, formatMs as utilFormatMs, trunc } from './utils.ts';
+import { calcAvg, calcVariance, formatMs as utilFormatMs, trunc } from './utils.ts';
 
-type ColorFn = (str: string) => string;
-const fallback: ColorFn = (str) => str;
+type ColorFn = (str: string | number) => string;
+const fallback: ColorFn = (str) => str + '';
 
 const yellowBright: ColorFn = supportsColor ? (str) => "\x1b[93m" + str + "\x1b[39m" : fallback;
 const greenBright: ColorFn = supportsColor ? (str) => "\x1b[92m" + str + "\x1b[39m" : fallback;
@@ -19,18 +19,15 @@ const displayResults = (tab: string, results: number[]): number => {
 
   const avg = calcAvg(results),
     variance = calcVariance(results, avg);
-  console.log(tab + '- avg: ' + formatMs(avg) + ' ± ' + formatMs(Math.sqrt(variance / len)));
 
-  console.log(tab + '- p50: ' + formatMs(calcPercentile(results, 0.5)));
-  console.log(tab + '- p75: ' + formatMs(calcPercentile(results, 0.75)));
-  console.log(tab + '- p99: ' + formatMs(calcPercentile(results, 0.99)));
+  console.log(tab + '- avg: ' + formatMs(avg) + ' ± ' + formatMs(Math.sqrt(variance / len)));
   console.log(tab + '- min: ' + formatMs(results[0]));
   console.log(tab + '- max: ' + formatMs(results[len - 1]));
 
   return avg;
 };
 
-export const compact: Reporter<{
+const reporter: Reporter<{
   tab: string,
   results: { key: string, runsAvg: number }[]
 }> = {
@@ -47,7 +44,7 @@ export const compact: Reporter<{
     };
   },
 
-  benchResult: (key, { tab, results }, { runs, gcs }) => {
+  benchResult: (key, { tab, results }, { runs, gcs, calls }) => {
     console.log(tab + '* ' + boldCyan(key));
     tab += '  ';
 
@@ -56,6 +53,7 @@ export const compact: Reporter<{
       return;
     }
 
+    console.log(tab + '- runs: ' + yellowBright(calls));
     results.push({
       key,
       runsAvg: displayResults(tab, runs)
@@ -86,4 +84,4 @@ export const compact: Reporter<{
   end: () => {},
 };
 
-export default compact;
+export default reporter;

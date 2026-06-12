@@ -15,3 +15,7 @@ export const RUN_GC = 'g();';
 
 export const THRESHOLD = 'h';
 export const MIN_ITERS = 'k';
+export const ITERS = 'l';
+
+export const RUNS = 'm';
+export const GCS = 'n';

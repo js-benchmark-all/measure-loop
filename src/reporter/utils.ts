@@ -36,7 +36,3 @@ export const calcVariance = (sortedResults: number[], avg: number): number => {
     variance += (sortedResults[i] - avg) * (sortedResults[i] - avg);
   return variance / sortedResults.length;
 };
-
-export const calcPercentile = (sortedResults: number[], p: number): number => {
-  return sortedResults[(p * (sortedResults.length - 1) + 0.5) >>> 0];
-};

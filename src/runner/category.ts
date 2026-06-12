@@ -58,7 +58,7 @@ export class Category {
     return this;
   }
 
-  it<const Params extends (() => any)[]>(
+  it<const Params extends ((idx: number) => any)[]>(
     id: string,
     params: Params,
     fn: (
@@ -81,14 +81,14 @@ export class Category {
     parentStore?: ReporterStore,
   ): Promise<void> {
     // Add new options if exists
-    this.defaultBenchOptions &&
-      (defaultBenchOptions = defaultBenchOptions
+    this.defaultBenchOptions != null &&
+      (defaultBenchOptions = defaultBenchOptions != null
         ? { ...defaultBenchOptions, ...this.defaultBenchOptions }
         : this.defaultBenchOptions);
 
     const reporter = options.reporter;
 
-    const isRoot = !parentStore;
+    const isRoot = parentStore == null;
 
     isRoot && (parentStore = await reporter.start(this));
     const store = await reporter.benchStart(this, parentStore!);
@@ -108,7 +108,7 @@ export class Category {
           benchFns[i],
           gc,
           hrtime,
-          defaultBenchOptions
+          defaultBenchOptions != null
             ? {
                 ...defaultBenchOptions,
                 ...benchOptionList[i],

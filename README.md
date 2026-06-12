@@ -47,8 +47,9 @@ parent.category(child);
 
 To add computed parameters:
 ```ts
+// Doesn't get measured
 const params = [
-  () => generateString(),
+  (i) => generateString(i + 1),
   () => 'abc'
 ] as const;
 
@@ -73,7 +74,7 @@ bench('find substring')
   .it(
     'aho-corasick',
     [
-      () => generateString(),
+      (i) => generateString(i + 1),
       () => acTrie
     ],
     (str, trie) => ac(str, trie)
