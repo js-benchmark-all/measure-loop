@@ -1,18 +1,19 @@
-import { clk } from '../env/clk.ts';
 import { supportsColor } from '../env/color.ts';
 import { runtime, runtimeVersion, runtimeArch } from '../env/runtime.ts';
 
 import type { Reporter } from '../runner/category.ts';
-import { calcAvg, calcVariance, formatMs as utilFormatMs, trunc, formatHz } from './utils.ts';
+import { calcAvg, calcVariance, formatMs as utilFormatMs, trunc } from './utils.ts';
 
 type ColorFn = (str: string | number) => string;
 const fallback: ColorFn = (str) => str + '';
 
-const yellowBright: ColorFn = supportsColor ? (str) => "\x1b[93m" + str + "\x1b[39m" : fallback;
-const greenBright: ColorFn = supportsColor ? (str) => "\x1b[92m" + str + "\x1b[39m" : fallback;
-const bold: ColorFn = supportsColor ? (str) => "\x1b[1m" + str + "\x1b[22m" : fallback;
-const boldCyan: ColorFn = supportsColor ? (str) => "\x1b[1m\x1b[36m" + str + "\x1b[39m\x1b[22m" : fallback;
-const dim: ColorFn = supportsColor ? (str) => "\x1b[2m" + str + "\x1b[22m" : fallback
+const yellowBright: ColorFn = supportsColor ? (str) => '\x1b[93m' + str + '\x1b[39m' : fallback;
+const greenBright: ColorFn = supportsColor ? (str) => '\x1b[92m' + str + '\x1b[39m' : fallback;
+const bold: ColorFn = supportsColor ? (str) => '\x1b[1m' + str + '\x1b[22m' : fallback;
+const boldCyan: ColorFn = supportsColor
+  ? (str) => '\x1b[1m\x1b[36m' + str + '\x1b[39m\x1b[22m'
+  : fallback;
+const dim: ColorFn = supportsColor ? (str) => '\x1b[2m' + str + '\x1b[22m' : fallback;
 
 const formatMs = (ms: number) => yellowBright(utilFormatMs(ms));
 
@@ -32,11 +33,11 @@ const displayResults = (tab: string, results: number[]): number => {
 };
 
 const reporter: Reporter<{
-  tab: string,
-  results: { key: string, runsAvg: number }[]
+  tab: string;
+  results: { key: string; runsAvg: number }[];
 }> = {
   start: () => {
-    let str = '$ clk: ~' + formatHz(clk);
+    let str = '';
 
     if (runtime) {
       str += '\n$ runtime: ' + runtime;
@@ -48,7 +49,7 @@ const reporter: Reporter<{
 
     return {
       tab: '',
-      results: []
+      results: [],
     };
   },
 
@@ -56,7 +57,7 @@ const reporter: Reporter<{
     console.log('\n' + tab + '# ' + bold(cat.id));
     return {
       tab: tab + '  ',
-      results: []
+      results: [],
     };
   },
 
@@ -72,7 +73,7 @@ const reporter: Reporter<{
     console.log(tab + '- runs: ' + yellowBright(calls));
     results.push({
       key,
-      runsAvg: displayResults(tab, runs)
+      runsAvg: displayResults(tab, runs),
     });
 
     if (gcs.length > 0) {
@@ -94,7 +95,12 @@ const reporter: Reporter<{
 
     tab += '  - ';
     for (let i = 1, baseline = results[0].runsAvg; i < results.length; i++)
-      console.log(tab + greenBright(trunc(results[i].runsAvg / baseline) + 'x') + ' faster than ' + boldCyan(results[i].key));
+      console.log(
+        tab +
+          greenBright(trunc(results[i].runsAvg / baseline) + 'x') +
+          ' faster than ' +
+          boldCyan(results[i].key),
+      );
   },
 
   end: () => {},

@@ -27,15 +27,15 @@ export const formatMs = (ms: number): string => {
 export const formatHz = (hz: number): string => {
   let unit = 'Hz';
 
-  if (hz >= 1e2) {
+  if (hz >= 1e3) {
     hz /= 1e3;
     unit = 'kHz';
 
-    if (hz >= 1e2) {
+    if (hz >= 1e3) {
       hz /= 1e3;
       unit = 'MHz';
 
-      if (hz >= 1e2) {
+      if (hz >= 1e3) {
         hz /= 1e3;
         unit = 'GHz';
       }

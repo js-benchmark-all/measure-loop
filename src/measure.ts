@@ -16,13 +16,6 @@ export interface MeasureResult {
    * Actual calls count.
    */
   calls: number;
-
-  /**
-   * Debug info.
-   */
-  debug?: {
-    content: string;
-  };
 }
 
 /**
@@ -71,6 +64,11 @@ export interface MeasureOptions {
    * Whether to include debug info in output.
    */
   debug?: boolean;
+
+  /**
+   * Whether to only `gc()` once instead of in every iteration.
+   */
+  gcOnce?: boolean;
 }
 
 const buildArgs = (idx: string, paramLen: number) => {
@@ -82,7 +80,10 @@ const buildArgs = (idx: string, paramLen: number) => {
 /**
  * Benchmark a function.
  */
-export const measure: <const Params extends ((idx: number) => any)[]>(
+export const measure: <
+  const Params extends ((idx: number) => any)[],
+  Options extends MeasureOptions,
+>(
   params: Params,
   fn: (
     ...args: {
@@ -91,17 +92,26 @@ export const measure: <const Params extends ((idx: number) => any)[]>(
   ) => any,
   gc: () => void,
   hrtime: () => number,
-  options?: MeasureOptions,
-) => Promise<MeasureResult> = async (
+  options?: Options,
+) => Promise<
+  Options extends { debug: true }
+    ? MeasureResult & {
+        debug: {
+          content: string;
+        };
+      }
+    : MeasureResult
+> = async (
   params,
   fn,
   gc,
   hrtime,
+  // @ts-ignore
   {
     batch = 4096,
     inlineCalls = 4,
 
-    measureGC,
+    measureGC = false,
 
     threshold = 256,
     iters = 64,
@@ -110,8 +120,11 @@ export const measure: <const Params extends ((idx: number) => any)[]>(
     warmupIters = 8,
 
     debug,
+    gcOnce = false,
   } = {},
 ) => {
+  gcOnce && measureGC && console.warn('gcOnce has no effect when measureGC is on.');
+
   let isFnAsync: boolean,
     paramLen = params.length,
     hasParam = paramLen > 0,
@@ -155,18 +168,15 @@ export const measure: <const Params extends ((idx: number) => any)[]>(
   const isLoopAsync = isFnAsync || isParamAsync;
 
   // Build loop
-  let content = `(${constants.FN_HRTIME},${constants.FN_GC},${constants.FN},${constants.FN_PARAMS})=>${
-    // Whether the loop needs to be async
-    isLoopAsync ? 'async' : ''
-  }(${constants.THRESHOLD},${constants.MIN_ITERS})=>{let ${constants.RUNS}=[],${constants.GCS}=[],${constants.ITERS}=${constants.MIN_ITERS};${constants.THRESHOLD}+=${constants.HRTIME};for(${
-    // Declare params store
-    loopVars
-  };${constants.MIN_ITERS}>0||${constants.HRTIME}<${constants.THRESHOLD};${constants.MIN_ITERS}--){${
-    // Build params
-    paramContent
-  }${constants.RUN_GC}${constants.HRTIME_MARK_START}`;
+  let content =
+    (isLoopAsync ? 'async' : '') +
+    `(${constants.FN_HRTIME},${constants.FN_GC},${constants.FN},${constants.FN_PARAMS},${constants.THRESHOLD},${constants.MIN_ITERS})=>{let ${constants.RUNS}=[],${constants.GCS}=[],${constants.ITERS}=${constants.MIN_ITERS};${constants.THRESHOLD}+=${constants.HRTIME};${gcOnce ? constants.RUN_GC : ''}for(${
+      // Declare params store
+      loopVars
+    };${constants.MIN_ITERS}>0||${constants.HRTIME}<${constants.THRESHOLD};${constants.MIN_ITERS}--){${
+      gcOnce ? paramContent : paramContent + constants.RUN_GC
+    }${constants.HRTIME_MARK_START}`;
 
-  // Setup calls
   {
     const remainingCalls = batch % inlineCalls;
 
@@ -206,10 +216,17 @@ export const measure: <const Params extends ((idx: number) => any)[]>(
 
   content += `}return{runs:${constants.RUNS},gcs:${constants.GCS},calls:(${constants.ITERS}-${constants.MIN_ITERS})*${batch}}}`;
 
-  const loop = (0, eval)(content)(hrtime, gc, fn, params);
-  isLoopAsync ? await loop(warmupThreshold, warmupIters) : loop(warmupThreshold, warmupIters);
+  const loop = (0, eval)(content);
+  warmupIters > 0 &&
+    (isLoopAsync
+      ? await loop(hrtime, gc, fn, params, warmupThreshold, warmupIters)
+      : loop(hrtime, gc, fn, params, warmupThreshold, warmupIters));
 
-  const res: MeasureResult = isLoopAsync ? await loop(threshold, iters) : loop(threshold, iters);
+  const res: MeasureResult = isLoopAsync
+    ? await loop(hrtime, gc, fn, params, threshold, iters)
+    : loop(hrtime, gc, fn, params, threshold, iters);
+
+  // @ts-ignore
   debug && (res.debug = { content });
-  return res;
+  return res as any;
 };

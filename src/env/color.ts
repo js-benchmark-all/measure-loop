@@ -1,5 +1,3 @@
-type ColorFn = (str: string) => string;
-
 // @ts-nocheck
 const proc = globalThis.process;
 
