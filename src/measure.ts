@@ -1,8 +1,85 @@
-export interface DebugInfo {
+export interface CompileOptions {
   /**
-   * Generated benchmark loop.
+   * Number of calls in an iteration.
+   *
+   * Defaults to `4096`.
    */
-  content: string;
+  batch?: number;
+
+  /**
+   * Number of calls to inline in an iteration.
+   *
+   * Defaults to `4`.
+   */
+  inlineCalls?: number;
+
+  /**
+   * Whether to collect GC timings.
+   *
+   * Enable this option can reduce timing accuracy.
+   *
+   * Defaults to `false`.
+   */
+  measureGC?: boolean;
+
+  /**
+   * Max benchmark iterations.
+   *
+   * Defaults to `1 << 20`.
+   */
+  maxIters?: number;
+
+  /**
+   * Whether to only `gc()` once instead of in every iteration.
+   *
+   * Enable this option when benchmarking code with few allocations to increase accuracy.
+   */
+  gcOnce?: boolean;
+}
+
+export interface MeasureOptions extends CompileOptions {
+  /**
+   * Min time in milliseconds to run the benchmark.
+   *
+   * Benchmark stops when **both** `threshold` and `iters` are reached.
+   *
+   * Defaults to `512`.
+   */
+  threshold?: number;
+
+  /**
+   * Min benchmark iterations.
+   *
+   * Benchmark stops when **both** `threshold` and `iters` are reached.
+   *
+   * Defaults to `64`.
+   */
+  iters?: number;
+
+  /**
+   * Min time in milliseconds to warmup the benchmark.
+   *
+   * Benchmark warmup stops when **both** `warmupThreshold` and `warmupIters` are reached.
+   *
+   * Defaults to `64`.
+   */
+  warmupThreshold?: number;
+
+  /**
+   * Min warmup iterations.
+   *
+   * Benchmark warmup stops when **both** `warmupThreshold` and `warmupIters` are reached.
+   *
+   * Defaults to `8`.
+   */
+  warmupIters?: number;
+
+  /**
+   * Whether to include debug info in output.
+   *
+   * Defaults to `false`.
+   */
+  debug?: boolean;
 }
 
 /**
@@ -30,57 +107,11 @@ export interface MeasureResult {
   gcs: number[] | undefined;
 }
 
-/**
- * Describe measure options.
- *
- * - Warmup stops when either `warmupThreshold` or `warmupIters` is reached.
- * - The run stops when either `threshold` or `iters` is reached.
- */
-export interface MeasureOptions {
+export interface DebugInfo {
   /**
-   * Number of calls in an iteration. Defaults to `4096`.
+   * Generated benchmark loop.
    */
-  batch?: number;
-
-  /**
-   * Number of calls to inline. Defaults to `4`.
-   */
-  inlineCalls?: number;
-
-  /**
-   * Whether to collect GC timings. Defaults to `false`.
-   */
-  measureGC?: boolean;
-
-  /**
-   * Min time in milliseconds to run the benchmark.
-   */
-  threshold?: number;
-
-  /**
-   * Min benchmark iterations.
-   */
-  iters?: number;
-
-  /**
-   * Min time in milliseconds to warmup the benchmark.
-   */
-  warmupThreshold?: number;
-
-  /**
-   * Min warmup iterations.
-   */
-  warmupIters?: number;
-
-  /**
-   * Whether to include debug info in output.
-   */
-  debug?: boolean;
-
-  /**
-   * Whether to only `gc()` once instead of in every iteration.
-   */
-  gcOnce?: boolean;
+  content: string;
 }
 
 const buildArgs = (idx: string, paramLen: number) => {
@@ -93,9 +124,8 @@ const buildArgs = (idx: string, paramLen: number) => {
 /**
  * Benchmark a function.
  */
-export const measure: <
+export const compileLoop: <
   const Params extends ((idx: number) => any)[],
-  Options extends MeasureOptions,
 >(
   params: Params,
   fn: (
@@ -103,41 +133,20 @@ export const measure: <
       [K in keyof Params]: Awaited<ReturnType<Params[K]>>;
     }
   ) => any,
-  gc: () => void,
-  hrtime: () => number,
-  options?: Options,
-) => Promise<
-  // debug info
-  (Options extends { debug: true }
-    ? MeasureResult & {
-        debug: DebugInfo;
-      }
-    : MeasureResult) &
-    // measure gc
-    {
-      gcs: Options extends { measureGC: true } ? number[] : undefined;
-    }
-> = async (
+  options: CompileOptions,
+) => Promise<string> = async (
   params,
   fn,
-  gc,
-  hrtime,
-  // @ts-ignore
   {
     batch = 4096,
     inlineCalls = 4,
 
     measureGC = false,
 
-    threshold = 256,
-    iters = 32,
+    maxIters = 1 << 20,
 
-    warmupThreshold = 64,
-    warmupIters = 8,
-
-    debug,
     gcOnce = false,
-  } = {},
+  },
 ) => {
   gcOnce &&
     measureGC &&
@@ -189,15 +198,15 @@ export const measure: <
   // Build loop
   let content =
     (isLoopAsync ? 'async' : '') +
-    `(${constants.FN_HRTIME},${constants.FN_GC},${constants.FN},${constants.FN_PARAMS},${constants.THRESHOLD},${constants.MIN_ITERS})=>{let ${constants.RUNS}=new Array(${constants.MAX_ITERS}),${constants.GCS}${
-      measureGC ? `=new Array(${constants.MAX_ITERS})` : ''
+    `(${constants.FN_HRTIME},${constants.FN_GC},${constants.FN},${constants.FN_PARAMS},${constants.THRESHOLD},${constants.MIN_ITERS})=>{let ${constants.RUNS}=new Array(${maxIters}),${constants.GCS}${
+      measureGC ? `=new Array(${maxIters})` : ''
     },${constants.ITERS}=0,${constants.CURRENT_TIME}=${constants.HRTIME};${
       // Run gc later when creating params
       paramLen > 0 && !gcOnce ? '' : constants.RUN_GC
     }for(${
       // Declare params store
       loopVars
-    };${constants.ITERS}<${constants.MAX_ITERS}&&${constants.ITERS}<${constants.MIN_ITERS}||${constants.CURRENT_TIME}<${constants.THRESHOLD};${constants.ITERS}++){${
+    };${constants.ITERS}<${maxIters}&&${constants.ITERS}<${constants.MIN_ITERS}||${constants.CURRENT_TIME}<${constants.THRESHOLD};${constants.ITERS}++){${
       // Create params and run GC if needed
       paramLen > 0
         ? gcOnce
@@ -259,6 +268,54 @@ export const measure: <
     measureGC ? `${constants.GCS}.length=` : ''
   }${constants.ITERS};return{runs:${constants.RUNS},gcs:${constants.GCS},calls:${constants.ITERS}*${batch},iters:${constants.ITERS}}}`;
 
+  return content;
+};
+
+/**
+ * Benchmark a function.
+ */
+export const measure: <
+  const Params extends ((idx: number) => any)[],
+  Options extends MeasureOptions,
+>(
+  params: Params,
+  fn: (
+    ...args: {
+      [K in keyof Params]: Awaited<ReturnType<Params[K]>>;
+    }
+  ) => any,
+  gc: () => void,
+  hrtime: () => number,
+  options?: Options,
+) => Promise<
+  // debug info
+  (Options extends { debug: true }
+    ? MeasureResult & {
+        debug: DebugInfo;
+      }
+    : MeasureResult) &
+    // measure gc
+    {
+      gcs: Options extends { measureGC: true } ? number[] : undefined;
+    }
+> = async (
+  params,
+  fn,
+  gc,
+  hrtime,
+  // @ts-ignore
+  options = {},
+) => {
+  const {
+    warmupIters = 8,
+    warmupThreshold = 64,
+    iters = 64,
+    threshold = 512,
+  } = options;
+
+  const content = await compileLoop(params, fn, options);
+  const isLoopAsync = content.startsWith('async');
+
   const loop = (0, eval)(content);
   warmupIters > 0 &&
     (isLoopAsync
@@ -271,12 +328,12 @@ export const measure: <
           warmupIters,
         )
       : loop(hrtime, gc, fn, params, warmupThreshold, warmupIters));
-
   const res: MeasureResult = isLoopAsync
     ? await loop(hrtime, gc, fn, params, threshold, iters)
     : loop(hrtime, gc, fn, params, threshold, iters);
 
-  // @ts-ignore
-  debug && (res.debug = { content });
+  options.debug &&
+    // @ts-ignore
+    (res.debug = { content });
   return res as any;
 };

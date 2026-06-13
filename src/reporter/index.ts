@@ -22,7 +22,7 @@ const yellowBright: ColorFn = supportsColor
   ? (str) => '\x1b[93m' + str + '\x1b[39m'
   : fallback;
 const green: ColorFn = supportsColor
-  ? (str) => "\x1b[32m" + str + '\x1b[39m'
+  ? (str) => '\x1b[32m' + str + '\x1b[39m'
   : fallback;
 const bold: ColorFn = supportsColor
   ? (str) => '\x1b[1m' + str + '\x1b[22m'
@@ -67,6 +67,7 @@ const displayResults = (tab: string, results: number[]): number => {
 
 const reporter: Reporter<{
   tab: string;
+  heading: string;
   results: { key: string; runsAvg: number }[];
 }> = {
   start: () => {
@@ -82,14 +83,16 @@ const reporter: Reporter<{
 
     return {
       tab: '',
+      heading: '# ',
       results: [],
     };
   },
 
-  benchStart: (cat, { tab }) => {
-    print('\n' + tab + '# ' + bold(cat.id));
+  benchStart: (cat, { tab, heading }) => {
+    print(tab + bold(heading + cat.id));
     return {
       tab: tab + '  ',
+      heading: '#' + heading,
       results: [],
     };
   },
@@ -127,7 +130,7 @@ const reporter: Reporter<{
   },
 
   benchEnd: (_, { tab, results }) => {
-    if (results.length === 0) return;
+    if (results.length < 2) return;
 
     results.sort((a, b) => a.runsAvg - b.runsAvg);
     print(tab + '& ' + boldCyan(results[0].key));

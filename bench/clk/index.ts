@@ -1,12 +1,5 @@
 import { formatHz } from 'measure-loop/reporter/utils';
 
-Bun.$.cwd(import.meta.dir);
-await Promise.all([
-  // Run clk calc
-  Bun.$`node measure-loop.ts`,
-  Bun.$`node mitata.ts`,
-  Bun.$`node tinybench.ts`,
-]);
 {
   const cpuinfo = (await Bun.$`cat /proc/cpuinfo | grep MHz`.text())
     .split('\n')
@@ -20,5 +13,13 @@ await Promise.all([
 
   console.log('actual:', formatHz(hzSum / cpuinfo.length));
 }
+
+Bun.$.cwd(import.meta.dir);
+await Promise.all([
+  // Run clk calc
+  Bun.$`node measure-loop.ts`,
+  Bun.$`node mitata.ts`,
+  Bun.$`node tinybench.ts`,
+]);
 
 await Bun.$`bun fmt .`;
