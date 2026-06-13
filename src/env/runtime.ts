@@ -20,6 +20,7 @@ export let runtime:
     | 'hermes'
     | 'spidermonkey'
     | 'firefox'
+    | 'porffor'
     | 'chromium'
     | 'webkit'
     | 'browser'
@@ -90,15 +91,22 @@ if (globalThis.Bun) {
   } catch {
     globalThis.isAvxPresent?.() && (runtimeArch = 'x86_64');
   }
-} else if (globalThis.window) {
-  if (globalThis.netscape && globalThis.InternalError)
-    runtime = 'firefox';
-  else if (globalThis.navigator) {
+} else if (globalThis.navigator) {
+  if (navigator.userAgent.startsWith('Porffor/')) {
+    runtime = 'porffor';
+    runtimeVersion = navigator.userAgent.slice(8);
+  } else if (globalThis.window) {
     if (Error.prepareStackTrace) runtime = 'chromium';
     else if (new Error().stack.includes('runtime@'))
       runtime = 'webkit';
     else runtime = 'browser';
   }
+} else if (
+  globalThis.window &&
+  globalThis.netscape &&
+  globalThis.InternalError
+) {
+  runtime = 'firefox';
 } else if (globalThis.os && globalThis.std) {
   runtime = 'quickjs';
 } else if (new Error().stack.includes('runtime@')) {

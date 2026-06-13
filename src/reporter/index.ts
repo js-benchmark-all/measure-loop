@@ -20,8 +20,8 @@ const fallback: ColorFn = (str) => str + '';
 const yellowBright: ColorFn = supportsColor
   ? (str) => '\x1b[93m' + str + '\x1b[39m'
   : fallback;
-const greenBright: ColorFn = supportsColor
-  ? (str) => '\x1b[92m' + str + '\x1b[39m'
+const green: ColorFn = supportsColor
+  ? (str) => "\x1b[32m" + str + '\x1b[39m'
   : fallback;
 const bold: ColorFn = supportsColor
   ? (str) => '\x1b[1m' + str + '\x1b[22m'
@@ -45,9 +45,7 @@ const displayResults = (tab: string, results: number[]): number => {
       yellowBright(formatMs(avg)) +
       ' ± ' +
       yellowBright(
-        trunc(
-          (Math.sqrt(calcVariance(results, avg) / len) * 100) / avg,
-        ) + '%',
+        formatMs(Math.sqrt(calcVariance(results, avg) / len)),
       ),
   );
   console.log(
@@ -141,7 +139,7 @@ const reporter: Reporter<{
     )
       console.log(
         tab +
-          greenBright(trunc(results[i].runsAvg / baseline) + 'x') +
+          green(trunc(results[i].runsAvg / baseline) + 'x') +
           ' faster than ' +
           boldCyan(results[i].key),
       );

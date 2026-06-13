@@ -28,11 +28,6 @@ export interface MeasureResult {
    * GC time samples.
    */
   gcs: number[] | undefined;
-
-  /**
-   * Debug info.
-   */
-  debug?: DebugInfo;
 }
 
 /**
@@ -194,15 +189,15 @@ export const measure: <
   // Build loop
   let content =
     (isLoopAsync ? 'async' : '') +
-    `(${constants.FN_HRTIME},${constants.FN_GC},${constants.FN},${constants.FN_PARAMS},${constants.THRESHOLD},${constants.MIN_ITERS})=>{let ${constants.RUNS}=new Array(1<<20),${constants.GCS}${
-      measureGC ? `=new Array(1<<20)` : ''
+    `(${constants.FN_HRTIME},${constants.FN_GC},${constants.FN},${constants.FN_PARAMS},${constants.THRESHOLD},${constants.MIN_ITERS})=>{let ${constants.RUNS}=new Array(${constants.MAX_ITERS}),${constants.GCS}${
+      measureGC ? `=new Array(${constants.MAX_ITERS})` : ''
     },${constants.ITERS}=0,${constants.CURRENT_TIME}=${constants.HRTIME};${
       // Run gc later when creating params
       paramLen > 0 && !gcOnce ? '' : constants.RUN_GC
     }for(${
       // Declare params store
       loopVars
-    };${constants.ITERS}<1048576&&${constants.ITERS}<${constants.MIN_ITERS}||${constants.CURRENT_TIME}<${constants.THRESHOLD};${constants.ITERS}++){${
+    };${constants.ITERS}<${constants.MAX_ITERS}&&${constants.ITERS}<${constants.MIN_ITERS}||${constants.CURRENT_TIME}<${constants.THRESHOLD};${constants.ITERS}++){${
       // Create params and run GC if needed
       paramLen > 0
         ? gcOnce

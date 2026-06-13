@@ -1,5 +1,5 @@
 (a, g, d, f, h, k) => {
-  let m = new Array(1 << 20),
+  let m = new Array(1048576),
     n,
     l = 0,
     t = a();
