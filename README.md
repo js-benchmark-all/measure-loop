@@ -80,3 +80,11 @@ bench('find substring')
     (str, trie) => ac(str, trie)
   );
 ```
+
+## Compare with `mitata`
+This library has a similar benchmark loop to `mitata` but with some API design differences:
+- `mitata` continues a benchmark until both `min_samples` and `samples_threshold` is reached, `measure-loop` runs exactly the iterations you specified.
+- `measure-loop` shuffles benchmark cases by default.
+- `measure-loop` API is a more composable and pluggable.
+- `measure-loop` GCs every iteration by default, `mitata` is opt-in via `inner_gc`.
+- `mitata` has a better default reporter.

@@ -32,6 +32,7 @@ export interface Reporter<in out Store extends {}> {
 export interface RunOptions<ReporterStore extends {}> {
   reporter: Reporter<ReporterStore>;
   env: RuntimeEnv;
+  shuffle?: boolean;
 }
 
 export interface BenchFn {
@@ -117,36 +118,57 @@ export class Category {
       ));
     const store = await reporter.benchStart(this, parentStore!);
 
+    const benchCnt = this.benchKeys.length;
+
+    // Shuffle list
+    const doShuffle = options.shuffle !== false;
+    let shuffleMap: number[];
+    if (doShuffle) {
+      shuffleMap = new Array(benchCnt);
+      for (let i = 0; i < benchCnt; i++) shuffleMap[i] = i;
+      for (let i = benchCnt; i > 0; ) {
+        const swapIdx = (Math.random() * i) >>> 0;
+        i--;
+
+        const v = shuffleMap[i];
+        shuffleMap[i] = shuffleMap[swapIdx];
+        shuffleMap[swapIdx] = v;
+      }
+    }
+
+    // Run cases
     for (
       let i = 0,
         { benchKeys, benchParams, benchFns, benchOptionList } = this,
         { gc, hrtime } = options.env;
-      i < benchKeys.length;
+      i < benchCnt;
       i++
     ) {
-      let result: MeasureResult;
+      const shuffledIdx = doShuffle ? shuffleMap![i] : i;
 
+      let result: MeasureResult;
       try {
         result = await measure(
-          benchParams[i],
-          benchFns[i],
+          benchParams[shuffledIdx],
+          benchFns[shuffledIdx],
           gc,
           hrtime,
           defaultBenchOptions != null
             ? {
                 ...defaultBenchOptions,
-                ...benchOptionList[i],
+                ...benchOptionList[shuffledIdx],
               }
-            : benchOptionList[i],
+            : benchOptionList[shuffledIdx],
         );
       } catch (e) {
-        await reporter.benchError(benchKeys[i], store, e);
+        await reporter.benchError(benchKeys[shuffledIdx], store, e);
         continue;
       }
 
-      await reporter.benchResult(benchKeys[i], store, result);
+      await reporter.benchResult(benchKeys[shuffledIdx], store, result);
     }
 
+    // Run subcats
     for (let i = 0, { subcats } = this; i < subcats.length; i++)
       await subcats[i].run(options, defaultBenchOptions, store);
 

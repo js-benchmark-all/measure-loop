@@ -15,7 +15,7 @@ import { join } from 'node:path';
     hrtime,
     {
       inlineCalls: 1,
-      threshold: 1e3,
+      iters: 1e5,
       gcOnce: true,
       debug: true,
     },

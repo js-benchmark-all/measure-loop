@@ -3,4 +3,5 @@ import reporter from 'measure-loop/reporter';
 
 await bench('hrtime')
   .it('env.hrtime()', [], env.hrtime)
+  .it('performance.now()', [], () => performance.now())
   .run({ env, reporter });

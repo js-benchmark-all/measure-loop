@@ -23,13 +23,6 @@ export interface CompileOptions {
   measureGC?: boolean;
 
   /**
-   * Max benchmark iterations.
-   *
-   * Defaults to `1 << 20`.
-   */
-  maxIters?: number;
-
-  /**
    * Whether to only `gc()` once instead of in every iteration.
    *
    * Enable this option when benchmarking code with few allocations to increase accuracy.
@@ -39,40 +32,18 @@ export interface CompileOptions {
 
 export interface MeasureOptions extends CompileOptions {
   /**
-   * Min time in milliseconds to run the benchmark.
+   * Warmup iterations.
    *
-   * Benchmark stops when **both** `threshold` and `iters` are reached.
-   *
-   * Defaults to `512`.
-   */
-  threshold?: number;
-
-  /**
-   * Min benchmark iterations.
-   *
-   * Benchmark stops when **both** `threshold` and `iters` are reached.
-   *
-   * Defaults to `64`.
-   */
-  iters?: number;
-
-  /**
-   * Min time in milliseconds to warmup the benchmark.
-   *
-   * Benchmark warmup stops when **both** `warmupThreshold` and `warmupIters` are reached.
-   *
-   * Defaults to `64`.
-   */
-  warmupThreshold?: number;
-
-  /**
-   * Min warmup iterations.
-   *
-   * Benchmark warmup stops when **both** `warmupThreshold` and `warmupIters` are reached.
-   *
-   * Defaults to `8`.
+   * Defaults to `16`.
    */
   warmupIters?: number;
+
+  /**
+   * Iterations.
+   *
+   * Defaults to `128`.
+   */
+  iters: number;
 
   /**
    * Whether to include debug info in output.
@@ -92,14 +63,14 @@ export interface MeasureResult {
   runs: number[];
 
   /**
-   * Iteration count.
-   */
-  iters: number;
-
-  /**
    * Actual calls count.
    */
   calls: number;
+
+  /**
+   * Iteration count.
+   */
+  iters: number;
 
   /**
    * GC time samples.
@@ -140,11 +111,7 @@ export const compileLoop: <
   {
     batch = 4096,
     inlineCalls = 4,
-
     measureGC = false,
-
-    maxIters = 1 << 20,
-
     gcOnce = false,
   },
 ) => {
@@ -162,8 +129,8 @@ export const compileLoop: <
   if (hasParam) {
     const builtParams = new Array(paramLen);
 
-    loopVars = `let ${constants.PARAMS}0=new Array(${batch})`;
-    paramContent = `{${constants.HRTIME_MARK_START}for(let i=0;i<${batch};i++){`;
+    loopVars = `,${constants.PARAMS}0=new Array(${batch})`;
+    paramContent = `for(let i=0;i<${batch};i++){`;
 
     for (let i = 0; i < paramLen; i++) {
       paramContent +=
@@ -181,7 +148,7 @@ export const compileLoop: <
       }
     }
 
-    paramContent += `}${constants.HRTIME_MARK_END}${constants.THRESHOLD}+=${constants.HRTIME_DIFF}}`;
+    paramContent += `}${constants.HRTIME_MARK_END}`;
 
     const res = fn(...(builtParams as any));
     (isFnAsync = res instanceof Promise) && (await res);
@@ -198,17 +165,17 @@ export const compileLoop: <
   // Build loop
   let content =
     (isLoopAsync ? 'async' : '') +
-    `(${constants.FN_HRTIME},${constants.FN_GC},${constants.FN},${constants.FN_PARAMS},${constants.THRESHOLD},${constants.MIN_ITERS})=>{let ${constants.RUNS}=new Array(${maxIters}),${constants.GCS}${
-      measureGC ? `=new Array(${maxIters})` : ''
-    },${constants.ITERS}=0,${constants.CURRENT_TIME}=${constants.HRTIME};${
+    `(${constants.FN_HRTIME},${constants.FN_GC},${constants.FN},${constants.FN_PARAMS},${constants.ITERS})=>{let ${constants.RUNS}=new Array(${constants.ITERS}),${constants.GCS}${
+      measureGC ? `=new Array(${constants.ITERS})` : ''
+    };${
       // Run gc later when creating params
-      paramLen > 0 && !gcOnce ? '' : constants.RUN_GC
-    }for(${
+      hasParam && !gcOnce ? '' : constants.RUN_GC
+    }for(let ${constants.CURRENT_ITER}=0${
       // Declare params store
       loopVars
-    };${constants.ITERS}<${maxIters}&&${constants.ITERS}<${constants.MIN_ITERS}||${constants.CURRENT_TIME}<${constants.THRESHOLD};${constants.ITERS}++){${
+    };${constants.CURRENT_ITER}<${constants.ITERS};${constants.CURRENT_ITER}++){${
       // Create params and run GC if needed
-      paramLen > 0
+      hasParam
         ? gcOnce
           ? paramContent!
           : paramContent! + constants.RUN_GC
@@ -257,16 +224,14 @@ export const compileLoop: <
       batch > 1
         ? `(${constants.HRTIME_DIFF})/${batch}`
         : constants.HRTIME_DIFF;
-    content += `${constants.HRTIME_MARK_END + constants.CURRENT_TIME}+=${constants.HRTIME_DIFF};${constants.RUNS}[${constants.ITERS}]=${hrtimeRes}`;
+    content += `${constants.HRTIME_MARK_END}${constants.RUNS}[${constants.CURRENT_ITER}]=${hrtimeRes}`;
 
     if (measureGC)
-      content += `;${constants.HRTIME_RESET_START + constants.RUN_GC + constants.HRTIME_RESET_END + constants.GCS}[${constants.ITERS}]=${hrtimeRes}`;
+      content += `;${constants.HRTIME_RESET_START + constants.RUN_GC + constants.HRTIME_RESET_END + constants.GCS}[${constants.CURRENT_ITER}]=${hrtimeRes}`;
     else gcOnce || (content += ';' + constants.RUN_GC);
   }
 
-  content += `}${constants.RUNS}.length=${
-    measureGC ? `${constants.GCS}.length=` : ''
-  }${constants.ITERS};return{runs:${constants.RUNS},gcs:${constants.GCS},calls:${constants.ITERS}*${batch},iters:${constants.ITERS}}}`;
+  content += `}return{runs:${constants.RUNS},gcs:${constants.GCS},calls:${constants.ITERS}*${batch},iters:${constants.ITERS}}}`;
 
   return content;
 };
@@ -306,12 +271,7 @@ export const measure: <
   // @ts-ignore
   options = {},
 ) => {
-  const {
-    warmupIters = 8,
-    warmupThreshold = 64,
-    iters = 64,
-    threshold = 512,
-  } = options;
+  const { warmupIters = 16, iters = 128 } = options;
 
   const content = await compileLoop(params, fn, options);
   const isLoopAsync = content.startsWith('async');
@@ -319,18 +279,12 @@ export const measure: <
   const loop = (0, eval)(content);
   warmupIters > 0 &&
     (isLoopAsync
-      ? await loop(
-          hrtime,
-          gc,
-          fn,
-          params,
-          warmupThreshold,
-          warmupIters,
-        )
-      : loop(hrtime, gc, fn, params, warmupThreshold, warmupIters));
+      ? await loop(hrtime, gc, fn, params, warmupIters)
+      : loop(hrtime, gc, fn, params, warmupIters));
+
   const res: MeasureResult = isLoopAsync
-    ? await loop(hrtime, gc, fn, params, threshold, iters)
-    : loop(hrtime, gc, fn, params, threshold, iters);
+    ? await loop(hrtime, gc, fn, params, iters)
+    : loop(hrtime, gc, fn, params, iters);
 
   options.debug &&
     // @ts-ignore

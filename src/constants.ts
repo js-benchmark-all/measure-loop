@@ -13,11 +13,8 @@ export const FN_PARAMS = 'f';
 export const FN_GC = 'g';
 export const RUN_GC = 'g();';
 
-export const THRESHOLD = 'h';
-export const MIN_ITERS = 'k';
+export const CURRENT_ITER = 'i';
 export const ITERS = 'l';
 
 export const RUNS = 'm';
 export const GCS = 'n';
-
-export const CURRENT_TIME = 't';
