@@ -148,7 +148,7 @@ export const compileLoop: <
       }
     }
 
-    paramContent += `}${constants.HRTIME_MARK_END}`;
+    paramContent += '}';
 
     const res = fn(...(builtParams as any));
     (isFnAsync = res instanceof Promise) && (await res);
