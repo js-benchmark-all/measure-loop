@@ -1,3 +1,10 @@
+export interface DebugInfo {
+  /**
+   * Generated benchmark loop.
+   */
+  content: string;
+}
+
 /**
  * Describe measured result.
  */
@@ -21,6 +28,11 @@ export interface MeasureResult {
    * GC time samples.
    */
   gcs: number[] | undefined;
+
+  /**
+   * Debug info.
+   */
+  debug?: DebugInfo;
 }
 
 /**
@@ -100,21 +112,16 @@ export const measure: <
   hrtime: () => number,
   options?: Options,
 ) => Promise<
+  // debug info
   (Options extends { debug: true }
     ? MeasureResult & {
-        /**
-         * Debug values.
-         */
-        debug: {
-          content: string;
-        };
+        debug: DebugInfo;
       }
-    : MeasureResult) & {
-    /**
-     * GC time samples.
-     */
-    gcs: Options extends { measureGC: true } ? number[] : undefined;
-  }
+    : MeasureResult) &
+    // measure gc
+    {
+      gcs: Options extends { measureGC: true } ? number[] : undefined;
+    }
 > = async (
   params,
   fn,
