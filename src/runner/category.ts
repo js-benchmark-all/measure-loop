@@ -69,8 +69,8 @@ export class Category {
     this.defaultBenchOptions = defaultBenchOptions;
   }
 
-  category(subcat: Category): this {
-    this.subcats.push(subcat);
+  category(...subcats: Category[]): this {
+    this.subcats.push(...subcats);
     return this;
   }
 
