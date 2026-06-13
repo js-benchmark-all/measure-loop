@@ -8,14 +8,19 @@ export interface MeasureResult {
   runs: number[];
 
   /**
-   * GC time samples.
+   * Iteration count.
    */
-  gcs: number[];
+  iters: number;
 
   /**
    * Actual calls count.
    */
   calls: number;
+
+  /**
+   * GC time samples.
+   */
+  gcs: number[] | undefined;
 }
 
 /**
@@ -94,13 +99,21 @@ export const measure: <
   hrtime: () => number,
   options?: Options,
 ) => Promise<
-  Options extends { debug: true }
+  (Options extends { debug: true }
     ? MeasureResult & {
+        /**
+         * Debug values.
+         */
         debug: {
           content: string;
         };
       }
-    : MeasureResult
+    : MeasureResult) & {
+    /**
+     * GC time samples.
+     */
+    gcs: Options extends { measureGC: true } ? number[] : undefined;
+  }
 > = async (
   params,
   fn,
@@ -114,7 +127,7 @@ export const measure: <
     measureGC = false,
 
     threshold = 256,
-    iters = 64,
+    iters = 32,
 
     warmupThreshold = 64,
     warmupIters = 8,
@@ -158,7 +171,6 @@ export const measure: <
     (isFnAsync = res instanceof Promise) && (await res);
   } else {
     loopVars = '';
-    paramContent = '';
 
     // @ts-ignore
     const res = fn();
@@ -170,11 +182,17 @@ export const measure: <
   // Build loop
   let content =
     (isLoopAsync ? 'async' : '') +
-    `(${constants.FN_HRTIME},${constants.FN_GC},${constants.FN},${constants.FN_PARAMS},${constants.THRESHOLD},${constants.MIN_ITERS})=>{let ${constants.RUNS}=[],${constants.GCS}=[],${constants.ITERS}=${constants.MIN_ITERS};${constants.THRESHOLD}+=${constants.HRTIME};${gcOnce ? constants.RUN_GC : ''}for(${
+    `(${constants.FN_HRTIME},${constants.FN_GC},${constants.FN},${constants.FN_PARAMS},${constants.THRESHOLD},${constants.MIN_ITERS})=>{let ${constants.RUNS}=new Array(1<<20),${constants.GCS}${
+      measureGC ? `=new Array(1<<20)` : ''
+    },${constants.ITERS}=0,${constants.CURRENT_TIME}=${constants.HRTIME};${
+      // Run gc later when creating params
+      paramLen > 0 && !gcOnce ? '' : constants.RUN_GC
+    }for(${
       // Declare params store
       loopVars
-    };${constants.MIN_ITERS}>0||${constants.HRTIME}<${constants.THRESHOLD};${constants.MIN_ITERS}--){${
-      gcOnce ? paramContent : paramContent + constants.RUN_GC
+    };${constants.ITERS}<1048576&&${constants.ITERS}<${constants.MIN_ITERS}||${constants.CURRENT_TIME}<${constants.THRESHOLD};${constants.ITERS}++){${
+      // Create params and run GC if needed
+      paramLen > 0 ? (gcOnce ? paramContent! : paramContent! + constants.RUN_GC) : ''
     }${constants.HRTIME_MARK_START}`;
 
   {
@@ -208,13 +226,16 @@ export const measure: <
   // Compute results
   {
     const hrtimeRes = batch > 1 ? `(${constants.HRTIME_DIFF})/${batch}` : constants.HRTIME_DIFF;
-    content += `${constants.HRTIME_MARK_END + constants.RUNS}.push(${hrtimeRes})`;
+    content += `${constants.HRTIME_MARK_END + constants.CURRENT_TIME}+=${constants.HRTIME_DIFF};${constants.RUNS}[${constants.ITERS}]=${hrtimeRes}`;
 
-    measureGC &&
-      (content += `;${constants.HRTIME_RESET_START + constants.RUN_GC + constants.HRTIME_RESET_END + constants.GCS}.push(${hrtimeRes})`);
+    if (measureGC)
+      content += `;${constants.HRTIME_RESET_START + constants.RUN_GC + constants.HRTIME_RESET_END + constants.GCS}[${constants.ITERS}]=${hrtimeRes}`;
+    else gcOnce || (content += ';' + constants.RUN_GC);
   }
 
-  content += `}return{runs:${constants.RUNS},gcs:${constants.GCS},calls:(${constants.ITERS}-${constants.MIN_ITERS})*${batch}}}`;
+  content += `}${constants.RUNS}.length=${
+    measureGC ? `${constants.GCS}.length=` : ''
+  }${constants.ITERS};return{runs:${constants.RUNS},gcs:${constants.GCS},calls:${constants.ITERS}*${batch},iters:${constants.ITERS}}}`;
 
   const loop = (0, eval)(content);
   warmupIters > 0 &&

@@ -19,3 +19,5 @@ export const ITERS = 'l';
 
 export const RUNS = 'm';
 export const GCS = 'n';
+
+export const CURRENT_TIME = 't';

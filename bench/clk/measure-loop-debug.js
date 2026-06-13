@@ -1,16 +1,18 @@
 (a, g, d, f, h, k) => {
-  let m = [],
-    n = [],
-    l = k;
-  h += a();
+  let m = new Array(1 << 20),
+    n,
+    l = 0,
+    t = a();
   g();
-  for (; k > 0 || a() < h; k--) {
+  for (; (l < 1048576 && l < k) || t < h; l++) {
     let b = a();
     for (let i = 0; i < 4096; i++) {
       d();
     }
     let c = a();
-    m.push((c - b) / 4096);
+    t += c - b;
+    m[l] = (c - b) / 4096;
   }
-  return { runs: m, gcs: n, calls: (l - k) * 4096 };
+  m.length = l;
+  return { runs: m, gcs: n, calls: l * 4096, iters: l };
 };

@@ -2,7 +2,7 @@ import { supportsColor } from '../env/color.ts';
 import { runtime, runtimeVersion, runtimeArch } from '../env/runtime.ts';
 
 import type { Reporter } from '../runner/category.ts';
-import { calcAvg, calcVariance, formatMs as utilFormatMs, trunc } from './utils.ts';
+import { calcAvg, calcVariance, formatMs, trunc } from './utils.ts';
 
 type ColorFn = (str: string | number) => string;
 const fallback: ColorFn = (str) => str + '';
@@ -15,19 +15,20 @@ const boldCyan: ColorFn = supportsColor
   : fallback;
 const dim: ColorFn = supportsColor ? (str) => '\x1b[2m' + str + '\x1b[22m' : fallback;
 
-const formatMs = (ms: number) => yellowBright(utilFormatMs(ms));
-
 const displayResults = (tab: string, results: number[]): number => {
-  const len = results.length;
-
   results.sort((a, b) => a - b);
 
-  const avg = calcAvg(results),
-    variance = calcVariance(results, avg);
+  const len = results.length;
+  const avg = calcAvg(results);
 
-  console.log(tab + '- avg: ' + formatMs(avg) + ' ± ' + formatMs(Math.sqrt(variance / len)));
-  console.log(tab + '- min: ' + formatMs(results[0]));
-  console.log(tab + '- max: ' + formatMs(results[len - 1]));
+  console.log(tab + '- avg: ' + yellowBright(formatMs(avg)));
+  console.log(
+    tab +
+      '- rse: ' +
+      yellowBright(trunc((Math.sqrt(calcVariance(results, avg) / len) * 100) / avg) + '%'),
+  );
+  console.log(tab + '- min: ' + yellowBright(formatMs(results[0])));
+  console.log(tab + '- max: ' + yellowBright(formatMs(results[len - 1])));
 
   return avg;
 };
@@ -62,28 +63,27 @@ const reporter: Reporter<{
   },
 
   benchResult: (key, { tab, results }, { runs, gcs, calls }) => {
-    console.log(tab + '* ' + boldCyan(key));
-    tab += '  ';
-
     if (runs.length === 0) {
-      console.warn(tab + '- no result');
+      console.warn(tab + '* ' + boldCyan(key) + ': no result');
       return;
     }
 
-    console.log(tab + '- runs: ' + yellowBright(calls));
+    console.log(tab + '* ' + boldCyan(key) + ': ' + yellowBright(calls) + ' runs');
+    tab += '  ';
+
     results.push({
       key,
       runsAvg: displayResults(tab, runs),
     });
 
-    if (gcs.length > 0) {
+    if (gcs) {
       console.log(tab + '- gc:');
       displayResults(tab + '  ', gcs);
     }
   },
 
   benchError: (key, { tab }, e) => {
-    console.error(tab + '+ ' + boldCyan(key));
+    console.error(tab + '* ' + boldCyan(key));
     console.error(e);
   },
 
