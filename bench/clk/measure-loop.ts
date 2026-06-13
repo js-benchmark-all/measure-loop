@@ -10,7 +10,7 @@ import { join } from 'node:path';
 {
   const { runs, debug, calls, iters } = await measure([], () => {}, gc, hrtime, {
     inlineCalls: 1,
-    iters: 5e8 / 4096,
+    iters: 3e8 / 4096,
     gcOnce: true,
     debug: true,
   });
