@@ -1,5 +1,14 @@
 // @ts-nocheck
-type Arch = 'arm' | 'x64' | 'x86' | 'wasi' | 'arm64' | 'mips32' | 'mips64' | 'loong64' | 'riscv64';
+type Arch =
+  | 'arm'
+  | 'x64'
+  | 'x86'
+  | 'wasi'
+  | 'arm64'
+  | 'mips32'
+  | 'mips64'
+  | 'loong64'
+  | 'riscv64';
 
 export let runtime:
     | 'bun'
@@ -53,7 +62,8 @@ if (globalThis.Bun) {
   runtimeVersion = version();
 } else if (globalThis.HermesInternal) {
   runtime = 'hermes';
-  runtimeVersion = HermesInternal.getRuntimeProperties()['OSS Release Version'];
+  runtimeVersion =
+    HermesInternal.getRuntimeProperties()['OSS Release Version'];
 } else if (globalThis.inIon && globalThis.performance?.mozMemory) {
   runtime = 'spidermonkey';
 
@@ -72,17 +82,21 @@ if (globalThis.Bun) {
       'riscv64',
     ].find((k) => k in build);
     if (arch) {
-      const platform = ['osx', 'linux', 'android', 'windows'].find((k) => k in build);
+      const platform = ['osx', 'linux', 'android', 'windows'].find(
+        (k) => k in build,
+      );
       runtimeArch = platform ? arch + '-' + platform : arch;
     }
   } catch {
     globalThis.isAvxPresent?.() && (runtimeArch = 'x86_64');
   }
 } else if (globalThis.window) {
-  if (globalThis.netscape && globalThis.InternalError) runtime = 'firefox';
+  if (globalThis.netscape && globalThis.InternalError)
+    runtime = 'firefox';
   else if (globalThis.navigator) {
     if (Error.prepareStackTrace) runtime = 'chromium';
-    else if (new Error().stack.includes('runtime@')) runtime = 'webkit';
+    else if (new Error().stack.includes('runtime@'))
+      runtime = 'webkit';
     else runtime = 'browser';
   }
 } else if (globalThis.os && globalThis.std) {

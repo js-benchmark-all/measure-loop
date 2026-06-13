@@ -35,7 +35,9 @@ export const build: import('./lib/build.ts').Config = {
     define: Object.fromEntries(
       Object.entries(constants).map(
         (entry) => (
-          (entry[0] = 'constants.' + entry[0]), (entry[1] = JSON.stringify(entry[1]) as any), entry
+          (entry[0] = 'constants.' + entry[0]),
+          (entry[1] = JSON.stringify(entry[1]) as any),
+          entry
         ),
       ),
     ),
@@ -68,7 +70,8 @@ export const task: import('./task.ts').Config = {
       args: {
         target: {
           type: 'string[]',
-          description: 'Target tests to run. Run all tests by default.',
+          description:
+            'Target tests to run. Run all tests by default.',
         },
       },
     },
@@ -81,7 +84,8 @@ export const task: import('./task.ts').Config = {
       args: {
         otp: {
           type: '?string',
-          description: 'OTP code to authenticate. Will be prompted if ignored.',
+          description:
+            'OTP code to authenticate. Will be prompted if ignored.',
         },
       },
     },

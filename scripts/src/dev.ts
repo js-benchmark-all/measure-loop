@@ -33,7 +33,8 @@ for (const path of globSync(BUILD_CONFIG.files, {
 updatePackageJson();
 
 watch('.', {
-  ignored: (path, stats) => !!stats?.isFile() && !matchesGlobs(path, BUILD_CONFIG.files),
+  ignored: (path, stats) =>
+    !!stats?.isFile() && !matchesGlobs(path, BUILD_CONFIG.files),
   cwd: SOURCE,
   interval: 100,
   ignoreInitial: true,

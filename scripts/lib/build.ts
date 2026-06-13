@@ -47,14 +47,25 @@ export interface Config {
 //
 // MAIN
 //
-export const buildSourceSync = (dev: boolean, autoUpdatePkg: boolean, pathFromSource: string) => {
-  if (pathFromSource === 'globals.d.ts' || pathFromSource === 'constants.ts') return;
+export const buildSourceSync = (
+  dev: boolean,
+  autoUpdatePkg: boolean,
+  pathFromSource: string,
+) => {
+  if (
+    pathFromSource === 'globals.d.ts' ||
+    pathFromSource === 'constants.ts'
+  )
+    return;
 
   let time = Bun.nanoseconds();
 
   const fullPath = join(SOURCE, pathFromSource);
   try {
-    const pathNoExt = pathFromSource.slice(0, pathFromSource.lastIndexOf('.') >>> 0);
+    const pathNoExt = pathFromSource.slice(
+      0,
+      pathFromSource.lastIndexOf('.') >>> 0,
+    );
     const pathDir = dirname(pathNoExt);
 
     const transformed = transformSync(
@@ -63,8 +74,11 @@ export const buildSourceSync = (dev: boolean, autoUpdatePkg: boolean, pathFromSo
       CONFIG.transform,
     );
 
-    const hasCode = transformed.code && transformed.code.trim() !== 'export {};';
-    const hasDecl = transformed.declaration && transformed.declaration.trim() !== 'export {};';
+    const hasCode =
+      transformed.code && transformed.code.trim() !== 'export {};';
+    const hasDecl =
+      transformed.declaration &&
+      transformed.declaration.trim() !== 'export {};';
 
     // Faster than trying a syscall and fail
     try {
@@ -74,9 +88,15 @@ export const buildSourceSync = (dev: boolean, autoUpdatePkg: boolean, pathFromSo
     (dev || hasCode) &&
       writeFileSync(
         join(LIB, pathNoExt + '.js'),
-        dev ? transformed.code : minifySync(transformed.code, CONFIG.minify).code,
+        dev
+          ? transformed.code
+          : minifySync(transformed.code, CONFIG.minify).code,
       );
-    (dev || hasDecl) && writeFileSync(join(LIB, pathNoExt + '.d.ts'), transformed.declaration!);
+    (dev || hasDecl) &&
+      writeFileSync(
+        join(LIB, pathNoExt + '.d.ts'),
+        transformed.declaration!,
+      );
 
     if (hasCode || hasDecl) {
       const pathName = basename(pathNoExt);
@@ -84,19 +104,25 @@ export const buildSourceSync = (dev: boolean, autoUpdatePkg: boolean, pathFromSo
 
       if (pathName === 'index' || isRuntimeKey) {
         let exportPath = dirname(pathNoExt);
-        exportPath === '.' || exportPath.startsWith('./') || (exportPath = './' + exportPath);
+        exportPath === '.' ||
+          exportPath.startsWith('./') ||
+          (exportPath = './' + exportPath);
 
-        const sourcePath = './' + pathNoExt + (hasCode ? '.js' : '.d.ts');
+        const sourcePath =
+          './' + pathNoExt + (hasCode ? '.js' : '.d.ts');
 
         if (isRuntimeKey) {
           const runtimeKey = pathName.slice(1);
 
           if (typeof LIB_PKG.exports[exportPath] === 'string') {
-            console.error(`Change ${exportPath}/index to ${exportPath}/_default instead!`);
+            console.error(
+              `Change ${exportPath}/index to ${exportPath}/_default instead!`,
+            );
             process.exit(1);
           } else
             // @ts-ignore
-            (LIB_PKG.exports[exportPath] ??= {})[runtimeKey] = sourcePath;
+            (LIB_PKG.exports[exportPath] ??= {})[runtimeKey] =
+              sourcePath;
         } else LIB_PKG.exports[exportPath] = sourcePath;
 
         autoUpdatePkg && updatePackageJson();
@@ -104,7 +130,11 @@ export const buildSourceSync = (dev: boolean, autoUpdatePkg: boolean, pathFromSo
     }
   } finally {
     time = Bun.nanoseconds() - time;
-    console.log(fmt.success('+ ' + fmt.relativePath(fullPath)) + ': ' + fmt.duration(time));
+    console.log(
+      fmt.success('+ ' + fmt.relativePath(fullPath)) +
+        ': ' +
+        fmt.duration(time),
+    );
   }
 };
 
@@ -129,7 +159,9 @@ export const linkSync = (file: string) => {
   time = Bun.nanoseconds() - time;
 
   console.log(
-    fmt.success(`+ ${fmt.relativePath(toFile)} <-- ${fmt.relativePath(fromFile)}`) +
+    fmt.success(
+      `+ ${fmt.relativePath(toFile)} <-- ${fmt.relativePath(fromFile)}`,
+    ) +
       ': ' +
       fmt.duration(time),
   );
@@ -144,17 +176,25 @@ export const unlinkSync = (file: string) => {
   time = Bun.nanoseconds() - time;
 
   console.log(
-    fmt.error(`- ${fmt.relativePath(fromFile)} -> ${fmt.relativePath(toFile)}`) +
+    fmt.error(
+      `- ${fmt.relativePath(fromFile)} -> ${fmt.relativePath(toFile)}`,
+    ) +
       ': ' +
       fmt.duration(time),
   );
 };
 
-export const removeSourceSync = (pathFromSource: string, autoUpdatePkg: boolean) => {
+export const removeSourceSync = (
+  pathFromSource: string,
+  autoUpdatePkg: boolean,
+) => {
   let time = Bun.nanoseconds();
 
   try {
-    const pathNoExt = pathFromSource.slice(0, pathFromSource.lastIndexOf('.') >>> 0);
+    const pathNoExt = pathFromSource.slice(
+      0,
+      pathFromSource.lastIndexOf('.') >>> 0,
+    );
     const pathName = basename(pathNoExt);
 
     let hasCode: boolean;
@@ -178,9 +218,14 @@ export const removeSourceSync = (pathFromSource: string, autoUpdatePkg: boolean)
 
       if (pathName === 'index' || isRuntimeKey) {
         let exportPath = dirname(pathNoExt);
-        exportPath === '.' || exportPath.startsWith('./') || (exportPath = './' + exportPath);
+        exportPath === '.' ||
+          exportPath.startsWith('./') ||
+          (exportPath = './' + exportPath);
 
-        if (isRuntimeKey && Object.keys(LIB_PKG.exports[exportPath]).length > 1) {
+        if (
+          isRuntimeKey &&
+          Object.keys(LIB_PKG.exports[exportPath]).length > 1
+        ) {
           const runtimeKey = pathName.slice(1);
           // @ts-ignore
           delete LIB_PKG.exports[exportPath][runtimeKey];
@@ -192,7 +237,9 @@ export const removeSourceSync = (pathFromSource: string, autoUpdatePkg: boolean)
   } finally {
     time = Bun.nanoseconds() - time;
     console.log(
-      fmt.error('- ' + fmt.relativePath(join(SOURCE, pathFromSource))) + ':',
+      fmt.error(
+        '- ' + fmt.relativePath(join(SOURCE, pathFromSource)),
+      ) + ':',
       fmt.duration(time),
     );
   }
@@ -203,12 +250,22 @@ pkg.exports = {
   './*': './*.js',
 };
 // @ts-ignore
-pkg.devDependencies = pkg.trustedDependencies = pkg.scripts = pkg.imports = void 0;
+pkg.devDependencies =
+  pkg.trustedDependencies =
+  pkg.scripts =
+  pkg.imports =
+    void 0;
 const LIB_PKG: Evaluate<
   Omit<
     typeof pkg,
-    'devDependencies' | 'trustedDependencies' | 'scripts' | 'imports' | 'exports'
-  > & { exports: Record<string, string | Record<string, string>> }
+    | 'devDependencies'
+    | 'trustedDependencies'
+    | 'scripts'
+    | 'imports'
+    | 'exports'
+  > & {
+    exports: Record<string, string | Record<string, string>>;
+  }
 > = pkg as any;
 
 const LIB_PACKAGE_JSON = join(LIB, 'package.json');

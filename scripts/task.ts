@@ -44,7 +44,9 @@ export interface Config {
     console.log(
       `\n  ${fmt.pc.bold('bun task')} ${fmt.name(name)}${entries
         .map(([k, v]) => {
-          v.type.endsWith('[]') ? (k = '...' + k) : v.flag && (k = '--' + k);
+          v.type.endsWith('[]')
+            ? (k = '...' + k)
+            : v.flag && (k = '--' + k);
           return ' ' + fmt.pc.bold(`[${k}]`);
         })
         .join('')}: ${task.description}`,
@@ -66,7 +68,10 @@ export interface Config {
           process.exit(0);
         } else {
           console.log('unknown task:', fmt.name(askedTask));
-          console.log('available tasks:', Object.keys(TASKS).map(fmt.name).join(', '));
+          console.log(
+            'available tasks:',
+            Object.keys(TASKS).map(fmt.name).join(', '),
+          );
           process.exit(1);
         }
       }
@@ -82,7 +87,8 @@ export interface Config {
       args: {
         task: {
           type: '?string',
-          description: 'Print help menu of the specified task. Print all tasks by default.',
+          description:
+            'Print help menu of the specified task. Print all tasks by default.',
         },
       },
     });

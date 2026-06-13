@@ -20,9 +20,12 @@ const MINIFY_OPTIONS: JsMinifyOptions = {
   // MAIN
   //
   const SORT_SYMBOL = Symbol();
-  const arr = globSync(process.argv.length === 2 ? ['**/*.js'] : process.argv.slice(2), {
-    cwd: LIB,
-  })
+  const arr = globSync(
+    process.argv.length === 2 ? ['**/*.js'] : process.argv.slice(2),
+    {
+      cwd: LIB,
+    },
+  )
     // Parse entry infos
     .map((path) => {
       const code = readFileSync(join(LIB, path));
@@ -68,7 +71,9 @@ const MINIFY_OPTIONS: JsMinifyOptions = {
 
       for (const key in cur)
         // @ts-ignore
-        props[key] = Number.isFinite(cur[key]) ? fmt.byte(cur[key]) : cur[key];
+        props[key] = Number.isFinite(cur[key])
+          ? fmt.byte(cur[key])
+          : cur[key];
 
       return props;
     });

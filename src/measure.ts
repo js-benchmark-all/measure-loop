@@ -78,7 +78,8 @@ export interface MeasureOptions {
 
 const buildArgs = (idx: string, paramLen: number) => {
   let str = `${constants.PARAMS}0` + idx;
-  for (let j = 1; j < paramLen; j++) str += ',' + constants.PARAMS + j + idx;
+  for (let j = 1; j < paramLen; j++)
+    str += ',' + constants.PARAMS + j + idx;
   return str;
 };
 
@@ -136,7 +137,9 @@ export const measure: <
     gcOnce = false,
   } = {},
 ) => {
-  gcOnce && measureGC && console.warn('gcOnce has no effect when measureGC is on.');
+  gcOnce &&
+    measureGC &&
+    console.warn('gcOnce has no effect when measureGC is on.');
 
   let isFnAsync: boolean,
     paramLen = params.length,
@@ -152,8 +155,10 @@ export const measure: <
     paramContent = `{${constants.HRTIME_MARK_START}for(let i=0;i<${batch};i++){`;
 
     for (let i = 0; i < paramLen; i++) {
-      paramContent += i > 0 ? ';' + constants.PARAMS + i : `${constants.PARAMS}0`;
-      i > 0 && (loopVars += `,${constants.PARAMS + i}=new Array(${batch})`);
+      paramContent +=
+        i > 0 ? ';' + constants.PARAMS + i : `${constants.PARAMS}0`;
+      i > 0 &&
+        (loopVars += `,${constants.PARAMS + i}=new Array(${batch})`);
 
       const res = params[i](i);
       if ((isParamAsync ||= res instanceof Promise)) {
@@ -192,14 +197,20 @@ export const measure: <
       loopVars
     };${constants.ITERS}<1048576&&${constants.ITERS}<${constants.MIN_ITERS}||${constants.CURRENT_TIME}<${constants.THRESHOLD};${constants.ITERS}++){${
       // Create params and run GC if needed
-      paramLen > 0 ? (gcOnce ? paramContent! : paramContent! + constants.RUN_GC) : ''
+      paramLen > 0
+        ? gcOnce
+          ? paramContent!
+          : paramContent! + constants.RUN_GC
+        : ''
     }${constants.HRTIME_MARK_START}`;
 
   {
     const remainingCalls = batch % inlineCalls;
 
     if (hasParam) {
-      const callPrefix = isFnAsync ? `await ${constants.FN}(` : constants.FN + '(';
+      const callPrefix = isFnAsync
+        ? `await ${constants.FN}(`
+        : constants.FN + '(';
 
       for (let i = 0; i < remainingCalls; i++)
         content += callPrefix + buildArgs(`[${i}]`, paramLen) + ');';
@@ -210,13 +221,19 @@ export const measure: <
           callPrefix + buildArgs('[i]', paramLen)
         })`;
 
-        for (let i = 1, prefix = ';' + callPrefix; i < inlineCalls; i++)
+        for (
+          let i = 1, prefix = ';' + callPrefix;
+          i < inlineCalls;
+          i++
+        )
           content += prefix + buildArgs(`[i+${i}]`, paramLen) + ')';
 
         content += '}';
       }
     } else {
-      const call = isFnAsync ? `await ${constants.FN}();` : `${constants.FN}();`;
+      const call = isFnAsync
+        ? `await ${constants.FN}();`
+        : `${constants.FN}();`;
       remainingCalls > 0 && (content += call.repeat(remainingCalls));
       inlineCalls <= batch &&
         (content += `for(let i=0;i<${(batch - remainingCalls) / inlineCalls};i++){${call.repeat(inlineCalls)}}`);
@@ -225,7 +242,10 @@ export const measure: <
 
   // Compute results
   {
-    const hrtimeRes = batch > 1 ? `(${constants.HRTIME_DIFF})/${batch}` : constants.HRTIME_DIFF;
+    const hrtimeRes =
+      batch > 1
+        ? `(${constants.HRTIME_DIFF})/${batch}`
+        : constants.HRTIME_DIFF;
     content += `${constants.HRTIME_MARK_END + constants.CURRENT_TIME}+=${constants.HRTIME_DIFF};${constants.RUNS}[${constants.ITERS}]=${hrtimeRes}`;
 
     if (measureGC)
@@ -240,7 +260,14 @@ export const measure: <
   const loop = (0, eval)(content);
   warmupIters > 0 &&
     (isLoopAsync
-      ? await loop(hrtime, gc, fn, params, warmupThreshold, warmupIters)
+      ? await loop(
+          hrtime,
+          gc,
+          fn,
+          params,
+          warmupThreshold,
+          warmupIters,
+        )
       : loop(hrtime, gc, fn, params, warmupThreshold, warmupIters));
 
   const res: MeasureResult = isLoopAsync

@@ -1,7 +1,12 @@
 import { globSync } from 'node:fs';
 
 import { ROOT, SOURCE } from '../lib/constants.ts';
-import { buildSourceSync, linkSync, updatePackageJson, initLib } from '../lib/build.ts';
+import {
+  buildSourceSync,
+  linkSync,
+  updatePackageJson,
+  initLib,
+} from '../lib/build.ts';
 
 import { build as CONFIG } from '../config.ts';
 

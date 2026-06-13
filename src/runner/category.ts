@@ -1,4 +1,8 @@
-import { measure, type MeasureOptions, type MeasureResult } from '../measure.ts';
+import {
+  measure,
+  type MeasureOptions,
+  type MeasureResult,
+} from '../measure.ts';
 
 export interface RuntimeEnv {
   gc: () => void;
@@ -11,8 +15,15 @@ export interface Reporter<in out Store extends {}> {
     runOptions: RunOptions<Store>,
     defaultBenchOptions: MeasureOptions | undefined,
   ) => Store | Promise<Store>;
-  benchStart: (cat: Category, parentStore: Store) => Store | Promise<Store>;
-  benchResult: (benchKey: string, store: Store, result: MeasureResult) => any;
+  benchStart: (
+    cat: Category,
+    parentStore: Store,
+  ) => Store | Promise<Store>;
+  benchResult: (
+    benchKey: string,
+    store: Store,
+    result: MeasureResult,
+  ) => any;
   benchError: (benchKey: string, store: Store, error: unknown) => any;
   benchEnd: (cat: Category, store: Store) => any;
   end: (root: Category, store: Store) => any;
@@ -88,14 +99,22 @@ export class Category {
     this.defaultBenchOptions != null &&
       (defaultBenchOptions =
         defaultBenchOptions != null
-          ? { ...defaultBenchOptions, ...this.defaultBenchOptions }
+          ? {
+              ...defaultBenchOptions,
+              ...this.defaultBenchOptions,
+            }
           : this.defaultBenchOptions);
 
     const reporter = options.reporter;
 
     const isRoot = parentStore == null;
 
-    isRoot && (parentStore = await reporter.start(this, options, defaultBenchOptions));
+    isRoot &&
+      (parentStore = await reporter.start(
+        this,
+        options,
+        defaultBenchOptions,
+      ));
     const store = await reporter.benchStart(this, parentStore!);
 
     for (
@@ -136,5 +155,7 @@ export class Category {
   }
 }
 
-export default (id: string, defaultBenchOptions?: MeasureOptions): Category =>
-  new Category(id, defaultBenchOptions);
+export default (
+  id: string,
+  defaultBenchOptions?: MeasureOptions,
+): Category => new Category(id, defaultBenchOptions);

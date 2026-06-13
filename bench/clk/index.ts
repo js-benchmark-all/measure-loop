@@ -5,9 +5,12 @@ await Promise.all([
   // Run clk calc
   Bun.$`node measure-loop.ts`,
   Bun.$`node mitata.ts`,
+  Bun.$`node tinybench.ts`,
 ]);
 {
-  const cpuinfo = (await Bun.$`cat /proc/cpuinfo | grep MHz`.text()).split('\n').filter(Boolean);
+  const cpuinfo = (await Bun.$`cat /proc/cpuinfo | grep MHz`.text())
+    .split('\n')
+    .filter(Boolean);
   let hzSum = 0;
   for (let i = 0; i < cpuinfo.length; i++) {
     const hz = +cpuinfo[i].slice('cpu MHz		:'.length).trim() * 1e6;

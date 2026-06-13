@@ -8,14 +8,32 @@ import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 {
-  const { runs, debug, calls, iters } = await measure([], () => {}, gc, hrtime, {
-    inlineCalls: 1,
-    iters: 3e8 / 4096,
-    gcOnce: true,
-    debug: true,
-  });
+  const { runs, debug, calls, iters } = await measure(
+    [],
+    () => {},
+    gc,
+    hrtime,
+    {
+      inlineCalls: 1,
+      threshold: 1e3,
+      gcOnce: true,
+      debug: true,
+    },
+  );
   const avg = runs.reduce((a, b) => a + b, 0) / runs.length;
-  console.log('measure-loop:', formatHz(1e3 / avg), '-', calls, 'calls', '-', iters, 'iterations');
+  console.log(
+    'measure-loop:',
+    formatHz(1e3 / avg),
+    '-',
+    calls,
+    'calls',
+    '-',
+    iters,
+    'iterations',
+  );
 
-  writeFileSync(join(import.meta.dirname, 'measure-loop-debug.js'), debug.content);
+  writeFileSync(
+    join(import.meta.dirname, 'measure-loop-debug.js'),
+    debug.content,
+  );
 }

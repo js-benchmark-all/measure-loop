@@ -1,8 +1,0 @@
-Variation tests for benchmarking libraries.
-
-Requires `node`, `deno` and `bun`.
-
-```sh
-bun index.js
-bun index.js > RESULTS.md
-```

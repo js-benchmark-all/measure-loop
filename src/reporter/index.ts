@@ -1,19 +1,37 @@
 import { supportsColor } from '../env/color.ts';
-import { runtime, runtimeVersion, runtimeArch } from '../env/runtime.ts';
+import {
+  runtime,
+  runtimeVersion,
+  runtimeArch,
+} from '../env/runtime.ts';
 
 import type { Reporter } from '../runner/category.ts';
-import { calcAvg, calcVariance, formatMs, trunc } from './utils.ts';
+import {
+  calcAvg,
+  calcPercentile,
+  calcVariance,
+  formatMs,
+  trunc,
+} from './utils.ts';
 
 type ColorFn = (str: string | number) => string;
 const fallback: ColorFn = (str) => str + '';
 
-const yellowBright: ColorFn = supportsColor ? (str) => '\x1b[93m' + str + '\x1b[39m' : fallback;
-const greenBright: ColorFn = supportsColor ? (str) => '\x1b[92m' + str + '\x1b[39m' : fallback;
-const bold: ColorFn = supportsColor ? (str) => '\x1b[1m' + str + '\x1b[22m' : fallback;
+const yellowBright: ColorFn = supportsColor
+  ? (str) => '\x1b[93m' + str + '\x1b[39m'
+  : fallback;
+const greenBright: ColorFn = supportsColor
+  ? (str) => '\x1b[92m' + str + '\x1b[39m'
+  : fallback;
+const bold: ColorFn = supportsColor
+  ? (str) => '\x1b[1m' + str + '\x1b[22m'
+  : fallback;
 const boldCyan: ColorFn = supportsColor
   ? (str) => '\x1b[1m\x1b[36m' + str + '\x1b[39m\x1b[22m'
   : fallback;
-const dim: ColorFn = supportsColor ? (str) => '\x1b[2m' + str + '\x1b[22m' : fallback;
+const dim: ColorFn = supportsColor
+  ? (str) => '\x1b[2m' + str + '\x1b[22m'
+  : fallback;
 
 const displayResults = (tab: string, results: number[]): number => {
   results.sort((a, b) => a - b);
@@ -21,14 +39,29 @@ const displayResults = (tab: string, results: number[]): number => {
   const len = results.length;
   const avg = calcAvg(results);
 
-  console.log(tab + '- avg: ' + yellowBright(formatMs(avg)));
   console.log(
     tab +
-      '- rse: ' +
-      yellowBright(trunc((Math.sqrt(calcVariance(results, avg) / len) * 100) / avg) + '%'),
+      '- mean: ' +
+      yellowBright(formatMs(avg)) +
+      ' ± ' +
+      yellowBright(
+        trunc(
+          (Math.sqrt(calcVariance(results, avg) / len) * 100) / avg,
+        ) + '%',
+      ),
   );
-  console.log(tab + '- min: ' + yellowBright(formatMs(results[0])));
-  console.log(tab + '- max: ' + yellowBright(formatMs(results[len - 1])));
+  console.log(
+    tab +
+      '- p99: ' +
+      yellowBright(formatMs(calcPercentile(results, 0.99))),
+  );
+  console.log(
+    tab +
+      '- range: ' +
+      yellowBright(formatMs(results[0])) +
+      ' - ' +
+      yellowBright(formatMs(results[len - 1])),
+  );
 
   return avg;
 };
@@ -68,7 +101,14 @@ const reporter: Reporter<{
       return;
     }
 
-    console.log(tab + '* ' + boldCyan(key) + ': ' + yellowBright(calls) + ' runs');
+    console.log(
+      tab +
+        '* ' +
+        boldCyan(key) +
+        ': ' +
+        yellowBright(calls) +
+        ' runs',
+    );
     tab += '  ';
 
     results.push({
@@ -94,7 +134,11 @@ const reporter: Reporter<{
     console.log(tab + '& ' + boldCyan(results[0].key));
 
     tab += '  - ';
-    for (let i = 1, baseline = results[0].runsAvg; i < results.length; i++)
+    for (
+      let i = 1, baseline = results[0].runsAvg;
+      i < results.length;
+      i++
+    )
       console.log(
         tab +
           greenBright(trunc(results[i].runsAvg / baseline) + 'x') +

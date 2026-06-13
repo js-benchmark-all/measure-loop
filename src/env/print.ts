@@ -4,7 +4,8 @@ export let printDetected = true;
 // @ts-ignore
 if (globalThis.console?.log) print = globalThis.console.log;
 // @ts-ignore
-else if (globalThis.print && !globalThis.document) print = globalThis.print;
+else if (globalThis.print && !globalThis.document)
+  print = globalThis.print;
 else {
   print = () => {
     throw new Error('no print function available!');

@@ -38,19 +38,31 @@ export type Config = {
 // MAIN
 //
 const NODE_DIR = join(TESTS, 'node');
-const NODE_DEFAULT_PATTERNS = ['**/*.test.ts', '**/*_test.ts', '**/*.spec.ts', '**/*_spec.ts'];
+const NODE_DEFAULT_PATTERNS = [
+  '**/*.test.ts',
+  '**/*_test.ts',
+  '**/*.spec.ts',
+  '**/*_spec.ts',
+];
 
 const BUN_DIR = join(TESTS, 'bun');
 
-export const testTargets = (watch: boolean, targets: readonly string[] = TARGETS) =>
+export const testTargets = (
+  watch: boolean,
+  targets: readonly string[] = TARGETS,
+) =>
   Promise.all(
     (targets.length > 0 ? targets : TARGETS).map((target) => {
-      const genericConfig = CONFIG[target as (typeof TARGETS)[number]];
+      const genericConfig =
+        CONFIG[target as (typeof TARGETS)[number]];
 
       // Unknown target
       if (genericConfig == null) {
         console.log('unknown target:', fmt.name(target));
-        console.log('available targets:', TARGETS.map(fmt.name).join(', '));
+        console.log(
+          'available targets:',
+          TARGETS.map(fmt.name).join(', '),
+        );
         process.exit(1);
       }
 
