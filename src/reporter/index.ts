@@ -1,4 +1,5 @@
 import { supportsColor } from '../env/color.ts';
+import { print } from '../env/print.ts';
 import {
   runtime,
   runtimeVersion,
@@ -39,7 +40,7 @@ const displayResults = (tab: string, results: number[]): number => {
   const len = results.length;
   const avg = calcAvg(results);
 
-  console.log(
+  print(
     tab +
       '- mean: ' +
       yellowBright(formatMs(avg)) +
@@ -48,12 +49,12 @@ const displayResults = (tab: string, results: number[]): number => {
         formatMs(Math.sqrt(calcVariance(results, avg) / len)),
       ),
   );
-  console.log(
+  print(
     tab +
       '- p99: ' +
       yellowBright(formatMs(calcPercentile(results, 0.99))),
   );
-  console.log(
+  print(
     tab +
       '- range: ' +
       yellowBright(formatMs(results[0])) +
@@ -77,7 +78,7 @@ const reporter: Reporter<{
       runtimeArch && (str += ' (' + runtimeArch + ')');
     }
 
-    console.log(dim(str));
+    print(dim(str));
 
     return {
       tab: '',
@@ -86,7 +87,7 @@ const reporter: Reporter<{
   },
 
   benchStart: (cat, { tab }) => {
-    console.log('\n' + tab + '# ' + bold(cat.id));
+    print('\n' + tab + '# ' + bold(cat.id));
     return {
       tab: tab + '  ',
       results: [],
@@ -95,11 +96,11 @@ const reporter: Reporter<{
 
   benchResult: (key, { tab, results }, { runs, gcs, calls }) => {
     if (runs.length === 0) {
-      console.warn(tab + '* ' + boldCyan(key) + ': no result');
+      print(tab + '* ' + boldCyan(key) + ': no result');
       return;
     }
 
-    console.log(
+    print(
       tab +
         '* ' +
         boldCyan(key) +
@@ -115,21 +116,21 @@ const reporter: Reporter<{
     });
 
     if (gcs) {
-      console.log(tab + '- gc:');
+      print(tab + '- gc:');
       displayResults(tab + '  ', gcs);
     }
   },
 
   benchError: (key, { tab }, e) => {
-    console.error(tab + '* ' + boldCyan(key));
-    console.error(e);
+    print(tab + '* ' + boldCyan(key) + ': error');
+    print(e);
   },
 
   benchEnd: (_, { tab, results }) => {
     if (results.length === 0) return;
 
     results.sort((a, b) => a.runsAvg - b.runsAvg);
-    console.log(tab + '& ' + boldCyan(results[0].key));
+    print(tab + '& ' + boldCyan(results[0].key));
 
     tab += '  - ';
     for (
@@ -137,7 +138,7 @@ const reporter: Reporter<{
       i < results.length;
       i++
     )
-      console.log(
+      print(
         tab +
           green(trunc(results[i].runsAvg / baseline) + 'x') +
           ' faster than ' +
