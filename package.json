@@ -22,12 +22,10 @@
     "oxc-transform": "^0.121.0",
     "oxfmt": "^0.41.0",
     "tinybench": "^6.0.0",
-    "typescript": "^6.0.2"
+    "typescript": "^6.0.2",
+    "picocolors": "^1.1.1"
   },
   "trustedDependencies": [
     "@swc/core"
-  ],
-  "optionalDependencies": {
-    "picocolors": "^1.1.1"
-  }
+  ]
 }
