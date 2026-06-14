@@ -32,7 +32,7 @@ await bench('hrtime')
   .it('Date.now()', [], () => Date.now(), { measureGC: true })
   .run({ env, reporter });
 
-// or using default options
+// to apply to all child benchmarks
 await bench('hrtime', { measureGC: true })
   .it('performance.now()', [], () => performance.now())
   .it('Date.now()', [], () => Date.now())
@@ -81,10 +81,39 @@ bench('find substring')
   );
 ```
 
-## Compare with `mitata`
-This library has a similar benchmark loop to `mitata` but with some API design differences:
-- `mitata` continues a benchmark until both `min_samples` and `samples_threshold` is reached, `measure-loop` runs exactly the iterations you specified.
-- `measure-loop` shuffles benchmark cases by default.
-- `measure-loop` API is a more composable and pluggable.
-- `measure-loop` GCs every iteration by default, `mitata` is opt-in via `inner_gc`.
-- `mitata` has a better default reporter.
+### Options
+Benchmark options can be passed in two ways:
+```ts
+// Apply options to all child benchmarks
+bench('hrtime', { gcOnce: true })
+  .it('performance.now()', [], () => performance.now())
+  .it('Date.now()', [], () => Date.now())
+  .category(childBench);
+
+// Apply options to a specific benchmark
+bench('hrtime')
+  .it('performance.now()', [], () => performance.now(), {
+    gcOnce: true
+  })
+  .it('Date.now()', [], () => Date.now());
+
+// Both
+bench('hrtime', { iters: 120, gcOnce: false })
+  .it('performance.now()', [], () => performance.now(), {
+    // Override gcOnce option but still keep iters = 120
+    gcOnce: true
+  })
+  .it('Date.now()', [], () => Date.now())
+  .category(childBench);
+```
+
+Measure options:
+- `warmupIters`: Warmup iterations count, defaults to `16`.
+- `iters`: Benchmark iterations count, defaults to `128`.
+- `debug`: Include debug info in result, defaults to `false`.
+
+Compile options:
+- `batch`: Number of calls in an iteration, defaults to `4096`.
+- `inlineCalls`: Number of calls to inline in an iteration, defaults to `4`.
+- `measureGC`: Whether to collect GC timings, enable this may affect runs timing accuracy, defaults to `false`.
+- `gcOnce`: Whether to only `gc()` on start instead of every iteration, enable this when your benchmark code have few allocations to increase runs timing accuracy.

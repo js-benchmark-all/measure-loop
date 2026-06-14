@@ -43,7 +43,7 @@ export interface MeasureOptions extends CompileOptions {
    *
    * Defaults to `128`.
    */
-  iters: number;
+  iters?: number;
 
   /**
    * Whether to include debug info in output.
