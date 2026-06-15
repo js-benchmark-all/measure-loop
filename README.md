@@ -6,7 +6,7 @@ An accurate, runtime-agnostic measure loop for benchmarking purposes.
 import { bench, env } from 'measure-loop/runner';
 import reporter from 'measure-loop/reporter';
 
-await bench('hrtime')
+await bench()
   .it('performance.now()', [], () => performance.now())
   .it('Date.now()', [], () => Date.now())
   .run({ env, reporter });
@@ -27,13 +27,13 @@ To collect GC time:
 import { bench, env } from 'measure-loop/runner';
 import reporter from 'measure-loop/reporter';
 
-await bench('hrtime')
+await bench()
   .it('performance.now()', [], () => performance.now(), { measureGC: true })
   .it('Date.now()', [], () => Date.now(), { measureGC: true })
   .run({ env, reporter });
 
 // to apply to all child benchmarks
-await bench('hrtime', { measureGC: true })
+await bench({ measureGC: true })
   .it('performance.now()', [], () => performance.now())
   .it('Date.now()', [], () => Date.now())
   .run({ env, reporter });
@@ -55,7 +55,7 @@ const params = [
 
 const acTrie = buildTrie('abc');
 
-bench('find substring')
+bench()
   .it(
     'knuth-morris-pratt',
     params,
@@ -85,20 +85,20 @@ bench('find substring')
 Benchmark options can be passed in two ways:
 ```ts
 // Apply options to all child benchmarks
-bench('hrtime', { gcOnce: true })
+bench({ gcOnce: true })
   .it('performance.now()', [], () => performance.now())
   .it('Date.now()', [], () => Date.now())
   .category(childBench);
 
 // Apply options to a specific benchmark
-bench('hrtime')
+bench()
   .it('performance.now()', [], () => performance.now(), {
     gcOnce: true
   })
   .it('Date.now()', [], () => Date.now());
 
 // Both
-bench('hrtime', { iters: 120, gcOnce: false })
+bench({ iters: 120, gcOnce: false })
   .it('performance.now()', [], () => performance.now(), {
     // Override gcOnce option but still keep iters = 120
     gcOnce: true
@@ -117,3 +117,30 @@ Compile options:
 - `inlineCalls`: Number of calls to inline in an iteration, defaults to `4`.
 - `measureGC`: Whether to collect GC timings, enable this may affect runs timing accuracy, defaults to `false`.
 - `gcOnce`: Whether to only `gc()` on start instead of every iteration, enable this when your benchmark code have few allocations to increase runs timing accuracy.
+
+### Categories
+Benchmarks can be separated into categories:
+```ts
+import { bench, category, env } from 'measure-loop/runner';
+import reporter from 'measure-loop/reporter';
+
+const runtimeValidators = bench()
+  .it(...)
+  .it(...);
+
+const jittedValidators = bench()
+  .it(...)
+  .it(...);
+
+await category()
+  .it('runtime', runtimeValidators)
+  .it('jit', jittedValidators)
+  .run({ env, reporter });
+```
+
+Default options can also be passed down similar to `bench`:
+```ts
+await category({ gcOnce: true })
+  .it(...)
+  .it(...);
+```

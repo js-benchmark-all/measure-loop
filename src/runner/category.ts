@@ -9,28 +9,27 @@ export interface RuntimeEnv {
   hrtime: () => number;
 }
 
-export interface Reporter<in out Store extends {}> {
-  start: (
-    root: Category,
-    runOptions: RunOptions<Store>,
-    defaultBenchOptions: MeasureOptions | undefined,
-  ) => Store | Promise<Store>;
-  benchStart: (
-    cat: Category,
-    parentStore: Store,
-  ) => Store | Promise<Store>;
-  benchResult: (
+export interface Reporter<in out CategoryStore, in out BenchStore> {
+  categoryStart(cat: undefined, store: undefined): CategoryStore;
+  categoryStart(cat: string, store: CategoryStore): CategoryStore;
+
+  categoryEnd(store: CategoryStore): any;
+
+  benchStart(
+    cat: string,
+    store: CategoryStore,
+  ): BenchStore | Promise<BenchStore>;
+  benchResult(
     benchKey: string,
-    store: Store,
+    store: BenchStore,
     result: MeasureResult,
-  ) => any;
-  benchError: (benchKey: string, store: Store, error: unknown) => any;
-  benchEnd: (cat: Category, store: Store) => any;
-  end: (root: Category, store: Store) => any;
+  ): any;
+  benchError(benchKey: string, store: BenchStore, error: unknown): any;
+  benchEnd(store: BenchStore): any;
 }
 
-export interface RunOptions<ReporterStore extends {}> {
-  reporter: Reporter<ReporterStore>;
+export interface RunOptions<in out CategoryStore, in out BenchStore> {
+  reporter: Reporter<CategoryStore, BenchStore>;
   env: RuntimeEnv;
   shuffle?: boolean;
 }
@@ -47,31 +46,21 @@ export interface BenchFn {
   ): Promise<MeasureResult>;
 }
 
-export class Category {
-  readonly id: string;
-  readonly subcats: Category[];
-
-  readonly defaultBenchOptions: MeasureOptions | undefined;
+export class Bench {
   readonly benchKeys: string[];
   readonly benchParams: any[];
   readonly benchFns: any[];
   readonly benchOptionList: any[];
 
-  constructor(id: string, defaultBenchOptions?: MeasureOptions) {
-    this.id = id;
-    this.subcats = [];
+  readonly defaultBenchOptions: MeasureOptions | undefined;
 
+  constructor(defaultBenchOptions?: MeasureOptions) {
     this.benchKeys = [];
     this.benchParams = [];
     this.benchFns = [];
     this.benchOptionList = [];
 
     this.defaultBenchOptions = defaultBenchOptions;
-  }
-
-  category(...subcats: Category[]): this {
-    this.subcats.push(...subcats);
-    return this;
   }
 
   it<const Params extends ((idx: number) => any)[]>(
@@ -91,10 +80,11 @@ export class Category {
     return this;
   }
 
-  async run<ReporterStore extends {}>(
-    options: RunOptions<ReporterStore>,
+  async run<CategoryStore>(
+    options: RunOptions<CategoryStore, any>,
+    id?: string,
+    parentStore?: CategoryStore,
     defaultBenchOptions?: MeasureOptions,
-    parentStore?: ReporterStore,
   ): Promise<void> {
     // Add new options if exists
     this.defaultBenchOptions != null &&
@@ -108,76 +98,118 @@ export class Category {
 
     const reporter = options.reporter;
 
+    // Run directly instead of wrapping in a category
     const isRoot = parentStore == null;
+    isRoot && (
+      id = 'benchmarks',
+      parentStore = await reporter.categoryStart(undefined, undefined)
+    );
 
-    isRoot &&
-      (parentStore = await reporter.start(
-        this,
-        options,
-        defaultBenchOptions,
-      ));
-    const store = await reporter.benchStart(this, parentStore!);
+    {
+      const store = await reporter.benchStart(id!, parentStore!);
+      const benchCnt = this.benchKeys.length;
 
-    const benchCnt = this.benchKeys.length;
+      // Shuffle list
+      const doShuffle = options.shuffle !== false;
+      let shuffleMap: number[];
+      if (doShuffle) {
+        shuffleMap = new Array(benchCnt);
+        for (let i = 0; i < benchCnt; i++) shuffleMap[i] = i;
+        for (let i = benchCnt; i > 0; ) {
+          const swapIdx = (Math.random() * i) >>> 0;
+          i--;
 
-    // Shuffle list
-    const doShuffle = options.shuffle !== false;
-    let shuffleMap: number[];
-    if (doShuffle) {
-      shuffleMap = new Array(benchCnt);
-      for (let i = 0; i < benchCnt; i++) shuffleMap[i] = i;
-      for (let i = benchCnt; i > 0; ) {
-        const swapIdx = (Math.random() * i) >>> 0;
-        i--;
-
-        const v = shuffleMap[i];
-        shuffleMap[i] = shuffleMap[swapIdx];
-        shuffleMap[swapIdx] = v;
-      }
-    }
-
-    // Run cases
-    for (
-      let i = 0,
-        { benchKeys, benchParams, benchFns, benchOptionList } = this,
-        { gc, hrtime } = options.env;
-      i < benchCnt;
-      i++
-    ) {
-      const shuffledIdx = doShuffle ? shuffleMap![i] : i;
-
-      let result: MeasureResult;
-      try {
-        result = await measure(
-          benchParams[shuffledIdx],
-          benchFns[shuffledIdx],
-          gc,
-          hrtime,
-          defaultBenchOptions != null
-            ? {
-                ...defaultBenchOptions,
-                ...benchOptionList[shuffledIdx],
-              }
-            : benchOptionList[shuffledIdx],
-        );
-      } catch (e) {
-        await reporter.benchError(benchKeys[shuffledIdx], store, e);
-        continue;
+          const v = shuffleMap[i];
+          shuffleMap[i] = shuffleMap[swapIdx];
+          shuffleMap[swapIdx] = v;
+        }
       }
 
-      await reporter.benchResult(benchKeys[shuffledIdx], store, result);
+      // Run cases
+      for (
+        let i = 0,
+          { benchKeys, benchParams, benchFns, benchOptionList } = this,
+          { gc, hrtime } = options.env;
+        i < benchCnt;
+        i++
+      ) {
+        const shuffledIdx = doShuffle ? shuffleMap![i] : i;
+
+        let result: MeasureResult;
+        try {
+          result = await measure(
+            benchParams[shuffledIdx],
+            benchFns[shuffledIdx],
+            gc,
+            hrtime,
+            defaultBenchOptions != null
+              ? {
+                  ...defaultBenchOptions,
+                  ...benchOptionList[shuffledIdx],
+                }
+              : benchOptionList[shuffledIdx],
+          );
+        } catch (e) {
+          await reporter.benchError(benchKeys[shuffledIdx], store, e);
+          continue;
+        }
+
+        await reporter.benchResult(benchKeys[shuffledIdx], store, result);
+      }
+
+      await reporter.benchEnd(store);
     }
 
-    // Run subcats
-    for (let i = 0, { subcats } = this; i < subcats.length; i++)
-      await subcats[i].run(options, defaultBenchOptions, store);
-
-    await reporter.benchEnd(this, store);
-    isRoot && (await reporter.end(this, parentStore!));
+    // Run directly instead of wrapping in a category
+    isRoot && (await reporter.categoryEnd(parentStore!));
   }
 }
 
-export default (
-  id: string,
-  defaultBenchOptions?: MeasureOptions,
-): Category => new Category(id, defaultBenchOptions);
+export class Category {
+  readonly childrenNames: string[];
+  readonly children: (Category | Bench)[];
+
+  readonly defaultBenchOptions: MeasureOptions | undefined;
+
+  constructor(defaultBenchOptions?: MeasureOptions) {
+    this.childrenNames = [];
+    this.children = [];
+
+    this.defaultBenchOptions = defaultBenchOptions;
+  }
+
+  it(name: string, bench: Category | Bench): this {
+    this.childrenNames.push(name);
+    this.children.push(bench);
+    return this;
+  }
+
+  async run<CategoryStore>(
+    options: RunOptions<CategoryStore, any>,
+    id?: string,
+    parentStore?: CategoryStore,
+    defaultBenchOptions?: MeasureOptions,
+  ): Promise<void> {
+    // Add new options if exists
+    this.defaultBenchOptions != null &&
+      (defaultBenchOptions =
+        defaultBenchOptions != null
+          ? {
+              ...defaultBenchOptions,
+              ...this.defaultBenchOptions,
+            }
+          : this.defaultBenchOptions);
+
+    const reporter = options.reporter;
+    // @ts-ignore
+    const store = await reporter.categoryStart(id, parentStore);
+
+    for (let i = 0, { children, childrenNames } = this; i < children.length; i++)
+      await children[i].run(options, childrenNames[i], store, defaultBenchOptions);
+
+    await reporter.categoryEnd(store);
+  }
+}
+
+export const bench = (defaultBenchOptions?: MeasureOptions): Bench => new Bench(defaultBenchOptions);
+export const category = (defaultBenchOptions?: MeasureOptions): Category => new Category(defaultBenchOptions);

@@ -1,2 +1,2 @@
-export { default as bench } from './category.ts';
+export { bench, category } from './category.ts';
 export { default as env } from './env.ts';

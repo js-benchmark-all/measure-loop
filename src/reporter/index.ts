@@ -68,31 +68,41 @@ const displayResults = (tab: string, results: number[]): number => {
 const reporter: Reporter<{
   tab: string;
   heading: string;
+}, {
+  tab: string;
   results: { key: string; runsAvg: number }[];
 }> = {
-  start: () => {
-    let str = '';
+  categoryStart: (cat, store) => {
+    if (cat == null) {
+      let str = '';
 
-    if (runtime) {
-      str += '\n$ runtime: ' + runtime;
-      runtimeVersion && (str += ' ' + runtimeVersion);
-      runtimeArch && (str += ' (' + runtimeArch + ')');
+      if (runtime) {
+        str += '\n$ runtime: ' + runtime;
+        runtimeVersion && (str += ' ' + runtimeVersion);
+        runtimeArch && (str += ' (' + runtimeArch + ')');
+      }
+
+      print(dim(str));
+
+      return {
+        tab: '',
+        heading: '#'
+      };
     }
+    const { tab, heading } = store!;
 
-    print(dim(str));
-
-    return {
-      tab: '',
-      heading: '# ',
-      results: [],
-    };
-  },
-
-  benchStart: (cat, { tab, heading }) => {
-    print(tab + bold(heading + cat.id));
+    print(tab + bold(heading + cat));
     return {
       tab: tab + '  ',
-      heading: '#' + heading,
+      heading: '#' + heading
+    };
+  },
+  categoryEnd: () => {},
+
+  benchStart: (cat, { tab, heading }) => {
+    print(tab + bold(heading + cat));
+    return {
+      tab: tab + '  ',
       results: [],
     };
   },
@@ -129,7 +139,7 @@ const reporter: Reporter<{
     print(e);
   },
 
-  benchEnd: (_, { tab, results }) => {
+  benchEnd: ({ tab, results }) => {
     if (results.length < 2) return;
 
     results.sort((a, b) => a.runsAvg - b.runsAvg);
@@ -147,9 +157,7 @@ const reporter: Reporter<{
           ' faster than ' +
           boldCyan(results[i].key),
       );
-  },
-
-  end: () => {},
+  }
 };
 
 export default reporter;
