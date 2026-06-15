@@ -86,7 +86,7 @@ const reporter: Reporter<{
 
       return {
         tab: '',
-        heading: '#'
+        heading: '# '
       };
     }
     const { tab, heading } = store!;
