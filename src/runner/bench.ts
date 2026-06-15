@@ -82,9 +82,9 @@ export class Bench {
 
   async run<CategoryStore, CategoryReturn>(
     options: RunOptions<CategoryStore, any, CategoryReturn>,
+    defaultBenchOptions?: MeasureOptions,
     id?: string,
     parentStore?: CategoryStore,
-    defaultBenchOptions?: MeasureOptions,
   ): Promise<void> {
     // Add new options if exists
     this.defaultBenchOptions != null &&

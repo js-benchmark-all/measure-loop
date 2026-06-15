@@ -22,9 +22,9 @@ export class Category {
 
   async run<CategoryStore, CategoryReturn>(
     options: RunOptions<CategoryStore, any, CategoryReturn>,
+    defaultBenchOptions?: MeasureOptions,
     id?: string,
     parentStore?: CategoryStore,
-    defaultBenchOptions?: MeasureOptions,
   ): Promise<CategoryReturn> {
     // Add new options if exists
     this.defaultBenchOptions != null &&
@@ -50,9 +50,9 @@ export class Category {
     )
       await children[i].run(
         options,
+        defaultBenchOptions,
         childrenNames[i],
         store,
-        defaultBenchOptions,
       );
 
     return options.reporter.categoryEnd(store);
