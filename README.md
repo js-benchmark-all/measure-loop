@@ -81,8 +81,7 @@ Benchmark options can be passed in two ways:
 // Apply options to all child benchmarks
 bench({ gcOnce: true })
   .it('performance.now()', [], () => performance.now())
-  .it('Date.now()', [], () => Date.now())
-  .category(childBench);
+  .it('Date.now()', [], () => Date.now());
 
 // Apply options to a specific benchmark
 bench()
@@ -97,8 +96,7 @@ bench({ iters: 120, gcOnce: false })
     // Override gcOnce option but still keep iters = 120
     gcOnce: true
   })
-  .it('Date.now()', [], () => Date.now())
-  .category(childBench);
+  .it('Date.now()', [], () => Date.now());
 ```
 
 Measure options:
@@ -132,9 +130,25 @@ await category()
   .run({ env, reporter });
 ```
 
-Default options can also be passed down similar to `bench`:
+Default options can be passed down similar to `bench`:
 ```ts
-await category({ gcOnce: true })
+category({ gcOnce: true })
   .it(...)
   .it(...);
+```
+
+Categories can be nested:
+```ts
+const runtimeValidators = category()
+  .it(...)
+  .it(...);
+
+const jittedValidators = category()
+  .it(...)
+  .it(...);
+
+// Default options if specified will be passed down to child categories
+category()
+  .it('runtime', runtimeValidators)
+  .it('jit', jittedValidators);
 ```

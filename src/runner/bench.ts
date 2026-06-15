@@ -33,7 +33,7 @@ export interface Reporter<
     result: MeasureResult,
   ): any;
   benchError(caseId: string, store: BenchStore, error: unknown): any;
-  benchEnd(store: BenchStore): any;
+  benchEnd(store: BenchStore, parentStore: CategoryStore): any;
 }
 
 export interface RunOptions<
@@ -63,7 +63,7 @@ export class Bench {
     this.defaultBenchOptions = defaultBenchOptions;
   }
 
-  it<const Params extends ((idx: number) => any)[]>(
+  it<const Params extends readonly ((idx: number) => any)[]>(
     id: string,
     params: Params,
     fn: (
@@ -168,7 +168,7 @@ export class Bench {
         }
       }
 
-      const res = reporter.benchEnd(store);
+      const res = reporter.benchEnd(store, parentStore!);
       res instanceof Promise && (await res);
     }
 
