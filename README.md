@@ -39,12 +39,6 @@ await bench({ measureGC: true })
   .run({ env, reporter });
 ```
 
-To add child categories:
-```ts
-const child = bench('child');
-parent.category(child);
-```
-
 To add computed parameters:
 ```ts
 // Doesn't get measured

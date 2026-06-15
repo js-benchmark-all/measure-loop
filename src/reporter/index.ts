@@ -6,7 +6,7 @@ import {
   runtimeArch,
 } from '../env/runtime.ts';
 
-import type { Reporter } from '../runner/category.ts';
+import type { Reporter } from '../runner/bench.ts';
 import {
   calcAvg,
   calcPercentile,
@@ -65,18 +65,22 @@ const displayResults = (tab: string, results: number[]): number => {
   return avg;
 };
 
-const reporter: Reporter<{
-  tab: string;
-  heading: string;
-}, {
-  tab: string;
-  results: { key: string; runsAvg: number }[];
-}> = {
-  categoryStart: (cat, store) => {
-    if (cat == null) {
+const reporter: Reporter<
+  {
+    tab: string;
+    heading: string;
+  },
+  {
+    tab: string;
+    results: { key: string; runsAvg: number }[];
+  },
+  void
+> = {
+  categoryStart: (id, parentStore) => {
+    if (id == null) {
       let str = '';
 
-      if (runtime) {
+      if (runtime != null) {
         str += '\n$ runtime: ' + runtime;
         runtimeVersion && (str += ' ' + runtimeVersion);
         runtimeArch && (str += ' (' + runtimeArch + ')');
@@ -86,37 +90,37 @@ const reporter: Reporter<{
 
       return {
         tab: '',
-        heading: '# '
+        heading: '# ',
       };
     }
-    const { tab, heading } = store!;
+    const { tab, heading } = parentStore;
 
-    print(tab + bold(heading + cat));
+    print(tab + bold(heading + id));
     return {
       tab: tab + '  ',
-      heading: '#' + heading
+      heading: '#' + heading,
     };
   },
   categoryEnd: () => {},
 
-  benchStart: (cat, { tab, heading }) => {
-    print(tab + bold(heading + cat));
+  benchStart: (id, { tab, heading }) => {
+    print(tab + bold(heading + id));
     return {
       tab: tab + '  ',
       results: [],
     };
   },
 
-  benchResult: (key, { tab, results }, { runs, gcs, calls }) => {
+  benchResult: (caseId, { tab, results }, { runs, gcs, calls }) => {
     if (runs.length === 0) {
-      print(tab + '* ' + boldCyan(key) + ': no result');
+      print(tab + '* ' + boldCyan(caseId) + ': no result');
       return;
     }
 
     print(
       tab +
         '* ' +
-        boldCyan(key) +
+        boldCyan(caseId) +
         ': ' +
         yellowBright(calls) +
         ' runs',
@@ -124,18 +128,18 @@ const reporter: Reporter<{
     tab += '  ';
 
     results.push({
-      key,
+      key: caseId,
       runsAvg: displayResults(tab, runs),
     });
 
-    if (gcs) {
+    if (gcs != null) {
       print(tab + '- gc:');
       displayResults(tab + '  ', gcs);
     }
   },
 
-  benchError: (key, { tab }, e) => {
-    print(tab + '* ' + boldCyan(key) + ': error');
+  benchError: (caseId, { tab }, e) => {
+    print(tab + '* ' + boldCyan(caseId) + ': error');
     print(e);
   },
 
@@ -157,7 +161,7 @@ const reporter: Reporter<{
           ' faster than ' +
           boldCyan(results[i].key),
       );
-  }
+  },
 };
 
 export default reporter;
