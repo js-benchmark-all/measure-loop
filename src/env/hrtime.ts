@@ -20,6 +20,6 @@ if (globalThis.performance?.now) {
 } else if (globalThis.$?.agent?.monotonicNow) {
   hrtime = () => $.agent.monotonicNow();
 } else {
-  rtime = Date.now;
+  hrtime = Date.now;
   hrtimeDetected = false;
 }
