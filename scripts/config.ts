@@ -53,6 +53,8 @@ export const build: import('./lib/build.ts').Config = {
       join_vars: true,
       inline: 3,
       passes: 3,
+      // Don't break hermes
+      keep_classnames: true
     },
     mangle: false,
     module: true,

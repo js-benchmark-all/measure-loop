@@ -1,13 +1,14 @@
 import { hrtimeDetected, hrtime } from '../env/hrtime.ts';
 import { gcDetected, gc } from '../env/gc.ts';
 import type { RuntimeEnv } from './bench.ts';
+import { print } from '../env/print.ts';
 
 gcDetected ||
-  console.warn(
+  print(
     'warn: no synchronous gc method detected, using a fallback implementation which can reduce accuracy.',
   );
 hrtimeDetected ||
-  console.warn(
+  print(
     'warn: no high resolution time method detected, using a fallback implementation which can reduce accuracy.',
   );
 
