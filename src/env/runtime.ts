@@ -42,7 +42,7 @@ if (globalThis.Bun) {
   runtime = 'deno';
   runtimeVersion = Deno.version.deno;
   runtimeArch = Deno.build.target;
-} else if (process) {
+} else if (globalThis.process) {
   const v = process.versions;
 
   if (v.llrt) {
