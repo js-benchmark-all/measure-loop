@@ -80,12 +80,30 @@ export class Bench {
     return this;
   }
 
+  /**
+   * Run the benchmark directly without wrapping in a category.
+   */
+  run<CategoryStore, CategoryReturn>(
+    options: RunOptions<CategoryStore, any, CategoryReturn>,
+    defaultBenchOptions?: MeasureOptions
+  ): Promise<CategoryReturn>;
+
+  /**
+   * Run the benchmark in a category.
+   */
+  run<CategoryStore, CategoryReturn>(
+    options: RunOptions<CategoryStore, any, CategoryReturn>,
+    defaultBenchOptions: MeasureOptions,
+    id: string,
+    parentStore: CategoryStore
+  ): Promise<void>;
+
   async run<CategoryStore, CategoryReturn>(
     options: RunOptions<CategoryStore, any, CategoryReturn>,
     defaultBenchOptions?: MeasureOptions,
     id?: string,
     parentStore?: CategoryStore,
-  ): Promise<void> {
+  ): Promise<any> {
     // Add new options if exists
     this.defaultBenchOptions != null &&
       (defaultBenchOptions =
@@ -172,11 +190,8 @@ export class Bench {
       res instanceof Promise && (await res);
     }
 
-    // Run directly instead of wrapping in a category
-    if (isRoot) {
-      const res = reporter.categoryEnd(parentStore!);
-      res instanceof Promise && (await res);
-    }
+    // Return to match the behavior of category.run
+    if (isRoot) return reporter.categoryEnd(parentStore!);
   }
 }
 
