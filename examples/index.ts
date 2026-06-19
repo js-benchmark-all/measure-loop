@@ -1,7 +1,5 @@
-import { bench, env } from 'measure-loop/runner';
+import { env } from 'measure-loop';
 import reporter from 'measure-loop/reporter';
+import main from './main.ts';
 
-await bench({ gcOnce: true })
-  .it('env.hrtime()', [], env.hrtime)
-  .it('performance.now()', [], () => performance.now())
-  .run({ env, reporter });
+await main.run({ env, reporter });

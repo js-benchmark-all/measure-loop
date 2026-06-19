@@ -34,11 +34,11 @@ const dim: ColorFn = supportsColor
   ? (str) => '\x1b[2m' + str + '\x1b[22m'
   : fallback;
 
-const displayResults = (tab: string, results: number[]): number => {
-  results.sort((a, b) => a - b);
+const displayResults = (tab: string, runs: number[]): number => {
+  runs.sort((a, b) => a - b);
 
-  const len = results.length;
-  const avg = calcAvg(results);
+  const len = runs.length;
+  const avg = calcAvg(runs);
 
   print(
     tab +
@@ -46,20 +46,20 @@ const displayResults = (tab: string, results: number[]): number => {
       yellowBright(formatMs(avg)) +
       ' ± ' +
       yellowBright(
-        formatMs(Math.sqrt(calcVariance(results, avg) / len)),
+        formatMs(Math.sqrt(calcVariance(runs, avg) / len)),
       ),
   );
   print(
     tab +
       '- p99: ' +
-      yellowBright(formatMs(calcPercentile(results, 0.99))),
+      yellowBright(formatMs(calcPercentile(runs, 0.99))),
   );
   print(
     tab +
       '- range: ' +
-      yellowBright(formatMs(results[0])) +
+      yellowBright(formatMs(runs[0])) +
       ' - ' +
-      yellowBright(formatMs(results[len - 1])),
+      yellowBright(formatMs(runs[len - 1])),
   );
 
   return avg;
@@ -74,6 +74,7 @@ const reporter: Reporter<
     tab: string;
     results: { key: string; runsAvg: number }[];
   },
+  void,
   void
 > = {
   categoryStart: (id, parentStore) => {
@@ -111,7 +112,7 @@ const reporter: Reporter<
     };
   },
 
-  benchResult: (caseId, { tab, results }, { runs, gcs, calls }) => {
+  benchResult: ({ tab, results }, caseId, { runs, gcs, calls }) => {
     if (runs.length === 0) {
       print(tab + '* ' + boldCyan(caseId) + ': no result');
       return;
@@ -138,7 +139,7 @@ const reporter: Reporter<
     }
   },
 
-  benchError: (caseId, { tab }, e) => {
+  benchError: ({ tab }, caseId, e) => {
     print(tab + '* ' + boldCyan(caseId) + ': error');
     print(e);
   },

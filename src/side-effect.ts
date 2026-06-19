@@ -1,9 +1,11 @@
-import { print } from './env/print.ts';
-
-let $ = () => print($);
+let $ = () => {
+  throw $;
+};
 /**
  * Prevent a value from being optimized out.
  */
-export const createSideEffect = (v: any): void => {
+const sideEffect = (v: any): void => {
   $ = v;
 };
+
+export default sideEffect;

@@ -13,6 +13,7 @@ export interface Reporter<
   in out CategoryStore,
   in out BenchStore,
   out CategoryReturn,
+  out SubcategoryReturn,
 > {
   categoryStart(
     ...args:
@@ -20,28 +21,37 @@ export interface Reporter<
       | [id: string, parentStore: CategoryStore]
   ): CategoryStore | Promise<CategoryStore>;
   categoryEnd(
-    store: CategoryStore,
-  ): CategoryReturn | Promise<CategoryReturn>;
+    ...args:
+      | [store: CategoryStore, id: undefined, parentStore: undefined]
+      | [store: CategoryStore, id: string, parentStore: CategoryStore]
+  ):
+    | CategoryReturn
+    | Promise<CategoryReturn>
+    | SubcategoryReturn
+    | Promise<SubcategoryReturn>;
 
   benchStart(
     id: string,
     parentStore: CategoryStore,
   ): BenchStore | Promise<BenchStore>;
   benchResult(
-    caseId: string,
     store: BenchStore,
+    caseId: string,
     result: MeasureResult,
   ): any;
-  benchError(caseId: string, store: BenchStore, error: unknown): any;
-  benchEnd(store: BenchStore, parentStore: CategoryStore): any;
+  benchError(store: BenchStore, caseId: string, error: unknown): any;
+  benchEnd(
+    store: BenchStore,
+    id: string,
+    parentStore: CategoryStore,
+  ): any;
 }
 
 export interface RunOptions<
   in out CategoryStore,
-  in out BenchStore,
   out CategoryReturn,
 > {
-  reporter: Reporter<CategoryStore, BenchStore, CategoryReturn>;
+  reporter: Reporter<CategoryStore, any, CategoryReturn, any>;
   env: RuntimeEnv;
   shuffle?: boolean;
 }
@@ -84,22 +94,22 @@ export class Bench {
    * Run the benchmark directly without wrapping in a category.
    */
   run<CategoryStore, CategoryReturn>(
-    options: RunOptions<CategoryStore, any, CategoryReturn>,
-    defaultBenchOptions?: MeasureOptions
+    options: RunOptions<CategoryStore, CategoryReturn>,
+    defaultBenchOptions?: MeasureOptions,
   ): Promise<CategoryReturn>;
 
   /**
    * Run the benchmark in a category.
    */
   run<CategoryStore, CategoryReturn>(
-    options: RunOptions<CategoryStore, any, CategoryReturn>,
+    options: RunOptions<CategoryStore, CategoryReturn>,
     defaultBenchOptions: MeasureOptions,
     id: string,
-    parentStore: CategoryStore
+    parentStore: CategoryStore,
   ): Promise<void>;
 
   async run<CategoryStore, CategoryReturn>(
-    options: RunOptions<CategoryStore, any, CategoryReturn>,
+    options: RunOptions<CategoryStore, CategoryReturn>,
     defaultBenchOptions?: MeasureOptions,
     id?: string,
     parentStore?: CategoryStore,
@@ -160,8 +170,8 @@ export class Bench {
 
         try {
           const res = reporter.benchResult(
-            benchIds[shuffledIdx],
             store,
+            benchIds[shuffledIdx],
             await measure(
               benchParams[shuffledIdx],
               benchFns[shuffledIdx],
@@ -178,20 +188,21 @@ export class Bench {
           res instanceof Promise && (await res);
         } catch (e) {
           const res = reporter.benchError(
-            benchIds[shuffledIdx],
             store,
+            benchIds[shuffledIdx],
             e,
           );
           res instanceof Promise && (await res);
         }
       }
 
-      const res = reporter.benchEnd(store, parentStore!);
+      const res = reporter.benchEnd(store, id!, parentStore!);
       res instanceof Promise && (await res);
     }
 
     // Return to match the behavior of category.run
-    if (isRoot) return reporter.categoryEnd(parentStore!);
+    if (isRoot)
+      return reporter.categoryEnd(parentStore!, undefined, undefined);
   }
 }
 

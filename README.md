@@ -3,7 +3,7 @@ An accurate, runtime-agnostic measure loop for benchmarking purposes.
 
 ## Usage
 ```ts
-import { bench, env } from 'measure-loop/runner';
+import { bench, env } from 'measure-loop';
 import reporter from 'measure-loop/reporter';
 
 await bench()
@@ -24,7 +24,7 @@ deno run --v8-flags=--expose-gc bench.ts
 
 To collect GC time:
 ```ts
-import { bench, env } from 'measure-loop/runner';
+import { bench, env } from 'measure-loop';
 import reporter from 'measure-loop/reporter';
 
 await bench()
@@ -113,7 +113,7 @@ Compile options:
 ### Categories
 Benchmarks can be separated into categories:
 ```ts
-import { bench, category, env } from 'measure-loop/runner';
+import { bench, category, env } from 'measure-loop';
 import reporter from 'measure-loop/reporter';
 
 const runtimeValidators = bench()
@@ -152,3 +152,30 @@ category()
   .it('runtime', runtimeValidators)
   .it('jit', jittedValidators);
 ```
+
+### Reporters
+Reporters can hook to different phases of the benchmark to print and collect results.
+```ts
+// Default reporter (pretty print result)
+import reporter from 'measure-loop/reporter';
+
+await run({ env, reporter });
+
+// JSON reporter
+import reporter from 'measure-loop/reporter/json';
+
+const json = await run({ env, reporter });
+writeFileSync('results.json', JSON.stringify(json, null, 2));
+
+// Markdown reporter
+import md from 'measure-loop/reporter/md';
+
+const md = await run({ env, reporter });
+writeFileSync('results.md', md);
+```
+
+The reporter API will be stable after 1.0.
+
+## Tested environments
+- Supported: `node`, `bun`, `deno`, `v8`, `jsc`, `spidermonkey`, `quickjs`.
+- Support WIP: `hermes`, `porffor`.

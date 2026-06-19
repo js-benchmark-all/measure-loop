@@ -34,36 +34,32 @@ export interface BenchResult {
 const reporter: Reporter<
   CategoryResult,
   BenchResult,
-  CategoryResult
+  CategoryResult,
+  void
 > = {
-  categoryStart: (id, parentStore) =>
-    id == null
-      ? {
-          type: 'category',
-          results: {},
-        }
-      : (parentStore.results[id] = {
-          type: 'category',
-          results: {},
-        }),
-  categoryEnd: (store) => store,
+  categoryStart: () => ({
+    type: 'category',
+    results: {},
+  }),
+  categoryEnd: (store, id, parentStore) => {
+    if (id == null) return store;
+    parentStore!.results[id] = store;
+  },
 
-  benchStart: (id, parentStore) =>
-    (parentStore.results[id] = {
-      type: 'bench',
-      results: {},
-      errors: {},
-    }),
-
-  benchResult: (caseId, store, res) => {
+  benchStart: () => ({
+    type: 'bench',
+    results: {},
+    errors: {},
+  }),
+  benchResult: (store, caseId, res) => {
     store.results[caseId] = res;
   },
-
-  benchError: (caseId, store, e) => {
+  benchError: (store, caseId, e) => {
     store.errors[caseId] = e;
   },
-
-  benchEnd: () => {},
+  benchEnd: (store, id, parentStore) => {
+    parentStore.results[id] = store;
+  },
 };
 
 export default reporter;

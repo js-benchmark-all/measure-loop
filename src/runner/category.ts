@@ -21,7 +21,7 @@ export class Category {
   }
 
   async run<CategoryStore, CategoryReturn>(
-    options: RunOptions<CategoryStore, any, CategoryReturn>,
+    options: RunOptions<CategoryStore, CategoryReturn>,
     defaultBenchOptions?: MeasureOptions,
     id?: string,
     parentStore?: CategoryStore,
@@ -55,7 +55,7 @@ export class Category {
         store,
       );
 
-    return options.reporter.categoryEnd(store);
+    return options.reporter.categoryEnd(store, id!, parentStore!);
   }
 }
 
