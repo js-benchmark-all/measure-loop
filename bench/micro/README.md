@@ -1,7 +1,19 @@
 Micro benchmarks for all runtimes & engines.
 ```sh
-# Install all dependencies
-bun run.ts <target> <file>
+# build package
+cd ../..
+bun i
+bun task build
+cd bench/micro
+
+# run a benchmark
+bun run.ts target file
+
+# example: run object benchmarks in node
+bun run.ts node object
+
+# example: run object access benchmarks in bun
+bun run.ts bun object/access
 ```
 
 To setup JS engines, add `jsvu` binary directory to `PATH`:

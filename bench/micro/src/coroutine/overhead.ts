@@ -20,8 +20,10 @@ export default bench()
       yield i + 4;
     }
   ], (p) => {
+    let res = 0;
     for (const v of p)
-      sideEffect(v);
+      res ^= v;
+    sideEffect(res);
   })
   .it('async generator', [
     async function* (i) {
@@ -31,6 +33,8 @@ export default bench()
       yield await Promise.resolve(i);
     }
   ], async (p) => {
+    let res = 0;
     for await (const v of p)
-      sideEffect(v);
+      res ^= v;
+    sideEffect(res);
   });

@@ -10,7 +10,7 @@ if (argv.length < 4) {
 const { 2: target, 3: file } = argv;
 
 writeFileSync('run.js', `
-  import { bench, env } from 'measure-loop/runner';
+  import { bench, env } from 'measure-loop';
   import reporter from 'measure-loop/reporter';
 
   import b from './${path.join('src', file)}';
@@ -20,7 +20,7 @@ writeFileSync('run.js', `
 const bundleFile = () => Bun.build({
   entrypoints: ['run.js'],
   outdir: '.',
-  format: 'esm'
+  format: 'esm',
 });
 
 const spawn = (...args: string[]) => {
@@ -73,14 +73,20 @@ switch (target) {
   case 'spidermonkey': {
     await bundleFile();
     spawn('spidermonkey', '-m', 'run.js');
-    await Bun.$`spidermonkey -m run.js`;
     break;
   }
 
-  case 'porffor': {
+  case 'quickjs': {
     await bundleFile();
-    spawn('porf', 'run.js');
+    spawn('quickjs', '--module', '--std', 'run.js');
+    break;
   }
+
+  // case 'porffor': {
+  //   await bundleFile();
+  //   spawn('porf', 'run.js');
+  //   break;
+  // }
 
   default: {
     console.error('unknown target:', target);
