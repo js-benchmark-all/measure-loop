@@ -9,28 +9,32 @@ if (argv.length < 4) {
 }
 const { 2: target, 3: file } = argv;
 
-writeFileSync('run.js', `
+writeFileSync(
+  'run.js',
+  `
   import { bench, env } from 'measure-loop';
   import reporter from 'measure-loop/reporter';
 
   import b from './${path.join('src', file)}';
   b.run({ env, reporter });
-`);
+`,
+);
 
-const bundleFile = () => Bun.build({
-  entrypoints: ['run.js'],
-  outdir: '.',
-  format: 'esm',
-});
+const bundleFile = () =>
+  Bun.build({
+    entrypoints: ['run.js'],
+    outdir: '.',
+    format: 'esm',
+  });
 
 const spawn = (...args: string[]) => {
   Bun.gc(true);
   Bun.spawnSync(args, {
     stdin: 'ignore',
     stdout: 'inherit',
-    stderr: 'inherit'
+    stderr: 'inherit',
   });
-}
+};
 
 switch (target) {
   case 'bun': {
@@ -40,7 +44,13 @@ switch (target) {
 
   case 'deno': {
     Bun.gc(true);
-    spawn('deno', 'run', '--v8-flags=--expose-gc', '--allow-env', 'run.js');
+    spawn(
+      'deno',
+      'run',
+      '--v8-flags=--expose-gc',
+      '--allow-env',
+      'run.js',
+    );
     break;
   }
 

@@ -3,7 +3,7 @@ import sideEffect from 'measure-loop/side-effect';
 
 const staticProps = bench({
   warmupIters: 64,
-  iters: 256
+  iters: 256,
 });
 {
   const params = [() => [] as string[]] as const;
@@ -19,7 +19,7 @@ const staticProps = bench({
     }
 
     staticProps.it('class with constructor', params, (headers) => {
-      sideEffect(new Context(headers))
+      sideEffect(new Context(headers));
     });
   }
 
@@ -43,11 +43,15 @@ const staticProps = bench({
       headers!: string[];
     }
 
-    staticProps.it('class with default initializer, without constructor', params, (headers) => {
-      let o = new Context();
-      o.headers = headers;
-      sideEffect(o);
-    });
+    staticProps.it(
+      'class with default initializer, without constructor',
+      params,
+      (headers) => {
+        let o = new Context();
+        o.headers = headers;
+        sideEffect(o);
+      },
+    );
   }
 
   {
@@ -67,7 +71,10 @@ const staticProps = bench({
     proto.status = 200;
     proto.headers = undefined;
 
-    function Context(this: { status: number, headers: string[] }, headers: string[]) {
+    function Context(
+      this: { status: number; headers: string[] },
+      headers: string[],
+    ) {
       this.headers = headers;
     }
     Context.prototype = proto;
@@ -75,8 +82,8 @@ const staticProps = bench({
     staticProps.it('function constructor', params, (headers) => {
       sideEffect(
         // @ts-ignore
-        new Context(headers)
-      )
+        new Context(headers),
+      );
     });
   }
 
@@ -85,18 +92,25 @@ const staticProps = bench({
     proto.status = 200;
     proto.headers = undefined;
 
-    function Context(this: { status: number, headers: string[] }, headers: string[]) {
+    function Context(
+      this: { status: number; headers: string[] },
+      headers: string[],
+    ) {
       this.headers = headers;
     }
     Context.prototype = proto;
     Object.freeze(Context.prototype);
 
-    staticProps.it('function constructor (freezed proto)', params, (headers) => {
-      sideEffect(
-        // @ts-ignore
-        new Context(headers)
-      )
-    });
+    staticProps.it(
+      'function constructor (freezed proto)',
+      params,
+      (headers) => {
+        sideEffect(
+          // @ts-ignore
+          new Context(headers),
+        );
+      },
+    );
   }
 
   {
@@ -104,15 +118,19 @@ const staticProps = bench({
     proto.status = 200;
     proto.headers = undefined;
 
-    function Context() { };
+    function Context() {}
     Context.prototype = proto;
 
-    staticProps.it('function without constructor', params, (headers) => {
-      // @ts-ignore
-      let o = new Context();
-      o.headers = headers;
-      sideEffect(o);
-    });
+    staticProps.it(
+      'function without constructor',
+      params,
+      (headers) => {
+        // @ts-ignore
+        let o = new Context();
+        o.headers = headers;
+        sideEffect(o);
+      },
+    );
   }
 
   {
@@ -120,22 +138,26 @@ const staticProps = bench({
     proto.status = 200;
     proto.headers = undefined;
 
-    function Context() { };
+    function Context() {}
     Context.prototype = proto;
     Object.freeze(Context.prototype);
 
-    staticProps.it('function without constructor (freezed proto)', params, (headers) => {
-      // @ts-ignore
-      let o = new Context();
-      o.headers = headers;
-      sideEffect(o);
-    });
+    staticProps.it(
+      'function without constructor (freezed proto)',
+      params,
+      (headers) => {
+        // @ts-ignore
+        let o = new Context();
+        o.headers = headers;
+        sideEffect(o);
+      },
+    );
   }
 }
 
 const dynProps = bench({
   warmupIters: 64,
-  iters: 128
+  iters: 128,
 });
 {
   const params = [(i: number) => 'k' + i] as const;
@@ -173,13 +195,17 @@ const dynProps = bench({
     Context.prototype = Object.create(null);
     Object.freeze(Context.prototype);
 
-    dynProps.it('function constructor (freezed proto)', params, (key) => {
-      let o =
-        // @ts-ignore
-        new Context();
-      o[key] = 0;
-      sideEffect(o);
-    });
+    dynProps.it(
+      'function constructor (freezed proto)',
+      params,
+      (key) => {
+        let o =
+          // @ts-ignore
+          new Context();
+        o[key] = 0;
+        sideEffect(o);
+      },
+    );
   }
 }
 

@@ -3,7 +3,7 @@ import sideEffect from 'measure-loop/side-effect';
 
 const fromArray = bench({
   warmupIters: 16,
-  iters: 32
+  iters: 32,
 });
 {
   const params = [
@@ -12,14 +12,14 @@ const fromArray = bench({
       for (let j = 0; j < 8; j++)
         arr[j] = Promise.resolve(i * j + i - j);
       return arr;
-    }
+    },
   ] as const;
 
   const consumeIter = async (g: AsyncGenerator<any, any, any>) => {
     let sum = 0;
     for await (const x of g) sum += x;
     sideEffect(sum);
-  }
+  };
 
   async function* createAsyncGen(list: Promise<any>[]) {
     yield* list;
@@ -34,12 +34,14 @@ const fromArray = bench({
     readonly l: Promise<any>[];
 
     constructor(list: Promise<any>[]) {
-      this.i = 0
+      this.i = 0;
       this.l = list;
     }
 
     next(...[value]: [] | [any]): Promise<IteratorResult<any, any>> {
-      return this.i < this.l.length ? this.l[this.i++].then(resolve) : DONE;
+      return this.i < this.l.length
+        ? this.l[this.i++].then(resolve)
+        : DONE;
     }
 
     async return(value: any): Promise<IteratorResult<any, any>> {
@@ -62,11 +64,15 @@ const fromArray = bench({
     }
   }
 
-  const createAsyncIter = (list: Promise<any>[]) => new AsyncIter(list);
+  const createAsyncIter = (list: Promise<any>[]) =>
+    new AsyncIter(list);
 
-  fromArray.it('generator', params, (arr) => consumeIter(createAsyncGen(arr)));
-  fromArray.it('iterator', params, (arr) => consumeIter(createAsyncIter(arr)));
+  fromArray.it('generator', params, (arr) =>
+    consumeIter(createAsyncGen(arr)),
+  );
+  fromArray.it('iterator', params, (arr) =>
+    consumeIter(createAsyncIter(arr)),
+  );
 }
 
-export default category()
-  .it('from array', fromArray);
+export default category().it('from array', fromArray);

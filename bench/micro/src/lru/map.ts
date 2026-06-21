@@ -1,4 +1,4 @@
-import type { VTable } from "./utils.ts";
+import type { VTable } from './utils.ts';
 
 type LRU = [capacity: number, map: Map<string, any>];
 
@@ -21,7 +21,7 @@ const vtable: VTable<LRU> = {
     map.set(key, value);
 
     map.size > lru[0] && map.delete(map.keys().next().value!);
-  }
-}
+  },
+};
 
 export default vtable;

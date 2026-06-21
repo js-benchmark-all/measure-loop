@@ -2,7 +2,7 @@ export interface VTable<LRU> {
   init: (capacity: number) => LRU;
   get: (lru: LRU, key: string) => unknown;
   set: (lru: LRU, key: string, value: any) => void;
-};
+}
 
 let randomSeed: number;
 const randomNumber = () => {
@@ -12,9 +12,9 @@ const randomNumber = () => {
   t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 };
-export const resetRandom = () => {
+export const setupRandomSeed = () => {
   randomSeed = 0x9e3779b9 >>> 0;
-}
-resetRandom();
+};
 
-export const randomKey = () => randomNumber().toString(36).slice(2).padEnd(11);
+export const randomKey = () =>
+  randomNumber().toString(36).slice(2).padEnd(11);
