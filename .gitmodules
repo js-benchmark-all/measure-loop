@@ -1,0 +1,3 @@
+[submodule "bench/micro/quickjs"]
+	path = bench/micro/quickjs
+	url = https://github.com/bellard/quickjs

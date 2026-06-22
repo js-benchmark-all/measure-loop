@@ -27,5 +27,8 @@
   },
   "trustedDependencies": [
     "@swc/core"
-  ]
+  ],
+  "dependencies": {
+    "runtime-compiler": "4.2.2"
+  }
 }

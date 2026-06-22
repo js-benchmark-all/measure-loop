@@ -1,5 +1,7 @@
 import {
+  compileLoop,
   measure,
+  type Loop,
   type MeasureOptions,
   type MeasureResult,
 } from '../measure.ts';
@@ -61,6 +63,7 @@ export class Bench {
   readonly benchParams: any[];
   readonly benchFns: any[];
   readonly benchOptionList: any[];
+  readonly benchLoops: Promise<Loop>[];
 
   readonly defaultBenchOptions: MeasureOptions | undefined;
 
@@ -69,6 +72,7 @@ export class Bench {
     this.benchParams = [];
     this.benchFns = [];
     this.benchOptionList = [];
+    this.benchLoops = [];
 
     this.defaultBenchOptions = defaultBenchOptions;
   }
@@ -87,6 +91,7 @@ export class Bench {
     this.benchParams.push(params);
     this.benchFns.push(fn);
     this.benchOptionList.push(options);
+    this.benchLoops.push(compileLoop(params, fn, options ?? {}));
     return this;
   }
 
@@ -132,9 +137,10 @@ export class Bench {
     // Run directly instead of wrapping in a category
     const isRoot = parentStore == null;
     if (isRoot) {
-      id = 'benchmarks';
       const res = reporter.categoryStart(undefined, undefined);
+
       parentStore = res instanceof Promise ? await res : res;
+      id = 'benchmarks';
     }
 
     {
@@ -162,7 +168,7 @@ export class Bench {
       // Run cases
       for (
         let i = 0,
-          { benchIds, benchParams, benchFns, benchOptionList } = this;
+          { benchIds, benchParams, benchFns, benchOptionList, benchLoops } = this;
         i < benchCnt;
         i++
       ) {
@@ -183,6 +189,7 @@ export class Bench {
                     ...benchOptionList[shuffledIdx],
                   }
                 : benchOptionList[shuffledIdx],
+              await benchLoops[i]
             ),
           );
           res instanceof Promise && (await res);

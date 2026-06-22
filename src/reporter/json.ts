@@ -1,5 +1,5 @@
 import type { MeasureResult } from '../measure.ts';
-import type { Reporter } from '../runner/bench.ts';
+import type { Reporter } from '../api/bench.ts';
 
 export interface CategoryResult {
   type: 'category';

@@ -1,10 +1,7 @@
-Micro benchmarks for all runtimes & engines.
+Micro benchmarks for JS runtimes & engines.
 ```sh
-# build package
-cd ../..
+# build
 bun i
-bun task build
-cd bench/micro
 
 # run a benchmark
 bun run.ts target file
@@ -18,13 +15,18 @@ bun run.ts bun object/access
 
 To setup JS engines, add `jsvu` binary directory to `PATH`:
 ```sh
-# Add jsvu to PATH
+# add jsvu to PATH
 export PATH=$HOME/.jsvu/bin:$PATH
 
-# Install engines
+# install porffor
+bun i -g porffor
+
+# build quickjs
+cd quickjs
+make
+cd ..
+
+# install other JS engines
 bun i jsvu -g
 jsvu
-
-# Install porffor
-bun i -g porffor
 ```

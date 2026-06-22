@@ -92,58 +92,11 @@ const staticProps = bench({
     proto.status = 200;
     proto.headers = undefined;
 
-    function Context(
-      this: { status: number; headers: string[] },
-      headers: string[],
-    ) {
-      this.headers = headers;
-    }
-    Context.prototype = proto;
-    Object.freeze(Context.prototype);
-
-    staticProps.it(
-      'function constructor (freezed proto)',
-      params,
-      (headers) => {
-        sideEffect(
-          // @ts-ignore
-          new Context(headers),
-        );
-      },
-    );
-  }
-
-  {
-    const proto = Object.create(null);
-    proto.status = 200;
-    proto.headers = undefined;
-
     function Context() {}
     Context.prototype = proto;
 
     staticProps.it(
       'function without constructor',
-      params,
-      (headers) => {
-        // @ts-ignore
-        let o = new Context();
-        o.headers = headers;
-        sideEffect(o);
-      },
-    );
-  }
-
-  {
-    const proto = Object.create(null);
-    proto.status = 200;
-    proto.headers = undefined;
-
-    function Context() {}
-    Context.prototype = proto;
-    Object.freeze(Context.prototype);
-
-    staticProps.it(
-      'function without constructor (freezed proto)',
       params,
       (headers) => {
         // @ts-ignore

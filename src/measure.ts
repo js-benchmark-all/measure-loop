@@ -1,3 +1,6 @@
+import { evaluate } from 'runtime-compiler';
+import { IS_AOT } from 'runtime-compiler/env';
+
 export interface CompileOptions {
   /**
    * Number of calls in an iteration.
@@ -44,13 +47,6 @@ export interface MeasureOptions extends CompileOptions {
    * Defaults to `128`.
    */
   iters?: number;
-
-  /**
-   * Whether to include debug info in output.
-   *
-   * Defaults to `false`.
-   */
-  debug?: boolean;
 }
 
 /**
@@ -78,12 +74,13 @@ export interface MeasureResult {
   gcs: number[] | undefined;
 }
 
-export interface DebugInfo {
-  /**
-   * Generated benchmark loop.
-   */
-  content: string;
-}
+export type Loop = (
+  hrtime: () => number,
+  gc: () => void,
+  fn: () => any,
+  params: readonly ((idx: number) => any)[],
+  iters: number,
+) => MeasureResult | Promise<MeasureResult>;
 
 const buildArgs = (idx: string, paramLen: number) => {
   let str = `${constants.PARAMS}0` + idx;
@@ -96,7 +93,7 @@ const buildArgs = (idx: string, paramLen: number) => {
  * Benchmark a function.
  */
 export const compileLoop: <
-  const Params extends ((idx: number) => any)[],
+  const Params extends readonly ((idx: number) => any)[],
 >(
   params: Params,
   fn: (
@@ -105,7 +102,7 @@ export const compileLoop: <
     }
   ) => any,
   options: CompileOptions,
-) => Promise<string> = async (
+) => Promise<Loop> = async (
   params,
   fn,
   {
@@ -139,7 +136,9 @@ export const compileLoop: <
         (loopVars += `,${constants.PARAMS + i}=new Array(${batch})`);
 
       const res = params[i](i);
-      if ((isParamAsync ||= res instanceof Promise)) {
+      if (res instanceof Promise) {
+        isParamAsync = true;
+
         paramContent += `[i]=await ${constants.FN_PARAMS}[${i}](i)`;
         builtParams[i] = await res;
       } else {
@@ -160,11 +159,14 @@ export const compileLoop: <
     (isFnAsync = res instanceof Promise) && (await res);
   }
 
+  // We don't need content after this point
+  if (IS_AOT) return evaluate();
+
   const isLoopAsync = isFnAsync || isParamAsync;
 
   // Build loop
   let content =
-    (isLoopAsync ? 'async' : '') +
+    (isLoopAsync ? 'return async' : 'return') +
     `(${constants.FN_HRTIME},${constants.FN_GC},${constants.FN},${constants.FN_PARAMS},${constants.ITERS})=>{let ${constants.RUNS}=new Array(${constants.ITERS}),${constants.GCS}${
       measureGC ? `=new Array(${constants.ITERS})` : ''
     };${
@@ -233,7 +235,7 @@ export const compileLoop: <
 
   content += `}return{runs:${constants.RUNS},gcs:${constants.GCS},calls:${constants.ITERS}*${batch},iters:${constants.ITERS}}}`;
 
-  return content;
+  return evaluate(content);
 };
 
 /**
@@ -252,13 +254,9 @@ export const measure: <
   gc: () => void,
   hrtime: () => number,
   options?: Options,
+  loop?: Loop
 ) => Promise<
-  // debug info
-  (Options extends { debug: true }
-    ? MeasureResult & {
-        debug: DebugInfo;
-      }
-    : MeasureResult) &
+  MeasureResult &
     // measure gc
     {
       gcs: Options extends { measureGC: true } ? number[] : undefined;
@@ -270,24 +268,21 @@ export const measure: <
   hrtime,
   // @ts-ignore
   options = {},
+  loop
 ) => {
-  const { warmupIters = 16, iters = 128 } = options;
+  loop ??= await compileLoop(params, fn, options);
 
-  const content = await compileLoop(params, fn, options);
-  const isLoopAsync = content.startsWith('async');
+  let { warmupIters = 16, iters = 128 } = options,
+    isLoopAsync = false,
+    warmupRes = loop(hrtime, gc, fn, params, warmupIters);
+  if (warmupRes instanceof Promise) {
+    isLoopAsync = true;
+    await warmupRes;
+  }
 
-  const loop = (0, eval)(content);
-  warmupIters > 0 &&
-    (isLoopAsync
-      ? await loop(hrtime, gc, fn, params, warmupIters)
-      : loop(hrtime, gc, fn, params, warmupIters));
-
-  const res: MeasureResult = isLoopAsync
+  const res = isLoopAsync
     ? await loop(hrtime, gc, fn, params, iters)
     : loop(hrtime, gc, fn, params, iters);
 
-  options.debug &&
-    // @ts-ignore
-    (res.debug = { content });
   return res as any;
 };

@@ -4,6 +4,9 @@
   "workspaces": {
     "": {
       "name": "example",
+      "dependencies": {
+        "runtime-compiler": "4.2.2",
+      },
       "devDependencies": {
         "@swc/core": "^1.15.21",
         "@types/bun": "^1.3.11",
@@ -157,6 +160,8 @@
     "picocolors": ["picocolors@1.1.1", "", {}, "sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA=="],
 
     "readdirp": ["readdirp@5.0.0", "", {}, "sha512-9u/XQ1pvrQtYyMpZe7DXKv2p5CNvyVwzUB6uhLAnQwHMSgKMBR62lc7AHljaeteeHXn11XTAaLLUVZYVZyuRBQ=="],
+
+    "runtime-compiler": ["runtime-compiler@4.2.2", "", {}, "sha512-v4ZsDKdAjseNxT6iw97qGLY9AkedE7lSNWkBQ4gKYKd3fNE1SAau78Uf4MJtZuHejDYHRR6UNX+JPJv5fnqAAw=="],
 
     "tinybench": ["tinybench@6.0.0", "", {}, "sha512-BWlWpVbbZXaYjRV0twGLNQO00Zj4HA/sjLOQP2IvzQqGwRGp+2kh7UU3ijyJ3ywFRogYDRbiHDMrUOfaMnN56g=="],
 

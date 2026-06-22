@@ -6,7 +6,7 @@ import {
   runtimeArch,
 } from '../env/runtime.ts';
 
-import type { Reporter } from '../runner/bench.ts';
+import type { Reporter } from '../api/bench.ts';
 import {
   calcAvg,
   calcPercentile,
