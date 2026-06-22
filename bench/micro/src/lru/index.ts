@@ -13,7 +13,7 @@ const vtables: Record<string, VTable<any>> = {
   'two map buckets': two_map_buckets,
 };
 const all = category({
-  measureGC: true
+  measureGC: true,
 });
 
 for (const capacity of [8, 64, 512, 4096]) {
@@ -46,23 +46,35 @@ for (const capacity of [8, 64, 512, 4096]) {
     // get non-expired keys
     {
       let lru = init(capacity);
-      get_non_expired_key.it(name, [() => {
-        const key = randomKey();
-        set(lru, key, key);
-        return key;
-      }], (key) => get(lru, key));
+      get_non_expired_key.it(
+        name,
+        [
+          () => {
+            const key = randomKey();
+            set(lru, key, key);
+            return key;
+          },
+        ],
+        (key) => get(lru, key),
+      );
     }
 
     // update non-expired keys
     {
       let lru = init(capacity);
-      update_non_expired_key.it(name, [() => {
-        const key = randomKey();
-        set(lru, key, key);
-        return key;
-      }], (key) => {
-        set(lru, key, '');
-      });
+      update_non_expired_key.it(
+        name,
+        [
+          () => {
+            const key = randomKey();
+            set(lru, key, key);
+            return key;
+          },
+        ],
+        (key) => {
+          set(lru, key, '');
+        },
+      );
     }
   }
 }

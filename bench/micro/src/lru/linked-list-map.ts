@@ -1,6 +1,11 @@
 import type { VTable } from './utils.ts';
 
-type Node = [key: string, value: any, prev: Node | null, next: Node | null];
+type Node = [
+  key: string,
+  value: any,
+  prev: Node | null,
+  next: Node | null,
+];
 
 type LRU = [
   capacity: number,
