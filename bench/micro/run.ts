@@ -2,27 +2,46 @@ import { writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 import rtc from 'runtime-compiler/rolldown';
-import { build } from 'rolldown';
+import { build, type MinifyOptions } from 'rolldown';
 
 const { argv } = process;
 if (argv.length < 4) {
   console.error('missing arguments.');
-  console.log('usage: bun run.ts <target> <file>');
+  console.log('usage: bun run.ts <target> <file> <format>');
   process.exit(1);
 }
-const { 2: target, 3: file } = argv;
+
+const MINIFY_OPTIONS: MinifyOptions = {
+  codegen: {
+    removeWhitespace: false,
+  },
+  mangle: false,
+  compress: {
+    unused: 'keep_assign',
+    sequences: false,
+  },
+};
+const { 2: target, 3: file, 4: format } = argv;
 
 // Build file
 writeFileSync(
   'run.js',
   `
-  import { IS_BUILD } from 'runtime-compiler/env';
-
   import { env } from 'measure-loop';
-  import reporter from 'measure-loop/reporter';
+  import { print } from 'measure-loop/env/print';
+  import reporter from 'measure-loop/reporter${
+    format === 'md' ? '/md' : format === 'json' ? '/json' : ''
+  }';
 
   import b from './${path.join('src', file)}';
-  IS_BUILD || b.run({ env, reporter });
+  ${
+    !format
+      ? 'b.run({ env, reporter })'
+      : `(async () => {
+        let r = await b.run({ env, reporter });
+        ${format === 'md' ? 'print(r);' : format === 'json' ? 'print(JSON.stringify(r));' : ''};
+      })()`
+  };
 `,
 );
 
@@ -30,26 +49,30 @@ await build({
   input: 'run.js',
   output: {
     file: 'run.js',
-    minify: {
-      codegen: {
-        removeWhitespace: false
-      },
-      mangle: false,
-      compress: false
-    }
+    minify: MINIFY_OPTIONS,
   },
-  plugins: [rtc()]
+  plugins: [rtc()],
 });
 
 // Run the file
-const spawn = (...args: string[]) => {
-  Bun.gc(true);
-  Bun.spawnSync(args, {
-    stdin: 'ignore',
-    stdout: 'inherit',
-    stderr: 'inherit',
-  });
-};
+const spawn = !format
+  ? (...args: string[]) => {
+      Bun.gc(true);
+      Bun.spawnSync(args, {
+        stdin: 'ignore',
+        stdout: 'inherit',
+        stderr: 'inherit',
+      });
+    }
+  : (...args: string[]) => {
+      Bun.gc(true);
+      const proc = Bun.spawnSync(args, {
+        stdin: 'ignore',
+        stderr: 'inherit',
+      });
+
+      writeFileSync('results.' + format, proc.stdout);
+    };
 
 switch (target) {
   case 'bun': {
@@ -89,17 +112,11 @@ switch (target) {
       input: 'run.js',
       output: {
         file: 'run.js',
-        minify: {
-          codegen: {
-            removeWhitespace: false
-          },
-          mangle: false,
-          compress: false
-        },
+        minify: MINIFY_OPTIONS,
       },
       transform: {
-        target: 'es6'
-      }
+        target: 'es6',
+      },
     });
     spawn(
       'hermes',

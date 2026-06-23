@@ -4,14 +4,17 @@ Micro benchmarks for JS runtimes & engines.
 bun i
 
 # run a benchmark
-bun run.ts target file
+bun run.ts [target] [file] [format]
 
 # example: run object benchmarks in node
 bun run.ts node object
 
-# example: run object access benchmarks in bun
-bun run.ts bun object/access
+# example: run object access benchmarks in bun, output to markdown
+bun run.ts bun object/access md
 ```
+Supported targets: `bun`, `deno`, `node`, `v8`, `jsc`, `spidermonkey`, `quickjs`.
+
+Supported output format: `md`, `json`.
 
 To setup JS engines, add `jsvu` binary directory to `PATH`:
 ```sh

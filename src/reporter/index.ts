@@ -6,7 +6,8 @@ import {
   runtimeArch,
 } from '../env/runtime.ts';
 
-import type { Reporter } from '../api/bench.ts';
+import type { Reporter } from '../api/types.ts';
+
 import {
   calcAvg,
   calcPercentile,
@@ -14,6 +15,9 @@ import {
   formatMs,
   trunc,
 } from './utils.ts';
+
+import { IS_BUILD } from 'runtime-compiler/env';
+import noop from './noop.ts';
 
 type ColorFn = (str: string | number) => string;
 const fallback: ColorFn = (str) => str + '';
@@ -74,95 +78,102 @@ const reporter: Reporter<
     tab: string;
     results: { key: string; runsAvg: number }[];
   },
-  void,
   void
-> = {
-  categoryStart: (id, parentStore) => {
-    if (id == null) {
-      let str = '';
+> = IS_BUILD
+  ? (noop as any)
+  : {
+      start: () => {
+        let str = '';
 
-      if (runtime != null) {
-        str += '\n$ runtime: ' + runtime;
-        runtimeVersion && (str += ' ' + runtimeVersion);
-        runtimeArch && (str += ' (' + runtimeArch + ')');
-      }
+        if (runtime != null) {
+          str += '\n$ runtime: ' + runtime;
+          runtimeVersion && (str += ' ' + runtimeVersion);
+          runtimeArch && (str += ' (' + runtimeArch + ')');
+        }
 
-      print(dim(str));
+        print(dim(str));
 
-      return {
-        tab: '',
-        heading: '# ',
-      };
-    }
-    const { tab, heading } = parentStore;
+        return {
+          tab: '',
+          heading: '# ',
+        };
+      },
+      end: (_) => {},
 
-    print(tab + bold(heading + id));
-    return {
-      tab: tab + '  ',
-      heading: '#' + heading,
+      categoryStart: (id, parentStore) => {
+        const { tab, heading } = parentStore;
+
+        print(tab + bold(heading + id));
+        return {
+          tab: tab + '  ',
+          heading: '#' + heading,
+        };
+      },
+      categoryEnd: (_, _1, _2) => {},
+
+      benchStart: (id, { tab, heading }) => {
+        print(tab + bold(heading + id));
+        return {
+          tab: tab + '  ',
+          results: [],
+        };
+      },
+
+      benchResult: (
+        { tab, results },
+        caseId,
+        { runs, gcs, calls },
+      ) => {
+        if (runs.length === 0) {
+          print(tab + '* ' + boldCyan(caseId) + ': no result');
+          return;
+        }
+
+        print(
+          tab +
+            '* ' +
+            boldCyan(caseId) +
+            ': ' +
+            yellowBright(calls) +
+            ' runs',
+        );
+        tab += '  ';
+
+        results.push({
+          key: caseId,
+          runsAvg: displayResults(tab, runs),
+        });
+
+        if (gcs != null) {
+          print(tab + '- gc:');
+          displayResults(tab + '  ', gcs);
+        }
+      },
+
+      benchError: ({ tab }, caseId, e) => {
+        print(tab + '* ' + boldCyan(caseId) + ': error');
+        print(e);
+      },
+
+      benchEnd: ({ tab, results }, _, _1) => {
+        if (results.length < 2) return;
+        results.sort((a, b) => a.runsAvg - b.runsAvg);
+
+        print(tab + '& ' + boldCyan(results[0].key));
+
+        tab += '  - ';
+        for (
+          let i = 1, baseline = results[0].runsAvg;
+          i < results.length;
+          i++
+        )
+          print(
+            tab +
+              green(trunc(results[i].runsAvg / baseline) + 'x') +
+              ' faster than ' +
+              boldCyan(results[i].key),
+          );
+      },
     };
-  },
-  categoryEnd: () => {},
-
-  benchStart: (id, { tab, heading }) => {
-    print(tab + bold(heading + id));
-    return {
-      tab: tab + '  ',
-      results: [],
-    };
-  },
-
-  benchResult: ({ tab, results }, caseId, { runs, gcs, calls }) => {
-    if (runs.length === 0) {
-      print(tab + '* ' + boldCyan(caseId) + ': no result');
-      return;
-    }
-
-    print(
-      tab +
-        '* ' +
-        boldCyan(caseId) +
-        ': ' +
-        yellowBright(calls) +
-        ' runs',
-    );
-    tab += '  ';
-
-    results.push({
-      key: caseId,
-      runsAvg: displayResults(tab, runs),
-    });
-
-    if (gcs != null) {
-      print(tab + '- gc:');
-      displayResults(tab + '  ', gcs);
-    }
-  },
-
-  benchError: ({ tab }, caseId, e) => {
-    print(tab + '* ' + boldCyan(caseId) + ': error');
-    print(e);
-  },
-
-  benchEnd: ({ tab, results }) => {
-    if (results.length < 2) return;
-
-    results.sort((a, b) => a.runsAvg - b.runsAvg);
-    print(tab + '& ' + boldCyan(results[0].key));
-
-    tab += '  - ';
-    for (
-      let i = 1, baseline = results[0].runsAvg;
-      i < results.length;
-      i++
-    )
-      print(
-        tab +
-          green(trunc(results[i].runsAvg / baseline) + 'x') +
-          ' faster than ' +
-          boldCyan(results[i].key),
-      );
-  },
-};
 
 export default reporter;

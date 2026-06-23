@@ -1,9 +1,11 @@
+import { IS_BUILD } from 'runtime-compiler/env';
 import type { MeasureOptions } from '../measure.ts';
-import type { Bench, RunOptions } from './bench.ts';
+import type { Runnable, RunOptions } from './types.ts';
 
+export interface Category extends Runnable {}
 export class Category {
   readonly childrenNames: string[];
-  readonly children: (Category | Bench)[];
+  readonly children: Runnable[];
 
   readonly defaultBenchOptions: MeasureOptions | undefined;
 
@@ -14,18 +16,21 @@ export class Category {
     this.defaultBenchOptions = defaultBenchOptions;
   }
 
-  it(name: string, bench: Category | Bench): this {
+  it(name: string, bench: Runnable): this {
     this.childrenNames.push(name);
     this.children.push(bench);
     return this;
   }
 
-  async run<CategoryStore, CategoryReturn>(
-    options: RunOptions<CategoryStore, CategoryReturn>,
+  /**
+   * @internal
+   */
+  async run<CategoryStore, Result>(
+    options: RunOptions<CategoryStore, Result>,
     defaultBenchOptions?: MeasureOptions,
     id?: string,
     parentStore?: CategoryStore,
-  ): Promise<CategoryReturn> {
+  ): Promise<any> {
     // Add new options if exists
     this.defaultBenchOptions != null &&
       (defaultBenchOptions =
@@ -36,11 +41,18 @@ export class Category {
             }
           : this.defaultBenchOptions);
 
-    let store = options.reporter.categoryStart(
-      // @ts-ignore
-      id,
-      parentStore,
-    );
+    // Dry run
+    if (IS_BUILD) {
+      for (let i = 0, { children } = this; i < children.length; i++)
+        await children[i].run(options, defaultBenchOptions);
+
+      return;
+    }
+
+    let store =
+      id == null
+        ? options.reporter.start()
+        : options.reporter.categoryStart(id, parentStore!);
     store instanceof Promise && (store = await store);
 
     for (
@@ -55,7 +67,9 @@ export class Category {
         store,
       );
 
-    return options.reporter.categoryEnd(store, id!, parentStore!);
+    return id == null
+      ? options.reporter.end(store)
+      : options.reporter.categoryEnd(store, id!, parentStore!);
   }
 }
 

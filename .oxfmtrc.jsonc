@@ -5,6 +5,8 @@
   "ignorePatterns": [
     // Dev
     "lib/**/*",
+    "bench/micro/**/*.js",
+    "bench/micro/quickjs/**/*",
 
     // Other file types
     "**/*.json",

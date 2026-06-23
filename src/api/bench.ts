@@ -1,69 +1,17 @@
+import { IS_BUILD } from 'runtime-compiler/env';
 import {
   compileLoop,
   measure,
-  type Loop,
   type MeasureOptions,
-  type MeasureResult,
 } from '../measure.ts';
+import type { RunOptions, Runnable } from './types.ts';
 
-export interface RuntimeEnv {
-  gc: () => void;
-  hrtime: () => number;
-}
-
-export interface Reporter<
-  in out CategoryStore,
-  in out BenchStore,
-  out CategoryReturn,
-  out SubcategoryReturn,
-> {
-  categoryStart(
-    ...args:
-      | [id: undefined, parentStore: undefined]
-      | [id: string, parentStore: CategoryStore]
-  ): CategoryStore | Promise<CategoryStore>;
-  categoryEnd(
-    ...args:
-      | [store: CategoryStore, id: undefined, parentStore: undefined]
-      | [store: CategoryStore, id: string, parentStore: CategoryStore]
-  ):
-    | CategoryReturn
-    | Promise<CategoryReturn>
-    | SubcategoryReturn
-    | Promise<SubcategoryReturn>;
-
-  benchStart(
-    id: string,
-    parentStore: CategoryStore,
-  ): BenchStore | Promise<BenchStore>;
-  benchResult(
-    store: BenchStore,
-    caseId: string,
-    result: MeasureResult,
-  ): any;
-  benchError(store: BenchStore, caseId: string, error: unknown): any;
-  benchEnd(
-    store: BenchStore,
-    id: string,
-    parentStore: CategoryStore,
-  ): any;
-}
-
-export interface RunOptions<
-  in out CategoryStore,
-  out CategoryReturn,
-> {
-  reporter: Reporter<CategoryStore, any, CategoryReturn, any>;
-  env: RuntimeEnv;
-  shuffle?: boolean;
-}
-
+export interface Bench extends Runnable {}
 export class Bench {
   readonly benchIds: string[];
   readonly benchParams: any[];
   readonly benchFns: any[];
   readonly benchOptionList: any[];
-  readonly benchLoops: Promise<Loop>[];
 
   readonly defaultBenchOptions: MeasureOptions | undefined;
 
@@ -72,7 +20,6 @@ export class Bench {
     this.benchParams = [];
     this.benchFns = [];
     this.benchOptionList = [];
-    this.benchLoops = [];
 
     this.defaultBenchOptions = defaultBenchOptions;
   }
@@ -91,30 +38,14 @@ export class Bench {
     this.benchParams.push(params);
     this.benchFns.push(fn);
     this.benchOptionList.push(options);
-    this.benchLoops.push(compileLoop(params, fn, options ?? {}));
     return this;
   }
 
   /**
-   * Run the benchmark directly without wrapping in a category.
+   * @internal
    */
-  run<CategoryStore, CategoryReturn>(
-    options: RunOptions<CategoryStore, CategoryReturn>,
-    defaultBenchOptions?: MeasureOptions,
-  ): Promise<CategoryReturn>;
-
-  /**
-   * Run the benchmark in a category.
-   */
-  run<CategoryStore, CategoryReturn>(
-    options: RunOptions<CategoryStore, CategoryReturn>,
-    defaultBenchOptions: MeasureOptions,
-    id: string,
-    parentStore: CategoryStore,
-  ): Promise<void>;
-
-  async run<CategoryStore, CategoryReturn>(
-    options: RunOptions<CategoryStore, CategoryReturn>,
+  async run<CategoryStore, Result>(
+    options: RunOptions<CategoryStore, Result>,
     defaultBenchOptions?: MeasureOptions,
     id?: string,
     parentStore?: CategoryStore,
@@ -137,69 +68,91 @@ export class Bench {
     // Run directly instead of wrapping in a category
     const isRoot = parentStore == null;
     if (isRoot) {
-      const res = reporter.categoryStart(undefined, undefined);
+      const res = reporter.start();
 
       parentStore = res instanceof Promise ? await res : res;
       id = 'benchmarks';
     }
 
+    // Run bench
     {
       let store = reporter.benchStart(id!, parentStore!);
       store instanceof Promise && (store = await store);
 
       const benchCnt = this.benchIds.length;
 
-      // Shuffle list
-      const doShuffle = options.shuffle !== false;
-      let shuffleMap: number[];
-      if (doShuffle) {
-        shuffleMap = new Array(benchCnt);
-        for (let i = 0; i < benchCnt; i++) shuffleMap[i] = i;
-        for (let i = benchCnt; i > 0; ) {
-          const swapIdx = (Math.random() * i) >>> 0;
-          i--;
-
-          const v = shuffleMap[i];
-          shuffleMap[i] = shuffleMap[swapIdx];
-          shuffleMap[swapIdx] = v;
+      if (IS_BUILD) {
+        // Run cases
+        for (
+          let i = 0,
+            { benchParams, benchFns, benchOptionList } = this;
+          i < benchCnt;
+          i++
+        ) {
+          await compileLoop(
+            benchParams[i],
+            benchFns[i],
+            defaultBenchOptions != null
+              ? {
+                  ...defaultBenchOptions,
+                  ...benchOptionList[i],
+                }
+              : benchOptionList[i],
+          );
         }
-      }
+      } else {
+        // Shuffle list
+        const doShuffle = options.shuffle !== false;
+        let shuffleMap: number[];
+        if (doShuffle) {
+          shuffleMap = new Array(benchCnt);
+          for (let i = 0; i < benchCnt; i++) shuffleMap[i] = i;
+          for (let i = benchCnt; i > 0; ) {
+            const swapIdx = (Math.random() * i) >>> 0;
+            i--;
 
-      // Run cases
-      for (
-        let i = 0,
-          { benchIds, benchParams, benchFns, benchOptionList, benchLoops } = this;
-        i < benchCnt;
-        i++
-      ) {
-        const shuffledIdx = doShuffle ? shuffleMap![i] : i;
+            const v = shuffleMap[i];
+            shuffleMap[i] = shuffleMap[swapIdx];
+            shuffleMap[swapIdx] = v;
+          }
+        }
 
-        try {
-          const res = reporter.benchResult(
-            store,
-            benchIds[shuffledIdx],
-            await measure(
-              benchParams[shuffledIdx],
-              benchFns[shuffledIdx],
-              gc,
-              hrtime,
-              defaultBenchOptions != null
-                ? {
-                    ...defaultBenchOptions,
-                    ...benchOptionList[shuffledIdx],
-                  }
-                : benchOptionList[shuffledIdx],
-              await benchLoops[i]
-            ),
-          );
-          res instanceof Promise && (await res);
-        } catch (e) {
-          const res = reporter.benchError(
-            store,
-            benchIds[shuffledIdx],
-            e,
-          );
-          res instanceof Promise && (await res);
+        // Run cases
+        for (
+          let i = 0,
+            { benchIds, benchParams, benchFns, benchOptionList } =
+              this;
+          i < benchCnt;
+          i++
+        ) {
+          const shuffledIdx = doShuffle ? shuffleMap![i] : i;
+
+          try {
+            const res = reporter.benchResult(
+              store,
+              benchIds[shuffledIdx],
+              await measure(
+                benchParams[shuffledIdx],
+                benchFns[shuffledIdx],
+                gc,
+                hrtime,
+                defaultBenchOptions != null
+                  ? {
+                      ...defaultBenchOptions,
+                      ...benchOptionList[shuffledIdx],
+                    }
+                  : benchOptionList[shuffledIdx],
+              ),
+            );
+            res instanceof Promise && (await res);
+          } catch (e) {
+            const res = reporter.benchError(
+              store,
+              benchIds[shuffledIdx],
+              e,
+            );
+            res instanceof Promise && (await res);
+          }
         }
       }
 
@@ -208,8 +161,7 @@ export class Bench {
     }
 
     // Return to match the behavior of category.run
-    if (isRoot)
-      return reporter.categoryEnd(parentStore!, undefined, undefined);
+    if (isRoot) return reporter.end(parentStore!);
   }
 }
 

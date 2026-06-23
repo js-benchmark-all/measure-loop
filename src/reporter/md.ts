@@ -1,5 +1,5 @@
 import type { MeasureResult } from '../measure.ts';
-import type { Reporter } from '../api/bench.ts';
+import type { Reporter } from '../api/types.ts';
 import {
   calcAvg,
   calcPercentile,
@@ -68,21 +68,19 @@ const reporter: Reporter<
     }[];
     collectGC: boolean;
   },
-  string,
-  void
+  string
 > = {
-  categoryStart: (id, parentStore) =>
-    id == null
-      ? {
-          heading: '# ',
-          content: '',
-        }
-      : {
-          heading: '#' + parentStore.heading,
-          content: parentStore.heading + id + '\n',
-        },
-  categoryEnd: (store, id, parentStore) => {
-    if (id == null) return store.content;
+  start: () => ({
+    heading: '# ',
+    content: '',
+  }),
+  end: (store) => store.content,
+
+  categoryStart: (id, parentStore) => ({
+    heading: '#' + parentStore.heading,
+    content: parentStore.heading + id + '\n',
+  }),
+  categoryEnd: (store, _, parentStore) => {
     parentStore.content += store.content;
   },
 

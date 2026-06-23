@@ -1,18 +1,19 @@
 import type { MeasureResult } from '../measure.ts';
-import type { Reporter } from '../api/bench.ts';
+import type { Reporter } from '../api/types.ts';
 
 export interface CategoryResult {
-  type: 'category';
+  /**
+   * Child benchmarks results.
+   */
+  benchmarks?: Record<string, BenchResult> | undefined;
 
   /**
-   * Child categories and benchmarks results.
+   * Child categories results.
    */
-  results: Record<string, CategoryResult | BenchResult>;
+  categories?: Record<string, CategoryResult> | undefined;
 }
 
 export interface BenchResult {
-  type: 'bench';
-
   /**
    * Cases results.
    */
@@ -21,8 +22,13 @@ export interface BenchResult {
   /**
    * Cases with errors.
    */
-  errors: Record<string, unknown>;
+  errors?: Record<string, unknown> | undefined;
 }
+
+const start = () => ({
+  bench: undefined,
+  categories: undefined,
+});
 
 /**
  * Report JSON.
@@ -34,31 +40,28 @@ export interface BenchResult {
 const reporter: Reporter<
   CategoryResult,
   BenchResult,
-  CategoryResult,
-  void
+  CategoryResult
 > = {
-  categoryStart: () => ({
-    type: 'category',
-    results: {},
-  }),
+  start,
+  end: (store) => store,
+
+  categoryStart: start,
   categoryEnd: (store, id, parentStore) => {
-    if (id == null) return store;
-    parentStore!.results[id] = store;
+    (parentStore.categories ??= {})[id] = store;
   },
 
   benchStart: () => ({
-    type: 'bench',
     results: {},
-    errors: {},
+    errors: undefined,
   }),
   benchResult: (store, caseId, res) => {
     store.results[caseId] = res;
   },
   benchError: (store, caseId, e) => {
-    store.errors[caseId] = e;
+    (store.errors ??= {})[caseId] = e;
   },
   benchEnd: (store, id, parentStore) => {
-    parentStore.results[id] = store;
+    (parentStore.benchmarks ??= {})[id] = store;
   },
 };
 
