@@ -1,6 +1,0 @@
-[submodule "bench/micro/quickjs"]
-	path = bench/micro/quickjs
-	url = https://github.com/bellard/quickjs
-[submodule "bench/micro/llrt"]
-	path = bench/micro/llrt
-	url = https://github.com/awslabs/llrt

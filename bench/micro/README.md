@@ -23,7 +23,7 @@ bun run.ts node object
 bun run.ts bun object/access md
 ```
 
-To build other engines:
+To build other engines, clone their repo and run their build instructions:
 - `llrt`: https://github.com/awslabs/llrt
 - `quickjs`: https://github.com/bellard/quickjs
 

@@ -17,8 +17,6 @@ export let hrtime: () => number;
 if (globalThis.performance?.now) {
   // optimized by v8/jsc
   hrtime = performance.now.bind(performance);
-} else if (globalThis.$?.agent?.monotonicNow) {
-  hrtime = () => $.agent.monotonicNow();
 } else {
   hrtime = () => Date.now();
   hrtimeDetected = false;

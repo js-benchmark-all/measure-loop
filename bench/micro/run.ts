@@ -1,4 +1,4 @@
-import { globSync, writeFileSync } from 'node:fs';
+import { existsSync, globSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 import rtc from 'runtime-compiler/rolldown';
@@ -141,7 +141,12 @@ switch (target) {
   }
 
   case 'quickjs': {
-    spawn('quickjs/qjs', '--module', '--std', 'run.js');
+    spawn(
+      existsSync('quickjs/qjs') ? 'quickjs/qjs' : 'qjs',
+      '--module',
+      '--std',
+      'run.js',
+    );
     break;
   }
 
@@ -152,7 +157,12 @@ switch (target) {
   }
 
   case 'llrt': {
-    spawn(globSync('llrt/target/*/release/llrt')[0], 'run.js');
+    spawn(
+      globSync('llrt/target/*/release/llrt')[0] ??
+        globSync('llrt/llrt-container-*')[0] ??
+        'llrt',
+      'run.js',
+    );
     break;
   }
 

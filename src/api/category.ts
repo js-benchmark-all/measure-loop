@@ -1,4 +1,3 @@
-import { IS_BUILD } from 'runtime-compiler/env';
 import type { MeasureOptions } from '../measure.ts';
 import type { Runnable, RunOptions } from './types.ts';
 
@@ -40,14 +39,6 @@ export class Category {
               ...this.defaultBenchOptions,
             }
           : this.defaultBenchOptions);
-
-    // Dry run
-    if (IS_BUILD) {
-      for (let i = 0, { children } = this; i < children.length; i++)
-        await children[i].run(options, defaultBenchOptions);
-
-      return;
-    }
 
     let store =
       id == null

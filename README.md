@@ -176,5 +176,12 @@ writeFileSync('results.md', md);
 
 The reporter API will be stable after 1.0.
 
-## JS Enviroments
+### JS Enviroments
 See [./bench/micro/README.md](./bench/micro/README.md) on Github for supported JS enviroments.
+
+## Repository
+To build the package:
+```sh
+bun i
+bun task build
+```

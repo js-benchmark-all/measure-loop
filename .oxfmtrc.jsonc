@@ -7,6 +7,7 @@
     "lib/**/*",
     "bench/micro/**/*.js",
     "bench/micro/quickjs/**/*",
+    "bench/micro/llrt/**/*",
 
     // Other file types
     "**/*.json",

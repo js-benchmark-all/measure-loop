@@ -1,11 +1,10 @@
 // @ts-nocheck
 type Arch =
-  | 'arm'
-  | 'x64'
-  | 'x86'
   | 'wasi'
+  | 'x86'
+  | 'x64'
+  | 'arm'
   | 'arm64'
-  | 'mips32'
   | 'mips64'
   | 'loong64'
   | 'riscv64';
@@ -19,48 +18,44 @@ export let runtime:
     | 'v8'
     | 'hermes'
     | 'spidermonkey'
-    | 'firefox'
     | 'porffor'
-    | 'chromium'
-    | 'webkit'
     | 'browser'
     | 'jsc'
     | undefined,
   runtimeVersion: string | undefined,
-  runtimeArch:
+  runtimePlatform:
     | 'js + wasm'
     | Arch
-    | `${Arch}-${'osx' | 'linux' | 'android' | 'windows'}`
+    | `${Arch}-${'osx' | 'android' | 'windows'}`
+    | 'linux'
     | (string & {})
     | undefined;
 
-if (globalThis.Bun) {
-  runtime = 'bun';
-  runtimeVersion = Bun.version;
-  runtimeArch = process.arch + '-' + process.platform;
-} else if (globalThis.Deno) {
-  runtime = 'deno';
-  runtimeVersion = Deno.version.deno;
-  runtimeArch = Deno.build.target;
-} else if (globalThis.process) {
+if (globalThis.process) {
   const v = process.versions;
 
-  if (v.llrt) {
+  if (v.bun) {
+    runtime = 'bun';
+    runtimeVersion = v.bun;
+  } else if (v.deno) {
+    runtime = 'deno';
+    runtimeVersion = v.deno;
+  } else if (v.node) {
+    runtime = 'node';
+    runtimeVersion = v.node;
+  } else if (v.llrt) {
     runtime = 'llrt';
     runtimeVersion = v.llrt;
   } else if (v.webcontainer) {
     runtime = 'webcontainer';
     runtimeVersion = v.webcontainer;
-    runtimeArch = 'js + wasm';
-  } else if (v.node) {
-    runtime = 'node';
-    runtimeVersion = v.node;
   }
 
-  runtimeArch = process.arch + '-' + process.platform;
+  runtimePlatform = process.arch + '-' + process.platform;
 } else if (globalThis.d8) {
   runtime = 'v8';
   runtimeVersion = version();
+  runtimePlatform = os.name;
 } else if (globalThis.HermesInternal) {
   runtime = 'hermes';
   runtimeVersion =
@@ -68,47 +63,33 @@ if (globalThis.Bun) {
 } else if (globalThis.inIon && globalThis.performance?.mozMemory) {
   runtime = 'spidermonkey';
 
-  try {
-    const build = getBuildConfiguration();
+  {
+    let build = getBuildConfiguration();
+    if (build.wasi) runtimePlatform = 'wasi';
+    else if (build.x86) runtimePlatform = 'x86';
+    else if (build.x64) runtimePlatform = 'x64';
+    else if (build.arm) runtimePlatform = 'arm';
+    else if (build.arm64) runtimePlatform = 'arm64';
+    else if (build.mips64) runtimePlatform = 'mips64';
+    else if (build.loong64) runtimePlatform = 'loong64';
+    else if (build.riscv64) runtimePlatform = 'riscv64';
 
-    const arch = [
-      'arm',
-      'x64',
-      'x86',
-      'wasi',
-      'arm64',
-      'mips32',
-      'mips64',
-      'loong64',
-      'riscv64',
-    ].find((k) => k in build);
-    if (arch) {
-      const platform = ['osx', 'linux', 'android', 'windows'].find(
-        (k) => k in build,
-      );
-      runtimeArch = platform ? arch + '-' + platform : arch;
+    if (runtimePlatform) {
+      if (build.osx) runtimePlatform += '-osx';
+      else if (build.android) runtimePlatform += '-android';
+      else if (build.windows) runtimePlatform += '-windows';
     }
-  } catch {
-    globalThis.isAvxPresent?.() && (runtimeArch = 'x86_64');
   }
-} else if (globalThis.navigator) {
-  if (navigator.userAgent.startsWith('Porffor/')) {
-    runtime = 'porffor';
-    runtimeVersion = navigator.userAgent.slice(8);
-  } else if (globalThis.window) {
-    if (Error.prepareStackTrace) runtime = 'chromium';
-    else if (new Error().stack.includes('runtime@'))
-      runtime = 'webkit';
-    else runtime = 'browser';
-  }
-} else if (
-  globalThis.window &&
-  globalThis.netscape &&
-  globalThis.InternalError
-) {
-  runtime = 'firefox';
 } else if (globalThis.os && globalThis.std) {
   runtime = 'quickjs';
-} else if (new Error().stack.includes('runtime@')) {
+  runtimePlatform = os.platform;
+} else if (globalThis.$?.agent) {
   runtime = 'jsc';
+} else if (globalThis.navigator) {
+  if (globalThis.window) {
+    runtime = 'browser';
+  } else if (navigator.userAgent.startsWith('Porffor/')) {
+    runtime = 'porffor';
+    runtimeVersion = navigator.userAgent.slice(8);
+  }
 }

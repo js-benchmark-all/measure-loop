@@ -6,8 +6,10 @@ if (globalThis.console?.log) _print = console.log;
 
 // @ts-ignore
 else if (globalThis.print && !globalThis.document) {
-  // @ts-ignore
-  _print = (x) => { print(x); }
+  _print = (x) => {
+    // @ts-ignore
+    print(x);
+  };
 } else
   try {
     // @ts-ignore

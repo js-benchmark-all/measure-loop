@@ -3,7 +3,7 @@ import { print } from '../env/print.ts';
 import {
   runtime,
   runtimeVersion,
-  runtimeArch,
+  runtimePlatform,
 } from '../env/runtime.ts';
 
 import type { Reporter } from '../api/types.ts';
@@ -88,7 +88,7 @@ const reporter: Reporter<
         if (runtime != null) {
           str += '\n$ runtime: ' + runtime;
           runtimeVersion && (str += ' ' + runtimeVersion);
-          runtimeArch && (str += ' (' + runtimeArch + ')');
+          runtimePlatform && (str += ' (' + runtimePlatform + ')');
         }
 
         print(dim(str));
