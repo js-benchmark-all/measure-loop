@@ -183,5 +183,10 @@ See [./bench/micro/README.md](./bench/micro/README.md) on Github for supported J
 To build the package:
 ```sh
 bun i
+
+# build to node-modules/measure-loop
 bun task build
+
+# other task guide
+bun task
 ```

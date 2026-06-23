@@ -1,7 +1,7 @@
 import { bench, category } from 'measure-loop';
 import sideEffect from 'measure-loop/side-effect';
 
-const staticProps = bench({
+const static_props = bench({
   warmupIters: 64,
   iters: 256,
 });
@@ -18,7 +18,7 @@ const staticProps = bench({
       }
     }
 
-    staticProps.it('class with constructor', params, (headers) => {
+    static_props.it('class with constructor', params, (headers) => {
       sideEffect(new Context(headers));
     });
   }
@@ -29,7 +29,7 @@ const staticProps = bench({
       headers!: string[];
     }
 
-    staticProps.it('class without constructor', params, (headers) => {
+    static_props.it('class without constructor', params, (headers) => {
       let o = new Context();
       o.status = 200;
       o.headers = headers;
@@ -43,7 +43,7 @@ const staticProps = bench({
       headers!: string[];
     }
 
-    staticProps.it(
+    static_props.it(
       'class with default initializer, without constructor',
       params,
       (headers) => {
@@ -59,7 +59,7 @@ const staticProps = bench({
     proto.status = 200;
     proto.headers = undefined;
 
-    staticProps.it('Object.create()', params, (headers) => {
+    static_props.it('Object.create()', params, (headers) => {
       let o = Object.create(proto);
       o.headers = headers;
       sideEffect(o);
@@ -79,7 +79,7 @@ const staticProps = bench({
     }
     Context.prototype = proto;
 
-    staticProps.it('function constructor', params, (headers) => {
+    static_props.it('function constructor', params, (headers) => {
       sideEffect(
         // @ts-ignore
         new Context(headers),
@@ -95,7 +95,7 @@ const staticProps = bench({
     function Context() {}
     Context.prototype = proto;
 
-    staticProps.it(
+    static_props.it(
       'function without constructor',
       params,
       (headers) => {
@@ -108,13 +108,13 @@ const staticProps = bench({
   }
 }
 
-const dynProps = bench({
+const dyn_props = bench({
   warmupIters: 64,
   iters: 128,
 });
 {
   const params = [(i: number) => 'k' + i] as const;
-  dynProps
+  dyn_props
     .it('Object.create(null)', params, (key) => {
       let o = Object.create(null);
       o[key] = 0;
@@ -134,7 +134,7 @@ const dynProps = bench({
     function Context() {}
     Context.prototype = Object.create(null);
 
-    dynProps.it('function constructor', params, (key) => {
+    dyn_props.it('function constructor', params, (key) => {
       let o =
         // @ts-ignore
         new Context();
@@ -148,7 +148,7 @@ const dynProps = bench({
     Context.prototype = Object.create(null);
     Object.freeze(Context.prototype);
 
-    dynProps.it(
+    dyn_props.it(
       'function constructor (freezed proto)',
       params,
       (key) => {
@@ -162,6 +162,52 @@ const dynProps = bench({
   }
 }
 
+const static_props_with_methods = bench({
+  warmupIters: 64,
+  iters: 128
+});
+{
+  const common = {
+    calc1(this: { a: number, b: number, c: number }) {
+      return this.a + this.b + this.c;
+    },
+
+    calc2(this: { a: number, b: number, c: number }) {
+      return this.a + this.b + this.c;
+    },
+
+    calc3(this: { a: number, b: number, c: number }) {
+      return this.a + this.b + this.c;
+    }
+  };
+
+  static_props_with_methods.it('object spread', [
+    Math.random,
+    Math.random,
+    Math.random
+  ], (a, b, c) => ({
+    a, b, c, ...common
+  }));
+
+  {
+    const proto = Object.assign(Object.create(null), common);
+    proto.a = proto.b = proto.c = undefined;
+
+    static_props_with_methods.it('Object.create()', [
+      Math.random,
+      Math.random,
+      Math.random
+    ], (a, b, c) => {
+      let o = Object.create(proto);
+      o.a = a;
+      o.b = b;
+      o.c = c;
+      return o;
+    });
+  }
+}
+
 export default category()
-  .it('static props', staticProps)
-  .it('dynamic props', dynProps);
+  .it('static props', static_props)
+  .it('dynamic props', dyn_props)
+  .it('static props with methods', static_props_with_methods);

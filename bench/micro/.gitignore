@@ -4,3 +4,7 @@
 
 # porffor repl
 /.repl_history
+
+# runtime builds
+/llrt
+/quickjs

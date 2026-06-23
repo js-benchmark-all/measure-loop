@@ -20,15 +20,14 @@ bun run.ts [target] [file] [format]
 bun run.ts node object
 
 # example: run object access benchmarks in bun, output to markdown
+# available formats: md, json
 bun run.ts bun object/access md
 ```
 
-To build other engines, clone their repo and run their build instructions:
-- `llrt`: https://github.com/awslabs/llrt
-- `quickjs`: https://github.com/bellard/quickjs
+To build these engines, clone their repo and run their build instructions:
+- `llrt`: https://github.com/awslabs/llrt, fallback to `llrt`.
+- `quickjs`: https://github.com/bellard/quickjs, fallback to `qjs`.
 
-Supported targets: `bun`, `deno`, `node`, `v8`, `jsc`, `spidermonkey`, `llrt`, `quickjs`.
-
-Support WIP: `hermes`, `porffor`.
-
-Supported output format: `md`, `json`.
+Targets:
+- Supported: `bun`, `deno`, `node`, `v8`, `jsc`, `spidermonkey`, `llrt`, `quickjs`.
+- WIP support: `hermes`, `porffor`.
