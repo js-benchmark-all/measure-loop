@@ -8,7 +8,7 @@ cd quickjs
 make
 cd ..
 
-# install other JS engines
+# install JS engines
 bun i jsvu -g
 export PATH=$HOME/.jsvu/bin:$PATH
 jsvu --engines=v8,javascriptcore,spidermonkey
@@ -22,7 +22,12 @@ bun run.ts node object
 # example: run object access benchmarks in bun, output to markdown
 bun run.ts bun object/access md
 ```
-Supported targets: `bun`, `deno`, `node`, `v8`, `jsc`, `spidermonkey`, `quickjs`.
+
+To build other engines:
+- `llrt`: https://github.com/awslabs/llrt
+- `quickjs`: https://github.com/bellard/quickjs
+
+Supported targets: `bun`, `deno`, `node`, `v8`, `jsc`, `spidermonkey`, `llrt`, `quickjs`.
 
 Support WIP: `hermes`, `porffor`.
 

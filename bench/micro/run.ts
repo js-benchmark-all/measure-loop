@@ -1,4 +1,4 @@
-import { writeFileSync } from 'node:fs';
+import { globSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 import rtc from 'runtime-compiler/rolldown';
@@ -148,6 +148,11 @@ switch (target) {
   // RuntimeError: memory access out of bounds
   case 'porffor': {
     spawn('porf', 'run.js');
+    break;
+  }
+
+  case 'llrt': {
+    spawn(globSync('llrt/target/*/release/llrt')[0], 'run.js');
     break;
   }
 
