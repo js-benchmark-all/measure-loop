@@ -176,6 +176,5 @@ writeFileSync('results.md', md);
 
 The reporter API will be stable after 1.0.
 
-## Tested environments
-- Supported: `node`, `bun`, `deno`, `v8`, `jsc`, `spidermonkey`, `quickjs`.
-- Support WIP: `hermes`, `porffor`.
+## JS Enviroments
+See [./bench/micro/README.md](./bench/micro/README.md) on Github for supported JS enviroments.
