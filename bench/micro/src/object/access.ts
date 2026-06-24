@@ -1,7 +1,7 @@
 import { bench, category } from 'measure-loop';
 import sideEffect from 'measure-loop/side-effect';
 
-const withoutInit = bench()
+const without_init = bench()
   .it(
     'monomorphic object',
     [
@@ -118,7 +118,7 @@ const withoutInit = bench()
     (o) => o[0] + o[1],
   );
 
-const withInit = bench()
+const with_init = bench()
   .it('monomorphic object', [], () => {
     const o = {
       a: 0,
@@ -137,5 +137,5 @@ export default category({
   warmupIters: 64,
   iters: 256,
 })
-  .it('without init', withoutInit)
-  .it('with init', withInit);
+  .it('without init', without_init)
+  .it('with init', with_init);

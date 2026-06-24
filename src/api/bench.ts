@@ -11,7 +11,7 @@ export class Bench {
   readonly benchIds: string[];
   readonly benchParams: any[];
   readonly benchFns: any[];
-  readonly benchOptionList: any[];
+  readonly benchOptionList: (MeasureOptions | undefined)[];
 
   readonly defaultBenchOptions: MeasureOptions | undefined;
 

@@ -101,7 +101,7 @@ export const compileLoop: <
       [K in keyof Params]: Awaited<ReturnType<Params[K]>>;
     }
   ) => any,
-  options: CompileOptions,
+  options?: CompileOptions,
 ) => Promise<Loop> = IS_AOT
   ? async (_, _1, _2) => evaluate()
   : async (
@@ -112,7 +112,7 @@ export const compileLoop: <
         inlineCalls = 4,
         measureGC = false,
         gcOnce = false,
-      },
+      } = {},
     ) => {
       gcOnce &&
         measureGC &&

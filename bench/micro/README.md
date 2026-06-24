@@ -24,9 +24,9 @@ bun run.ts node object
 bun run.ts bun object/access md
 ```
 
-To build these engines, clone their repo and run their build instructions:
-- `llrt`: https://github.com/awslabs/llrt, fallback to `llrt`.
-- `quickjs`: https://github.com/bellard/quickjs, fallback to `qjs`.
+To build these engines, clone their repo in this directory and run their build instructions:
+- `llrt`: https://github.com/awslabs/llrt, fallback to `llrt` if not built.
+- `quickjs`: https://github.com/bellard/quickjs, fallback to `qjs` if not build.
 
 Targets:
 - Supported: `bun`, `deno`, `node`, `v8`, `jsc`, `spidermonkey`, `llrt`, `quickjs`.
