@@ -1,6 +1,5 @@
 # build & run outputs
 /run.js
-/results.*
 
 # porffor repl
 /.repl_history

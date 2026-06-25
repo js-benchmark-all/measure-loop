@@ -2,20 +2,19 @@ import { bench, category } from 'measure-loop';
 
 const uniqueArray = (items: number, uniqueItems: number) => {
   const uniqueArr = new Array<string>(uniqueItems);
-  for (let i = 0; i < uniqueItems; i++)
-    uniqueArr[i] = i + 'v' + i;
+  for (let i = 0; i < uniqueItems; i++) uniqueArr[i] = i + 'v' + i;
 
   const resArray = new Array<string>(items);
   for (let i = 0; i < items; i++)
     resArray[i] = uniqueArr[i % uniqueItems];
   return resArray;
-}
+};
 
 const all = category();
 
-for (const size of [16, 64, 128]) {
+for (const size of [8, 16, 64]) {
   const size_cat = category({
-    iters: 2048 / size
+    iters: 2048 / size,
   });
   all.it(`size ${size}`, size_cat);
 
@@ -26,7 +25,8 @@ for (const size of [16, 64, 128]) {
     const UNIQUE_ARRAY = uniqueArray(size, uniqueItems);
     const params = [() => UNIQUE_ARRAY] as const;
     unique_items
-      .it('to unique array',
+      .it(
+        'to unique array',
         bench()
           .it('Array.includes()', params, (arr) => {
             if (arr.length === 0) return arr;
@@ -38,13 +38,15 @@ for (const size of [16, 64, 128]) {
           })
           .it('Set', params, (arr) => {
             let res = new Set();
-            for (let i = 0; i < arr.length; i++)
-              res.add(arr[i]);
+            for (let i = 0; i < arr.length; i++) res.add(arr[i]);
             return res.values().toArray();
           })
-          .it('Set direct assign', params, (arr) => new Set(arr).values().toArray())
+          .it('Set direct assign', params, (arr) =>
+            new Set(arr).values().toArray(),
+          ),
       )
-      .it('count unique items',
+      .it(
+        'count unique items',
         bench()
           .it('Array.includes()', params, (arr) => {
             if (arr.length === 0) return arr;
@@ -56,11 +58,14 @@ for (const size of [16, 64, 128]) {
           })
           .it('Set', params, (arr) => {
             let res = new Set();
-            for (let i = 0; i < arr.length; i++)
-              res.add(arr[i]);
+            for (let i = 0; i < arr.length; i++) res.add(arr[i]);
             return res.size;
           })
-          .it('Set direct assign', params, (arr) => new Set(arr).size)
+          .it(
+            'Set direct assign',
+            params,
+            (arr) => new Set(arr).size,
+          ),
       );
   }
 }

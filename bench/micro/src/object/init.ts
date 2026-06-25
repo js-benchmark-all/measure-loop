@@ -1,11 +1,15 @@
 import { bench, category } from 'measure-loop';
 import sideEffect from 'measure-loop/side-effect';
 
-const static_props = bench({
-  warmupIters: 64,
-  iters: 256,
-});
+const all = category();
+
 {
+  const b = bench({
+    warmupIters: 64,
+    iters: 256,
+  });
+  all.it('static props', b);
+
   const params = [() => [] as string[]] as const;
   {
     class Context {
@@ -18,7 +22,7 @@ const static_props = bench({
       }
     }
 
-    static_props.it('class with constructor', params, (headers) => {
+    b.it('class with constructor', params, (headers) => {
       sideEffect(new Context(headers));
     });
   }
@@ -29,7 +33,7 @@ const static_props = bench({
       headers!: string[];
     }
 
-    static_props.it('class without constructor', params, (headers) => {
+    b.it('class without constructor', params, (headers) => {
       let o = new Context();
       o.status = 200;
       o.headers = headers;
@@ -43,7 +47,7 @@ const static_props = bench({
       headers!: string[];
     }
 
-    static_props.it(
+    b.it(
       'class with default initializer, without constructor',
       params,
       (headers) => {
@@ -59,7 +63,7 @@ const static_props = bench({
     proto.status = 200;
     proto.headers = undefined;
 
-    static_props.it('Object.create()', params, (headers) => {
+    b.it('Object.create()', params, (headers) => {
       let o = Object.create(proto);
       o.headers = headers;
       sideEffect(o);
@@ -79,7 +83,7 @@ const static_props = bench({
     }
     Context.prototype = proto;
 
-    static_props.it('function constructor', params, (headers) => {
+    b.it('function constructor', params, (headers) => {
       sideEffect(
         // @ts-ignore
         new Context(headers),
@@ -95,31 +99,28 @@ const static_props = bench({
     function Context() {}
     Context.prototype = proto;
 
-    static_props.it(
-      'function without constructor',
-      params,
-      (headers) => {
-        // @ts-ignore
-        let o = new Context();
-        o.headers = headers;
-        sideEffect(o);
-      },
-    );
+    b.it('function without constructor', params, (headers) => {
+      // @ts-ignore
+      let o = new Context();
+      o.headers = headers;
+      sideEffect(o);
+    });
   }
 }
 
-const dyn_props = bench({
-  warmupIters: 64,
-  iters: 128,
-});
 {
+  const b = bench({
+    warmupIters: 64,
+    iters: 128,
+  });
+  all.it('dynamic props', b);
+
   const params = [(i: number) => 'k' + i] as const;
-  dyn_props
-    .it('Object.create(null)', params, (key) => {
-      let o = Object.create(null);
-      o[key] = 0;
-      sideEffect(o);
-    })
+  b.it('Object.create(null)', params, (key) => {
+    let o = Object.create(null);
+    o[key] = 0;
+    sideEffect(o);
+  })
     .it('object literal', params, (key) => {
       let o = {};
       // @ts-ignore
@@ -134,7 +135,7 @@ const dyn_props = bench({
     function Context() {}
     Context.prototype = Object.create(null);
 
-    dyn_props.it('function constructor', params, (key) => {
+    b.it('function constructor', params, (key) => {
       let o =
         // @ts-ignore
         new Context();
@@ -148,66 +149,106 @@ const dyn_props = bench({
     Context.prototype = Object.create(null);
     Object.freeze(Context.prototype);
 
-    dyn_props.it(
-      'function constructor (freezed proto)',
-      params,
-      (key) => {
-        let o =
-          // @ts-ignore
-          new Context();
-        o[key] = 0;
-        sideEffect(o);
-      },
-    );
+    b.it('function constructor (freezed proto)', params, (key) => {
+      let o =
+        // @ts-ignore
+        new Context();
+      o[key] = 0;
+      sideEffect(o);
+    });
+  }
+
+  {
+    const map = new WeakMap();
+    b.it('WeakMap store', params, (key) => {
+      let o = {};
+      map.set(o, key);
+      sideEffect(o);
+    });
   }
 }
 
-const static_props_with_methods = bench({
-  warmupIters: 64,
-  iters: 128
-});
 {
-  const common = {
-    calc1(this: { a: number, b: number, c: number }) {
+  const b = bench({
+    warmupIters: 64,
+    iters: 128,
+  });
+  all.it('static props with methods', b);
+
+  const proto = Object.freeze({
+    calc1(this: { a: number; b: number; c: number }) {
       return this.a + this.b + this.c;
     },
 
-    calc2(this: { a: number, b: number, c: number }) {
+    calc2(this: { a: number; b: number; c: number }) {
       return this.a + this.b + this.c;
     },
 
-    calc3(this: { a: number, b: number, c: number }) {
+    calc3(this: { a: number; b: number; c: number }) {
+      return this.a + this.b + this.c;
+    },
+  });
+
+  function Instance() {}
+  Instance.prototype = proto;
+
+  // @ts-ignore
+  class FullInstance {
+    a: number;
+    b: number;
+    c: number;
+
+    constructor(a: number, b: number, c: number) {
+      this.a = a;
+      this.b = b;
+      this.c = c;
+    }
+
+    calc1(this: { a: number; b: number; c: number }) {
       return this.a + this.b + this.c;
     }
-  };
 
-  static_props_with_methods.it('object spread', [
-    Math.random,
-    Math.random,
-    Math.random
-  ], (a, b, c) => ({
-    a, b, c, ...common
-  }));
+    calc2(this: { a: number; b: number; c: number }) {
+      return this.a + this.b + this.c;
+    }
 
-  {
-    const proto = Object.assign(Object.create(null), common);
-    proto.a = proto.b = proto.c = undefined;
+    calc3(this: { a: number; b: number; c: number }) {
+      return this.a + this.b + this.c;
+    }
+  }
 
-    static_props_with_methods.it('Object.create()', [
-      Math.random,
-      Math.random,
-      Math.random
-    ], (a, b, c) => {
+  const params = [Math.random, Math.random, Math.random] as const;
+  b.it('object spread', params, (a, b, c) => ({
+    a,
+    b,
+    c,
+    ...proto,
+  }))
+    .it('Object.create()', params, (a, b, c) => {
       let o = Object.create(proto);
       o.a = a;
       o.b = b;
       o.c = c;
       return o;
-    });
-  }
+    })
+    .it('function constructor', params, (a, b, c) => {
+      // @ts-ignore
+      let o = new Instance();
+      o.a = a;
+      o.b = b;
+      o.c = c;
+      return o;
+    })
+    .it('constructor', params, (a, b, c) => new FullInstance(a, b, c))
+    .it('Object.setPrototypeOf()', params, (a, b, c) =>
+      Object.setPrototypeOf({ a, b, c }, proto),
+    )
+    .it('set __proto__', params, (a, b, c) => ({
+      __proto__: proto,
+      a,
+      b,
+      c,
+    }));
 }
 
-export default category()
-  .it('static props', static_props)
-  .it('dynamic props', dyn_props)
-  .it('static props with methods', static_props_with_methods);
+export default all;

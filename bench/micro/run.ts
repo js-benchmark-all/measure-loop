@@ -70,8 +70,7 @@ const spawn = !format
         stdin: 'ignore',
         stderr: 'inherit',
       });
-
-      writeFileSync('results.' + format, proc.stdout);
+      writeFileSync(`results.${target}.${format}`, proc.stdout);
     };
 
 switch (target) {

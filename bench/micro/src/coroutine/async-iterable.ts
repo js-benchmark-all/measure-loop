@@ -1,11 +1,15 @@
 import { bench, category } from 'measure-loop';
 import sideEffect from 'measure-loop/side-effect';
 
-const fromArray = bench({
-  warmupIters: 16,
-  iters: 32,
-});
+const all = category();
+
 {
+  const b = bench({
+    warmupIters: 16,
+    iters: 32,
+  });
+  all.it('from promises', b);
+
   const params = [
     (i: number) => {
       const arr = new Array(8);
@@ -38,7 +42,7 @@ const fromArray = bench({
       this.l = list;
     }
 
-    next(...[value]: [] | [any]): Promise<IteratorResult<any, any>> {
+    next(): Promise<IteratorResult<any, any>> {
       return this.i < this.l.length
         ? this.l[this.i++].then(resolve)
         : DONE;
@@ -49,7 +53,7 @@ const fromArray = bench({
       return { done: true, value: await value };
     }
 
-    throw(_: any): Promise<IteratorResult<any, any>> {
+    throw(): Promise<IteratorResult<any, any>> {
       this.i = this.l.length;
       return DONE;
     }
@@ -67,12 +71,12 @@ const fromArray = bench({
   const createAsyncIter = (list: Promise<any>[]) =>
     new AsyncIter(list);
 
-  fromArray.it('generator', params, (arr) =>
+  b.it('generator', params, (arr) =>
     consumeIter(createAsyncGen(arr)),
   );
-  fromArray.it('iterator', params, (arr) =>
+  b.it('iterator', params, (arr) =>
     consumeIter(createAsyncIter(arr)),
   );
 }
 
-export default category().it('from array', fromArray);
+export default all;

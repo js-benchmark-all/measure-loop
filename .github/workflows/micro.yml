@@ -1,0 +1,101 @@
+on:
+  push:
+    paths:
+      - 'bench/micro/**/*'
+      - 'src/**/*'
+
+jobs:
+  bench-micro:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write
+
+    defaults:
+      run:
+        working-directory: ./bench/micro
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Build package
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: |
+          cd ..
+          bun i
+          bun task build
+          cd micro
+
+          bun i
+
+      # Bun
+      - name: Bun benchmark
+        run: bun run.ts bun . md
+
+      # Deno
+      - uses: denoland/setup-deno@v2.0.3
+        with:
+          deno-version: latest
+
+      - name: Deno benchmark
+        run: bun run.ts deno . md
+
+      # Node
+      - uses: actions/setup-node@v4
+        with:
+          node-version: latest
+
+      - name: Node benchmark
+        run: bun run.ts node . md
+
+      # Engines
+      - name: Setup jsvu
+        run: |
+          bun i jsvu -g
+          export PATH=$HOME/.jsvu/bin:$PATH
+          jsvu --engines=v8,javascriptcore,spidermonkey
+
+      ## V8
+      - name: V8 benchmark
+        run: bun run.ts v8 . md
+
+      ## JSC
+      - name: JSC benchmark
+        run: bun run.ts jsc . md
+
+      ## SpiderMonkey
+      - name: V8 benchmark
+        run: bun run.ts spidermonkey . md
+
+      # Push results
+      - name: Commit results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add .
+          git commit -m "update micro-benchmark results"
+
+      - name: Push with retry
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for i in {1..10}; do
+            git pull --rebase origin ${{ github.ref_name }}
+
+            if git push origin HEAD:${{ github.ref_name }}; then
+              echo "Push succeeded"
+              exit 0
+            fi
+
+            echo "Push failed, retry $i..."
+            sleep 3
+          done
+
+          echo "Push failed after retries"
+          exit 1
