@@ -27,6 +27,8 @@ const { 2: target, 3: file, 4: format } = argv;
 writeFileSync(
   'run.js',
   `
+  import { IS_BUILD } from 'runtime-compiler/env';
+
   import { env } from 'measure-loop';
   import { print } from 'measure-loop/env/print';
   import reporter from 'measure-loop/reporter${
@@ -39,7 +41,7 @@ writeFileSync(
       ? 'b.run({ env, reporter })'
       : `(async () => {
         let r = await b.run({ env, reporter });
-        ${format === 'md' ? 'print(r);' : format === 'json' ? 'print(JSON.stringify(r));' : ''};
+        IS_BUILD || ${format === 'md' ? 'print(r);' : format === 'json' ? 'print(JSON.stringify(r));' : ''};
       })()`
   };
 `,

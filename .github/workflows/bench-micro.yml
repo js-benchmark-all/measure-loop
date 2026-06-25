@@ -60,7 +60,7 @@ jobs:
         run: |
           bun i jsvu -g
           export PATH=$HOME/.jsvu/bin:$PATH
-          jsvu --engines=v8,javascriptcore,spidermonkey
+          jsvu --engines=v8,javascriptcore,spidermonkey --os=linux64
 
       ## V8
       - name: V8 benchmark
