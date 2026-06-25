@@ -42,7 +42,7 @@ writeFileSync(
       : `(async () => {
         let r = await b.run({ env, reporter });
         IS_BUILD || ${format === 'md' ? 'print(r);' : format === 'json' ? 'print(JSON.stringify(r));' : ''};
-      })()`
+      })();`
   };
 `,
 );
