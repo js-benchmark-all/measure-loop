@@ -12,6 +12,7 @@ const vtable: VTable<LRU> = {
       map.delete(key);
       map.set(key, value);
     }
+
     return value;
   },
   set: (lru, key, value) => {
