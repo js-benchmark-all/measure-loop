@@ -32,7 +32,6 @@ for (const capacity of [8, 64, 512, 4096]) {
   for (const name in vtables) {
     // Predictable keys
     setupRandomSeed();
-
     let { init, get, set } = vtables[name];
 
     // set new keys
