@@ -59,7 +59,7 @@ jobs:
       - name: Setup jsvu
         run: |
           bun i jsvu -g
-          echo "$GITHUB_WORKSPACE/.jsvu/bin" >> $GITHUB_PATH
+          echo "$HOME/.jsvu/bin" >> "$GITHUB_PATH"
           jsvu --engines=v8,javascriptcore,spidermonkey --os=linux64
 
       ## V8

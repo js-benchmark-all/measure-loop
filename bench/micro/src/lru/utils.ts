@@ -17,4 +17,4 @@ export const setupRandomSeed = () => {
 };
 
 export const randomKey = () =>
-  randomNumber().toString(36).slice(2).padEnd(11);
+  randomNumber().toString(36).slice(4).padEnd(9);
