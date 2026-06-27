@@ -61,8 +61,7 @@ jobs:
       # Engines
       - name: setup jsvu
         run: |
-          bun i jsvu -g
-          jsvu --engines=v8,javascriptcore,spidermonkey --os=linux64
+          bun jsvu --os=linux64 --engines=v8,javascriptcore,spidermonkey
 
       - name: v8
         continue-on-error: true
@@ -80,13 +79,13 @@ jobs:
         continue-on-error: true
         run: |
           bun llrt/install.ts v0.8.1-beta
-          bun run.ts llrt .
+          bun run.ts llrt . md
 
       - name: quickjs
         continue-on-error: true
         run: |
           bun quickjs/install.ts linux x86_64 2026-06-04
-          bun run.ts quickjs .
+          bun run.ts quickjs . md
 
       # Push results
       - name: Commit results

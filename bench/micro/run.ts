@@ -1,4 +1,4 @@
-import { existsSync, globSync, writeFileSync } from 'node:fs';
+import { globSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 import rtc from 'runtime-compiler/rolldown';
@@ -74,8 +74,7 @@ const spawn = !format
       writeFileSync(`results.${target}.${format}`, proc.stdout);
     };
 
-const HOME = (await Bun.$`echo $HOME`.text()).trim();
-const jsvuBin = (engine: string) => HOME + '/.jsvu/bin/' + engine;
+const jsvuBin = (engine: string) => '~/.jsvu/bin/' + engine;
 
 switch (target) {
   case 'bun': {
@@ -139,7 +138,7 @@ switch (target) {
   }
 
   case 'spidermonkey': {
-    spawn(jsvuBin('spidermonkey'), '-m', 'run.js');
+    spawn(jsvuBin('sm'), '-m', 'run.js');
     break;
   }
 
