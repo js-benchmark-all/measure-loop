@@ -156,7 +156,7 @@ switch (target) {
   // RuntimeError: memory access out of bounds
   case 'porffor': {
     spawn(
-      'node-modules/.bin/porf',
+      'node_modules/.bin/porf',
       '--parser=oxc-parser',
       '--module',
       'run.js',
