@@ -5,7 +5,7 @@
     "": {
       "dependencies": {
         "fflate": "0.8.3",
-        "jsvu": "^3.0.4",
+        "jsvu": "3.0.4",
         "oxc-parser": "0.137.0",
         "porffor": "0.61.13",
         "rolldown": "1.1.2",
