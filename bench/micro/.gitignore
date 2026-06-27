@@ -5,5 +5,5 @@
 /.repl_history
 
 # runtime builds
-/llrt
-/quickjs
+/llrt/bin
+/quickjs/bin

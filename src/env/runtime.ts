@@ -40,15 +40,15 @@ if (globalThis.process) {
   } else if (v.deno) {
     runtime = 'deno';
     runtimeVersion = v.deno;
-  } else if (v.node) {
-    runtime = 'node';
-    runtimeVersion = v.node;
   } else if (v.llrt) {
     runtime = 'llrt';
     runtimeVersion = v.llrt;
   } else if (v.webcontainer) {
     runtime = 'webcontainer';
     runtimeVersion = v.webcontainer;
+  } else if (v.node) {
+    runtime = 'node';
+    runtimeVersion = v.node;
   }
 
   runtimePlatform = process.arch + '-' + process.platform;

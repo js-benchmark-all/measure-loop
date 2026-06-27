@@ -7,7 +7,6 @@ import { build, type MinifyOptions } from 'rolldown';
 const { argv } = process;
 if (argv.length < 4) {
   console.error('missing arguments.');
-  console.log('usage: bun run.ts <target> <file> <format>');
   process.exit(1);
 }
 
@@ -75,6 +74,9 @@ const spawn = !format
       writeFileSync(`results.${target}.${format}`, proc.stdout);
     };
 
+const HOME = (await Bun.$`echo $HOME`.text()).trim();
+const jsvuBin = (engine: string) => HOME + '/.jsvu/bin/' + engine;
+
 switch (target) {
   case 'bun': {
     spawn('bun', 'run', 'run.js');
@@ -98,12 +100,12 @@ switch (target) {
   }
 
   case 'v8': {
-    spawn('v8', '--expose-gc', '--module', 'run.js');
+    spawn(jsvuBin('v8'), '--expose-gc', '--module', 'run.js');
     break;
   }
 
   case 'jsc': {
-    spawn('jsc', '-m', 'run.js');
+    spawn(jsvuBin('jsc'), '-m', 'run.js');
     break;
   }
 
@@ -120,7 +122,7 @@ switch (target) {
       },
     });
     spawn(
-      'hermes',
+      jsvuBin('hermes'),
       // disable warnings
       '-Wno-undefined-variable',
       // expose internal stuff
@@ -137,13 +139,13 @@ switch (target) {
   }
 
   case 'spidermonkey': {
-    spawn('spidermonkey', '-m', 'run.js');
+    spawn(jsvuBin('spidermonkey'), '-m', 'run.js');
     break;
   }
 
   case 'quickjs': {
     spawn(
-      existsSync('quickjs/qjs') ? 'quickjs/qjs' : 'qjs',
+      globSync('quickjs/bin/*')[0] ?? 'qjs',
       '--module',
       '--std',
       'run.js',
@@ -153,17 +155,17 @@ switch (target) {
 
   // RuntimeError: memory access out of bounds
   case 'porffor': {
-    spawn('porf', 'run.js');
+    spawn(
+      'node-modules/.bin/porf',
+      '--parser=oxc-parser',
+      '--module',
+      'run.js',
+    );
     break;
   }
 
   case 'llrt': {
-    spawn(
-      globSync('llrt/target/*/release/llrt')[0] ??
-        globSync('llrt/llrt-container-*')[0] ??
-        'llrt',
-      'run.js',
-    );
+    spawn(globSync('llrt/bin/*/*')[0] ?? 'llrt', 'run.js');
     break;
   }
 

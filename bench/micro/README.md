@@ -9,9 +9,13 @@ make
 cd ..
 
 # install JS engines
-bun i jsvu -g
-export PATH=$HOME/.jsvu/bin:$PATH
-jsvu --engines=v8,javascriptcore,spidermonkey
+bun jsvu --engines=v8,javascriptcore,spidermonkey
+
+# install llrt (see release tags on https://github.com/awslabs/llrt)
+bun llrt/install.ts [release]
+
+# install quickjs (see binaries on https://bellard.org/quickjs/binary_releases)
+bun quickjs/install.ts [os] [arch] [releaseDate]
 
 # run a benchmark
 bun run.ts [target] [file] [format]
@@ -23,10 +27,6 @@ bun run.ts node object
 # available formats: md, json
 bun run.ts bun object/access md
 ```
-
-To build these engines, clone their repo in this directory and run their build instructions:
-- `llrt`: https://github.com/awslabs/llrt, fallback to `llrt` if not built.
-- `quickjs`: https://github.com/bellard/quickjs, fallback to `qjs` if not build.
 
 Targets:
 - Supported: `bun`, `deno`, `node`, `v8`, `jsc`, `spidermonkey`, `llrt`, `quickjs`.
