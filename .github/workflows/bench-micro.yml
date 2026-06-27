@@ -22,7 +22,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Build package
+      # build
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
@@ -35,43 +35,58 @@ jobs:
 
           bun i
 
-      # Bun
-      - name: Bun benchmark
+      # bun
+      - name: bun
+        continue-on-error: true
         run: bun run.ts bun . md
 
-      # Deno
+      # deno
       - uses: denoland/setup-deno@v2.0.3
         with:
           deno-version: latest
 
-      - name: Deno benchmark
+      - name: deno
+        continue-on-error: true
         run: bun run.ts deno . md
 
-      # Node
+      # node
       - uses: actions/setup-node@v4
         with:
           node-version: latest
 
-      - name: Node benchmark
+      - name: node
+        continue-on-error: true
         run: bun run.ts node . md
 
       # Engines
-      - name: Setup jsvu
+      - name: setup jsvu
         run: |
           bun i jsvu -g
           jsvu --engines=v8,javascriptcore,spidermonkey --os=linux64
 
-      ## V8
-      - name: V8 benchmark
+      - name: v8
+        continue-on-error: true
         run: bun run.ts v8 . md
 
-      ## JSC
-      - name: JSC benchmark
+      - name: jsc
+        continue-on-error: true
         run: bun run.ts jsc . md
 
-      ## SpiderMonkey
-      - name: V8 benchmark
+      - name: spidermonkey
+        continue-on-error: true
         run: bun run.ts spidermonkey . md
+
+      - name: llrt
+        continue-on-error: true
+        run: |
+          bun llrt/install.ts v0.8.1-beta
+          bun run.ts llrt .
+
+      - name: quickjs
+        continue-on-error: true
+        run: |
+          bun quickjs/install.ts linux x86_64 2026-06-04
+          bun run.ts quickjs .
 
       # Push results
       - name: Commit results
