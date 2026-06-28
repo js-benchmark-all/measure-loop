@@ -130,7 +130,7 @@ await category()
   .run({ env, reporter });
 ```
 
-Default options can be passed down similar to `bench`:
+Default options are passed down similar to `bench()`:
 ```ts
 category({ gcOnce: true })
   .it(...)

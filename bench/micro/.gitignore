@@ -4,6 +4,5 @@
 # porffor repl
 /.repl_history
 
-# runtime builds
-/llrt/bin
-/quickjs/bin
+# engine binaries
+/engines/*/bin/*

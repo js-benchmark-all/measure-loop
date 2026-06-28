@@ -108,65 +108,65 @@ switch (target) {
     break;
   }
 
-  // TODO: hermes for unknown reasons output NaN
-  case 'hermes': {
-    await build({
-      input: 'run.js',
-      output: {
-        file: 'run.js',
-        minify: MINIFY_OPTIONS,
-      },
-      transform: {
-        target: 'es6',
-      },
-    });
-    spawn(
-      jsvuBin('hermes'),
-      // disable warnings
-      '-Wno-undefined-variable',
-      // expose internal stuff
-      '-enable-hermes-internal',
-      '-Xhermes-internal-test-methods',
-      // es6
-      '-Xes6-promise',
-      '-Xes6-class',
-      // strict
-      '-strict',
-      'run.js',
-    );
-    break;
-  }
-
   case 'spidermonkey': {
     spawn(jsvuBin('sm'), '-m', 'run.js');
     break;
   }
 
-  case 'quickjs': {
-    spawn(
-      globSync('quickjs/bin/*')[0] ?? 'qjs',
-      '--module',
-      '--std',
-      'run.js',
-    );
-    break;
-  }
+  // case 'llrt': {
+  //   spawn(globSync('engines/llrt/bin/*/*')[0] ?? 'llrt', 'run.js');
+  //   break;
+  // }
 
-  // RuntimeError: memory access out of bounds
-  case 'porffor': {
-    spawn(
-      'node_modules/.bin/porf',
-      '--parser=oxc-parser',
-      '--module',
-      'run.js',
-    );
-    break;
-  }
+  // case 'quickjs': {
+  //   spawn(
+  //     globSync('engines/quickjs/bin/*')[0] ?? 'qjs',
+  //     '--module',
+  //     '--std',
+  //     'run.js',
+  //   );
+  //   break;
+  // }
 
-  case 'llrt': {
-    spawn(globSync('llrt/bin/*/*')[0] ?? 'llrt', 'run.js');
-    break;
-  }
+  // // RuntimeError: memory access out of bounds
+  // case 'porffor': {
+  //   spawn(
+  //     'node_modules/.bin/porf',
+  //     '--parser=oxc-parser',
+  //     '--module',
+  //     'run.js',
+  //   );
+  //   break;
+  // }
+
+  // // TODO: hermes for unknown reasons output NaN
+  // case 'hermes': {
+  //   await build({
+  //     input: 'run.js',
+  //     output: {
+  //       file: 'run.js',
+  //       minify: MINIFY_OPTIONS,
+  //     },
+  //     transform: {
+  //       target: 'es6',
+  //     },
+  //   });
+  //   spawn(
+  //     jsvuBin('hermes'),
+  //     // disable warnings
+  //     '-Wno-undefined-variable',
+  //     // expose internal stuff
+  //     '-enable-hermes-internal',
+  //     '-Xhermes-internal-test-methods',
+  //     // es6
+  //     '-Xes6-promise',
+  //     '-Xes6-class',
+  //     // strict
+  //     '-strict',
+  //     'run.js',
+  //   );
+  //   break;
+  // }
 
   default: {
     console.error('unknown target:', target);

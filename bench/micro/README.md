@@ -11,12 +11,6 @@ cd ..
 # install JS engines
 bun jsvu --engines=v8,javascriptcore,spidermonkey
 
-# install llrt (see release tags on https://github.com/awslabs/llrt)
-bun llrt/install.ts [release]
-
-# install quickjs (see binaries on https://bellard.org/quickjs/binary_releases)
-bun quickjs/install.ts [os] [arch] [releaseDate]
-
 # run a benchmark
 bun run.ts [target] [file] [format]
 
@@ -26,6 +20,15 @@ bun run.ts node object
 # example: run object access benchmarks in bun, output to markdown
 # available formats: md, json
 bun run.ts bun object/access md
+```
+
+To install engines:
+```sh
+# install llrt (see release tags on https://github.com/awslabs/llrt)
+bun engines/llrt/install.ts [release]
+
+# install quickjs (see binaries on https://bellard.org/quickjs/binary_releases)
+bun engines/quickjs/install.ts [os] [arch] [releaseDate]
 ```
 
 Targets:
