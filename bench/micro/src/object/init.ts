@@ -6,111 +6,6 @@ const all = category();
 {
   const b = bench({
     warmupIters: 64,
-    iters: 256,
-  });
-  all.it('static props', b);
-
-  const params = [() => [] as string[]] as const;
-  {
-    class Context {
-      status: number;
-      headers: string[];
-
-      constructor(headers: string[]) {
-        this.status = 200;
-        this.headers = headers;
-      }
-    }
-
-    b.it('class with constructor', params, (headers) => {
-      sideEffect(new Context(headers));
-    });
-  }
-
-  {
-    class Context {
-      status!: number;
-      headers!: string[];
-    }
-
-    b.it('class without constructor', params, (headers) => {
-      let o = new Context();
-      o.status = 200;
-      o.headers = headers;
-      sideEffect(o);
-    });
-  }
-
-  {
-    class Context {
-      status = 200;
-      headers!: string[];
-    }
-
-    b.it(
-      'class with default initializer, without constructor',
-      params,
-      (headers) => {
-        let o = new Context();
-        o.headers = headers;
-        sideEffect(o);
-      },
-    );
-  }
-
-  {
-    const proto = Object.create(null);
-    proto.status = 200;
-    proto.headers = undefined;
-
-    b.it('Object.create()', params, (headers) => {
-      let o = Object.create(proto);
-      o.headers = headers;
-      sideEffect(o);
-    });
-  }
-
-  {
-    const proto = Object.create(null);
-    proto.status = 200;
-    proto.headers = undefined;
-
-    function Context(
-      this: { status: number; headers: string[] },
-      headers: string[],
-    ) {
-      this.headers = headers;
-    }
-    Context.prototype = proto;
-
-    b.it('function constructor', params, (headers) => {
-      sideEffect(
-        // @ts-ignore
-        new Context(headers),
-      );
-    });
-  }
-
-  {
-    const proto = Object.create(null);
-    proto.status = 200;
-    proto.headers = undefined;
-
-    function Context() {}
-    Context.prototype = proto;
-
-    b.it('function without constructor', params, (headers) => {
-      // @ts-ignore
-      let o = new Context();
-      o.headers = headers;
-      sideEffect(o);
-    });
-  }
-}
-
-{
-  const b = bench({
-    warmupIters: 64,
     iters: 128,
   });
   all.it('dynamic props', b);
@@ -248,7 +143,17 @@ const all = category();
       a,
       b,
       c,
-    }));
+    }))
+    .it('set prototype', params, (a, b, c) => {
+      let o = {
+        a,
+        b,
+        c,
+      };
+      // @ts-ignore
+      o.prototype = proto;
+      return o;
+    });
 }
 
 export default all;
