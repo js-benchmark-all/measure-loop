@@ -1,49 +1,49 @@
 # cpu
 |case|runs|mean|p99|range|
 |-|-|-|-|-|
-|clk|`40960000`|`387.3ps ± 4.05ps`|`2.18ns`|`297.36ps - 6.66ns`|
+|clk|`40960000`|`394.86ps ± 3.58ps`|`1.84ns`|`317.87ps - 9.46ns`|
 # object
 ## access
 ### without init
 |case|runs|mean|p99|range|
 |-|-|-|-|-|
-|monomorphic array|`524288`|`2.01ns ± 38.36ps`|`5.28ns`|`1.82ns - 5.4ns`|
-|monomorphic object|`524288`|`2.17ns ± 59.95ps`|`6.54ns`|`1.78ns - 6.83ns`|
-|polymorphic array|`524288`|`2.37ns ± 30.11ps`|`3.31ns`|`1.8ns - 3.35ns`|
-|polymorphic object|`524288`|`2.78ns ± 66.88ps`|`6.24ns`|`2.45ns - 8.78ns`|
-|megamorphic object|`524288`|`8.86ns ± 167.71ps`|`14.92ns`|`7.48ns - 16.54ns`|
+|monomorphic array|`524288`|`1.62ns ± 61.41ps`|`5.93ns`|`1.11ns - 7.18ns`|
+|polymorphic array|`524288`|`1.66ns ± 55.33ps`|`2.93ns`|`1.09ns - 7.62ns`|
+|monomorphic object|`524288`|`1.97ns ± 111.01ps`|`6.16ns`|`1.48ns - 6.5ns`|
+|polymorphic object|`524288`|`2.49ns ± 67.8ps`|`8.06ns`|`2.32ns - 8.66ns`|
+|megamorphic object|`524288`|`7.99ns ± 107.69ps`|`14.62ns`|`7.59ns - 14.77ns`|
 ### with init
 |case|runs|mean|p99|range|
 |-|-|-|-|-|
-|monomorphic array|`524288`|`3.09ns ± 26.32ps`|`4.96ns`|`2.96ns - 5.65ns`|
-|monomorphic object|`524288`|`4.38ns ± 62.94ps`|`7.63ns`|`3.98ns - 7.77ns`|
+|monomorphic array|`524288`|`2.25ns ± 51.43ps`|`5.2ns`|`1.95ns - 5.22ns`|
+|monomorphic object|`524288`|`3ns ± 54.99ps`|`5.38ns`|`2.76ns - 9.23ns`|
 ### custom props
 |case|runs|mean|p99|range|
 |-|-|-|-|-|
-|WeakMap store|`524288`|`14.45ns ± 294.03ps`|`22.52ns`|`6.36ns - 26.22ns`|
-|direct assign|`524288`|`17.18ns ± 66.62ps`|`19.35ns`|`16.95ns - 23.72ns`|
-|prototype chain (override prototype)|`524288`|`26.87ns ± 166.22ps`|`31.86ns`|`26.08ns - 46.19ns`|
-|prototype chain (create with prototype)|`524288`|`27.52ns ± 144.71ps`|`34.68ns`|`26.28ns - 35.2ns`|
+|direct assign|`524288`|`9.46ns ± 111.61ps`|`16.57ns`|`9.05ns - 16.9ns`|
+|WeakMap store|`524288`|`14.7ns ± 279.45ps`|`23.49ns`|`6.45ns - 25.96ns`|
+|prototype chain (override prototype)|`524288`|`24.32ns ± 104.12ps`|`30.69ns`|`23.78ns - 31.58ns`|
+|prototype chain (create with prototype)|`524288`|`27.19ns ± 598.32ps`|`49.82ns`|`23.78ns - 56.07ns`|
 ## init
 ### dynamic props
 |case|runs|mean|p99|range|
 |-|-|-|-|-|
-|WeakMap store|`524288`|`58.54ns ± 1.13ns`|`107.79ns`|`50.45ns - 139.79ns`|
-|object literal (computed properties)|`524288`|`370.14ns ± 2.35ns`|`513.79ns`|`355.51ns - 534.42ns`|
-|function constructor|`524288`|`375.31ns ± 2.76ns`|`566.14ns`|`361.72ns - 570.69ns`|
-|Object.create(null)|`524288`|`400.64ns ± 8.69ns`|`662.72ns`|`343.26ns - 721.09ns`|
-|function constructor (freezed proto)|`524288`|`427.03ns ± 9.69ns`|`862.39ns`|`364.95ns - 867.21ns`|
-|object literal|`524288`|`464.68ns ± 11.52ns`|`777.75ns`|`351.63ns - 786.83ns`|
+|WeakMap store|`524288`|`50.43ns ± 748.64ps`|`93.66ns`|`45.8ns - 125.62ns`|
+|Object.create(null)|`524288`|`319.95ns ± 2.99ns`|`453.24ns`|`305.38ns - 610.16ns`|
+|object literal (computed properties)|`524288`|`322.01ns ± 2.28ns`|`424.46ns`|`308.95ns - 524.95ns`|
+|object literal|`524288`|`322.06ns ± 2.94ns`|`571.35ns`|`307.65ns - 581.86ns`|
+|function constructor|`524288`|`349.14ns ± 4.29ns`|`656.52ns`|`331.1ns - 717.48ns`|
+|function constructor (freezed proto)|`524288`|`351.21ns ± 3.8ns`|`553.8ns`|`329.43ns - 612ns`|
 ### static props with methods
 |case|runs|mean|p99|range|
 |-|-|-|-|-|
-|constructor|`524288`|`1.25ns ± 9.96ps`|`1.83ns`|`1.21ns - 2.36ns`|
-|Object.create()|`524288`|`1.29ns ± 26.93ps`|`1.84ns`|`1.21ns - 4.56ns`|
-|set prototype|`524288`|`1.32ns ± 11.67ps`|`2.15ns`|`1.26ns - 2.53ns`|
-|function constructor|`524288`|`1.35ns ± 33.12ps`|`2.16ns`|`1.27ns - 5.48ns`|
-|set __proto__|`524288`|`29.71ns ± 232.01ps`|`38.93ns`|`28.46ns - 49.96ns`|
-|Object.setPrototypeOf()|`524288`|`40.94ns ± 259.7ps`|`49.32ns`|`39.17ns - 62.06ns`|
-|object spread|`524288`|`208.64ns ± 560.42ps`|`219.94ns`|`199.78ns - 272.44ns`|
+|function constructor|`524288`|`957.04ps ± 0.56ps`|`978.52ps`|`946.53ps - 983.15ps`|
+|constructor|`524288`|`961.63ps ± 1.87ps`|`1.04ns`|`944.09ps - 1.13ns`|
+|Object.create()|`524288`|`968.89ps ± 4.95ps`|`1.27ns`|`941.65ps - 1.34ns`|
+|set prototype|`524288`|`1.01ns ± 49.65ps`|`2.09ns`|`944.09ps - 7.24ns`|
+|set __proto__|`524288`|`30.24ns ± 233.14ps`|`37.4ns`|`29.26ns - 52.9ns`|
+|Object.setPrototypeOf()|`524288`|`39.93ns ± 258.52ps`|`48.2ns`|`38.29ns - 50.53ns`|
+|object spread|`524288`|`162.05ns ± 731.34ps`|`217.44ns`|`155.72ns - 225.48ns`|
 # array
 ## unique items
 ### size 8
@@ -51,261 +51,272 @@
 ##### to unique array
 |case|runs|mean|p99|range|
 |-|-|-|-|-|
-|Array.includes()|`1048576`|`25.22ns ± 385.73ps`|`47.32ns`|`21.26ns - 49.27ns`|
-|Set|`1048576`|`178.95ns ± 2.65ns`|`345.27ns`|`159.15ns - 351.83ns`|
-|Set direct assign|`1048576`|`240.81ns ± 2.15ns`|`403.89ns`|`226.86ns - 499.8ns`|
+|Array.includes()|`1048576`|`34.83ns ± 783.09ps`|`55.35ns`|`23.11ns - 59.93ns`|
+|Set|`1048576`|`166.66ns ± 2ns`|`299.45ns`|`148.74ns - 305.55ns`|
+|Set direct assign|`1048576`|`284.59ns ± 5.39ns`|`472.27ns`|`233.62ns - 554.95ns`|
 ##### count unique items
 |case|runs|mean|p99|range|
 |-|-|-|-|-|
-|Array.includes()|`1048576`|`24.84ns ± 372.2ps`|`48.84ns`|`21.21ns - 54.41ns`|
-|Set|`1048576`|`102.27ns ± 621.27ps`|`123.01ns`|`96.04ns - 219.76ns`|
-|Set direct assign|`1048576`|`177.36ns ± 1.6ns`|`320.85ns`|`164.69ns - 365.73ns`|
+|Array.includes()|`1048576`|`34.74ns ± 818.17ps`|`56.06ns`|`23.08ns - 89.17ns`|
+|Set|`1048576`|`135.59ns ± 3.02ns`|`253.27ns`|`96.02ns - 400.69ns`|
+|Set direct assign|`1048576`|`222.26ns ± 5.15ns`|`400.86ns`|`170.2ns - 820.3ns`|
 #### 2 unique items
 ##### to unique array
 |case|runs|mean|p99|range|
 |-|-|-|-|-|
-|Array.includes()|`1048576`|`40.28ns ± 580.74ps`|`76.85ns`|`35.55ns - 80.18ns`|
-|Set|`1048576`|`202.07ns ± 2.74ns`|`397.64ns`|`182.49ns - 401.22ns`|
-|Set direct assign|`1048576`|`270.66ns ± 2.73ns`|`543.85ns`|`255.89ns - 553.17ns`|
+|Array.includes()|`1048576`|`41.9ns ± 646.91ps`|`77.57ns`|`37.57ns - 100.49ns`|
+|Set|`1048576`|`179.45ns ± 1.42ns`|`338.44ns`|`168.5ns - 345.33ns`|
+|Set direct assign|`1048576`|`301.92ns ± 5.2ns`|`522.52ns`|`261.48ns - 589.41ns`|
 ##### count unique items
 |case|runs|mean|p99|range|
 |-|-|-|-|-|
-|Array.includes()|`1048576`|`40.95ns ± 714.1ps`|`75.73ns`|`34.93ns - 102.23ns`|
-|Set|`1048576`|`120.12ns ± 1.05ns`|`165.83ns`|`112.22ns - 315.2ns`|
-|Set direct assign|`1048576`|`193.02ns ± 661.77ps`|`234.57ns`|`183.82ns - 307.89ns`|
+|Array.includes()|`1048576`|`39.18ns ± 295.1ps`|`45.75ns`|`36.63ns - 94.88ns`|
+|Set|`1048576`|`118.13ns ± 1.1ns`|`173.64ns`|`109.94ns - 294.14ns`|
+|Set direct assign|`1048576`|`197.92ns ± 1.87ns`|`354.34ns`|`183.83ns - 468.6ns`|
 #### 4 unique items
 ##### to unique array
 |case|runs|mean|p99|range|
 |-|-|-|-|-|
-|Array.includes()|`1048576`|`95.88ns ± 1.81ns`|`166.16ns`|`74.34ns - 173.11ns`|
-|Set|`1048576`|`214.6ns ± 2.23ns`|`443.8ns`|`200.14ns - 506.65ns`|
-|Set direct assign|`1048576`|`295.25ns ± 3.82ns`|`606.08ns`|`276.62ns - 737.72ns`|
+|Array.includes()|`1048576`|`99.87ns ± 1.92ns`|`183.56ns`|`80.41ns - 296.38ns`|
+|Set|`1048576`|`201.12ns ± 2.18ns`|`378.4ns`|`184.28ns - 386.03ns`|
+|Set direct assign|`1048576`|`288.27ns ± 2.81ns`|`551.06ns`|`274.39ns - 562.07ns`|
 ##### count unique items
 |case|runs|mean|p99|range|
 |-|-|-|-|-|
-|Array.includes()|`1048576`|`93.74ns ± 1.7ns`|`162.67ns`|`73.98ns - 164.65ns`|
-|Set|`1048576`|`125.96ns ± 1.13ns`|`248.16ns`|`116.56ns - 260.81ns`|
-|Set direct assign|`1048576`|`200.02ns ± 1.59ns`|`351.25ns`|`187.83ns - 407.62ns`|
+|Array.includes()|`1048576`|`101.58ns ± 1.94ns`|`186.1ns`|`79.13ns - 250.18ns`|
+|Set|`1048576`|`122.74ns ± 1.47ns`|`270.23ns`|`114.06ns - 352.42ns`|
+|Set direct assign|`1048576`|`199.14ns ± 1.67ns`|`359.77ns`|`187.1ns - 412.82ns`|
 #### 8 unique items
 ##### to unique array
 |case|runs|mean|p99|range|
 |-|-|-|-|-|
-|Array.includes()|`1048576`|`153.02ns ± 1.06ns`|`202.17ns`|`134.37ns - 289.8ns`|
-|Set|`1048576`|`350.97ns ± 4.64ns`|`672.58ns`|`323.92ns - 694.42ns`|
-|Set direct assign|`1048576`|`408.17ns ± 2.58ns`|`509.79ns`|`392.35ns - 829.89ns`|
+|Array.includes()|`1048576`|`169.54ns ± 2.58ns`|`326.45ns`|`148.98ns - 331.71ns`|
+|Set|`1048576`|`321.15ns ± 3.62ns`|`601.27ns`|`294.58ns - 629.8ns`|
+|Set direct assign|`1048576`|`393.56ns ± 606.92ps`|`416.36ns`|`381.38ns - 478.5ns`|
 ##### count unique items
 |case|runs|mean|p99|range|
 |-|-|-|-|-|
-|Array.includes()|`1048576`|`161.85ns ± 2.6ns`|`283.76ns`|`130.53ns - 287.82ns`|
-|Set|`1048576`|`224.56ns ± 2.6ns`|`408.15ns`|`204.76ns - 422.11ns`|
-|Set direct assign|`1048576`|`285ns ± 878.89ps`|`348.36ns`|`277.02ns - 398.43ns`|
+|Array.includes()|`1048576`|`158.8ns ± 1.14ns`|`197.94ns`|`142.96ns - 330.7ns`|
+|Set|`1048576`|`220.82ns ± 2.83ns`|`387.39ns`|`193.97ns - 439.89ns`|
+|Set direct assign|`1048576`|`276.45ns ± 1.86ns`|`354.69ns`|`265.79ns - 541.19ns`|
 ### size 16
 #### 2 unique items
 ##### to unique array
 |case|runs|mean|p99|range|
 |-|-|-|-|-|
-|Array.includes()|`524288`|`78.49ns ± 2.05ns`|`140.1ns`|`65.27ns - 140.65ns`|
-|Set|`524288`|`280ns ± 4.95ns`|`565.73ns`|`261.18ns - 571.3ns`|
-|Set direct assign|`524288`|`431.73ns ± 5.33ns`|`790.49ns`|`410.58ns - 864.08ns`|
+|Array.includes()|`524288`|`85.41ns ± 2.56ns`|`157.61ns`|`69.95ns - 157.82ns`|
+|Set|`524288`|`267.08ns ± 4.07ns`|`510.8ns`|`253.32ns - 511.05ns`|
+|Set direct assign|`524288`|`434.75ns ± 2.73ns`|`503.54ns`|`422.15ns - 762.2ns`|
 ##### count unique items
 |case|runs|mean|p99|range|
 |-|-|-|-|-|
-|Array.includes()|`524288`|`73.47ns ± 1.71ns`|`140.06ns`|`62.99ns - 140.43ns`|
-|Set|`524288`|`204.3ns ± 3.67ns`|`409.14ns`|`187.93ns - 411.41ns`|
-|Set direct assign|`524288`|`346.03ns ± 1.17ns`|`399.74ns`|`336.3ns - 458.68ns`|
+|Array.includes()|`524288`|`74.93ns ± 1.67ns`|`148.34ns`|`66.67ns - 151.41ns`|
+|Set|`524288`|`199.48ns ± 1.44ns`|`251.61ns`|`191ns - 365.61ns`|
+|Set direct assign|`524288`|`361.09ns ± 4.35ns`|`666.34ns`|`345.31ns - 675.17ns`|
 #### 4 unique items
 ##### to unique array
 |case|runs|mean|p99|range|
 |-|-|-|-|-|
-|Array.includes()|`524288`|`127.82ns ± 389.78ps`|`142.88ns`|`122.06ns - 145.39ns`|
-|Set|`524288`|`300.24ns ± 6.36ns`|`609.37ns`|`276.8ns - 612ns`|
-|Set direct assign|`524288`|`441.41ns ± 1.89ns`|`532.38ns`|`430.99ns - 637.18ns`|
+|Array.includes()|`524288`|`148.03ns ± 2.59ns`|`305.18ns`|`133.61ns - 314.13ns`|
+|Set|`524288`|`269.19ns ± 570.99ps`|`292.4ns`|`265.08ns - 332.84ns`|
+|Set direct assign|`524288`|`433.07ns ± 4.86ns`|`830.72ns`|`415.97ns - 831.48ns`|
 ##### count unique items
 |case|runs|mean|p99|range|
 |-|-|-|-|-|
-|Array.includes()|`524288`|`124.59ns ± 477.67ps`|`138.59ns`|`118.7ns - 160.49ns`|
-|Set|`524288`|`219.04ns ± 5.95ns`|`465.23ns`|`188.45ns - 550.45ns`|
-|Set direct assign|`524288`|`361.11ns ± 5.05ns`|`707.15ns`|`342.55ns - 841.56ns`|
+|Array.includes()|`524288`|`154.65ns ± 4.89ns`|`301.59ns`|`129.24ns - 375.94ns`|
+|Set|`524288`|`217.26ns ± 4.78ns`|`379.06ns`|`190.49ns - 380.93ns`|
+|Set direct assign|`524288`|`341.64ns ± 1.96ns`|`492.72ns`|`331.81ns - 496.99ns`|
 #### 8 unique items
 ##### to unique array
 |case|runs|mean|p99|range|
 |-|-|-|-|-|
-|Array.includes()|`524288`|`227.96ns ± 1.33ns`|`280.85ns`|`219.17ns - 376.82ns`|
-|Set|`524288`|`447.8ns ± 10.42ns`|`856.83ns`|`398.87ns - 857.87ns`|
-|Set direct assign|`524288`|`554.27ns ± 7.95ns`|`1.11μs`|`532.65ns - 1.11μs`|
+|Array.includes()|`524288`|`259.69ns ± 1.89ns`|`393.96ns`|`249.22ns - 445.76ns`|
+|Set|`524288`|`395.17ns ± 6.34ns`|`747.97ns`|`368.01ns - 757.23ns`|
+|Set direct assign|`524288`|`530.64ns ± 886.6ps`|`559.67ns`|`522.16ns - 628.31ns`|
 ##### count unique items
 |case|runs|mean|p99|range|
 |-|-|-|-|-|
-|Array.includes()|`524288`|`215.98ns ± 282.44ps`|`228.21ns`|`208.45ns - 228.75ns`|
-|Set|`524288`|`294.86ns ± 3.08ns`|`541.66ns`|`282.75ns - 564.28ns`|
-|Set direct assign|`524288`|`441.16ns ± 8.08ns`|`923.36ns`|`412ns - 962.04ns`|
+|Array.includes()|`524288`|`246.26ns ± 427.07ps`|`273.51ns`|`242ns - 276.49ns`|
+|Set|`524288`|`291.55ns ± 460.59ps`|`312.55ns`|`274.73ns - 312.9ns`|
+|Set direct assign|`524288`|`413.73ns ± 910.5ps`|`456.29ns`|`406.15ns - 503.49ns`|
 #### 16 unique items
 ##### to unique array
 |case|runs|mean|p99|range|
 |-|-|-|-|-|
-|Array.includes()|`524288`|`407.55ns ± 1.74ns`|`482.09ns`|`396.86ns - 579.27ns`|
-|Set|`524288`|`590.47ns ± 10.34ns`|`1.16μs`|`555.68ns - 1.16μs`|
-|Set direct assign|`524288`|`718.63ns ± 8.73ns`|`1.41μs`|`683.9ns - 1.42μs`|
+|Array.includes()|`524288`|`449.69ns ± 10.55ns`|`1.01μs`|`415.48ns - 1.27μs`|
+|Set|`524288`|`553.89ns ± 8.13ns`|`1.06μs`|`526.17ns - 1.07μs`|
+|Set direct assign|`524288`|`691.09ns ± 5.49ns`|`848.42ns`|`672.42ns - 1.36μs`|
 ##### count unique items
 |case|runs|mean|p99|range|
 |-|-|-|-|-|
-|Set|`524288`|`330.84ns ± 870.38ps`|`375.47ns`|`324.33ns - 386.8ns`|
-|Array.includes()|`524288`|`404.79ns ± 6.41ns`|`742.94ns`|`377.83ns - 744.33ns`|
-|Set direct assign|`524288`|`460.34ns ± 1.69ns`|`571.18ns`|`450.21ns - 587.68ns`|
+|Set|`524288`|`345.92ns ± 4.88ns`|`621.18ns`|`314.04ns - 630.37ns`|
+|Array.includes()|`524288`|`443.53ns ± 11.26ns`|`937.12ns`|`399.23ns - 1.08μs`|
+|Set direct assign|`524288`|`468.51ns ± 6.76ns`|`868.03ns`|`443.83ns - 876.89ns`|
 ### size 64
 #### 8 unique items
 ##### to unique array
 |case|runs|mean|p99|range|
 |-|-|-|-|-|
-|Array.includes()|`131072`|`766.44ns ± 2.93ns`|`812.92ns`|`750.39ns - 812.92ns`|
-|Set|`131072`|`843.5ns ± 728.48ps`|`855.64ns`|`837.5ns - 855.64ns`|
-|Set direct assign|`131072`|`1.46μs ± 877.26ps`|`1.47μs`|`1.45μs - 1.47μs`|
+|Set|`131072`|`839.62ns ± 1.19ns`|`857.63ns`|`829.55ns - 857.63ns`|
+|Array.includes()|`131072`|`852.26ns ± 1.54ns`|`871.51ns`|`834.84ns - 871.51ns`|
+|Set direct assign|`131072`|`1.46μs ± 36.48ns`|`2.6μs`|`1.4μs - 2.6μs`|
 ##### count unique items
 |case|runs|mean|p99|range|
 |-|-|-|-|-|
-|Array.includes()|`131072`|`715.53ns ± 8.9ns`|`993.26ns`|`699.68ns - 993.26ns`|
-|Set|`131072`|`719.85ns ± 1.14ns`|`746.18ns`|`713.38ns - 746.18ns`|
-|Set direct assign|`131072`|`1.36μs ± 7.25ns`|`1.54μs`|`1.33μs - 1.54μs`|
+|Set|`131072`|`753.48ns ± 1.56ns`|`797.63ns`|`747.41ns - 797.63ns`|
+|Array.includes()|`131072`|`826.95ns ± 1.26ns`|`848.51ns`|`814.81ns - 848.51ns`|
+|Set direct assign|`131072`|`1.3μs ± 2.17ns`|`1.33μs`|`1.28μs - 1.33μs`|
 #### 16 unique items
 ##### to unique array
 |case|runs|mean|p99|range|
 |-|-|-|-|-|
-|Set|`131072`|`1.03μs ± 5.62ns`|`1.2μs`|`1.02μs - 1.2μs`|
-|Array.includes()|`131072`|`1.44μs ± 3.55ns`|`1.49μs`|`1.41μs - 1.49μs`|
-|Set direct assign|`131072`|`1.58μs ± 4.35ns`|`1.69μs`|`1.56μs - 1.69μs`|
+|Set|`131072`|`1.04μs ± 13.52ns`|`1.46μs`|`1.01μs - 1.46μs`|
+|Array.includes()|`131072`|`1.53μs ± 47.49ns`|`3.02μs`|`1.46μs - 3.02μs`|
+|Set direct assign|`131072`|`1.59μs ± 3.43ns`|`1.68μs`|`1.57μs - 1.68μs`|
 ##### count unique items
 |case|runs|mean|p99|range|
 |-|-|-|-|-|
-|Set|`131072`|`811.79ns ± 19.97ns`|`1.44μs`|`784.3ns - 1.44μs`|
-|Set direct assign|`131072`|`1.39μs ± 34.68ns`|`2.45μs`|`1.32μs - 2.45μs`|
-|Array.includes()|`131072`|`1.39μs ± 35.9ns`|`2.4μs`|`1.31μs - 2.4μs`|
+|Set|`131072`|`820.01ns ± 2.77ns`|`900.81ns`|`810.47ns - 900.81ns`|
+|Set direct assign|`131072`|`1.35μs ± 1.29ns`|`1.36μs`|`1.33μs - 1.36μs`|
+|Array.includes()|`131072`|`1.44μs ± 3.61ns`|`1.52μs`|`1.42μs - 1.52μs`|
 #### 32 unique items
 ##### to unique array
 |case|runs|mean|p99|range|
 |-|-|-|-|-|
-|Set|`131072`|`1.69μs ± 8.56ns`|`1.78μs`|`1.62μs - 1.78μs`|
-|Set direct assign|`131072`|`2.3μs ± 21.51ns`|`2.78μs`|`2.16μs - 2.78μs`|
-|Array.includes()|`131072`|`2.74μs ± 12.79ns`|`3.01μs`|`2.69μs - 3.01μs`|
+|Set|`131072`|`1.74μs ± 4.26ns`|`1.82μs`|`1.71μs - 1.82μs`|
+|Set direct assign|`131072`|`2.31μs ± 13.03ns`|`2.61μs`|`2.24μs - 2.61μs`|
+|Array.includes()|`131072`|`3.18μs ± 5.51ns`|`3.26μs`|`3.12μs - 3.26μs`|
 ##### count unique items
 |case|runs|mean|p99|range|
 |-|-|-|-|-|
-|Set|`131072`|`1.22μs ± 5.94ns`|`1.32μs`|`1.18μs - 1.32μs`|
-|Set direct assign|`131072`|`1.9μs ± 27.75ns`|`2.35μs`|`1.73μs - 2.35μs`|
-|Array.includes()|`131072`|`2.54μs ± 25.88ns`|`3.12μs`|`2.47μs - 3.12μs`|
+|Set|`131072`|`1.25μs ± 3.7ns`|`1.33μs`|`1.21μs - 1.33μs`|
+|Set direct assign|`131072`|`1.85μs ± 29.52ns`|`2.77μs`|`1.79μs - 2.77μs`|
+|Array.includes()|`131072`|`3.15μs ± 51.18ns`|`4.76μs`|`3.07μs - 4.76μs`|
 #### 64 unique items
 ##### to unique array
 |case|runs|mean|p99|range|
 |-|-|-|-|-|
-|Set|`131072`|`2.26μs ± 6.48ns`|`2.39μs`|`2.2μs - 2.39μs`|
-|Set direct assign|`131072`|`2.86μs ± 10.94ns`|`2.98μs`|`2.75μs - 2.98μs`|
-|Array.includes()|`131072`|`5.95μs ± 9.16ns`|`6.15μs`|`5.89μs - 6.15μs`|
+|Set|`131072`|`2.24μs ± 7.78ns`|`2.39μs`|`2.18μs - 2.39μs`|
+|Set direct assign|`131072`|`2.86μs ± 4.3ns`|`2.94μs`|`2.83μs - 2.94μs`|
+|Array.includes()|`131072`|`6.42μs ± 72.7ns`|`8.69μs`|`6.29μs - 8.69μs`|
 ##### count unique items
 |case|runs|mean|p99|range|
 |-|-|-|-|-|
-|Set|`131072`|`1.33μs ± 3.5ns`|`1.4μs`|`1.31μs - 1.4μs`|
-|Set direct assign|`131072`|`2.06μs ± 25.9ns`|`2.47μs`|`1.93μs - 2.47μs`|
-|Array.includes()|`131072`|`5.62μs ± 54.28ns`|`7.07μs`|`5.46μs - 7.07μs`|
+|Set|`131072`|`1.47μs ± 8.95ns`|`1.73μs`|`1.44μs - 1.73μs`|
+|Set direct assign|`131072`|`1.98μs ± 5.91ns`|`2.12μs`|`1.95μs - 2.12μs`|
+|Array.includes()|`131072`|`6.3μs ± 180.57ns`|`11.99μs`|`6.09μs - 11.99μs`|
 # coroutine
 ## overhead
 |case|runs|mean|p99|range|
 |-|-|-|-|-|
-|generator|`524288`|`108.52ns ± 1.74ns`|`209.29ns`|`88.43ns - 209.91ns`|
-|await non-promise|`524288`|`163.68ns ± 20.06ns`|`1.25μs`|`120ns - 2.4μs`|
-|await promise|`524288`|`190.98ns ± 2.92ns`|`362.44ns`|`176.69ns - 365.26ns`|
-|async generator|`524288`|`930.14ns ± 4.39ns`|`1.14μs`|`908.23ns - 1.36μs`|
+|generator|`524288`|`93.02ns ± 681.5ps`|`126.04ns`|`86.72ns - 128.34ns`|
+|await non-promise|`524288`|`166.06ns ± 1.69ns`|`221.22ns`|`157.36ns - 356.39ns`|
+|await promise|`524288`|`177.25ns ± 3.32ns`|`310.39ns`|`159.67ns - 365.96ns`|
+|async generator|`524288`|`297.9ns ± 19.46ns`|`1.36μs`|`255.47ns - 2.46μs`|
 ## async iterable
 ### from promises
 |case|runs|mean|p99|range|
 |-|-|-|-|-|
-|iterator|`131072`|`1.35μs ± 3.55ns`|`1.42μs`|`1.33μs - 1.42μs`|
-|generator|`131072`|`2.74μs ± 37.7ns`|`3.86μs`|`2.65μs - 3.86μs`|
+|iterator|`131072`|`1.26μs ± 19.29ns`|`1.82μs`|`1.22μs - 1.82μs`|
+|generator|`131072`|`2.58μs ± 53.8ns`|`3.92μs`|`2.48μs - 3.92μs`|
 # lru
 ## capacity 8
 ### set new key
 |case|runs|mean|p99|range|gc mean|gc p99|gc range|
 |-|-|-|-|-|-|-|-|
-|two map buckets|`524288`|`93.52ns ± 2.21ns`|`185.44ns`|`78.2ns - 285.47ns`|`93.52ns ± 16.74ns`|`1.04μs`|`190.7ns - 1.05μs`|
-|linked list map|`524288`|`152.49ns ± 2.55ns`|`300.27ns`|`135.67ns - 372.36ns`|`152.49ns ± 8.94ns`|`403.43ns`|`204.07ns - 528.35ns`|
-|map|`524288`|`166.37ns ± 3.23ns`|`317.84ns`|`142.12ns - 318.99ns`|`166.37ns ± 10.02ns`|`610.67ns`|`197.16ns - 979.35ns`|
-|two object buckets|`524288`|`338.32ns ± 3.24ns`|`585.13ns`|`322.84ns - 594.04ns`|`338.32ns ± 8.85ns`|`599.96ns`|`225.93ns - 974.32ns`|
+|two map buckets|`524288`|`92.44ns ± 2.89ns`|`230.21ns`|`77.85ns - 294.53ns`|`92.44ns ± 10.96ns`|`341.55ns`|`182.17ns - 342.09ns`|
+|linked list map|`524288`|`150.93ns ± 3.21ns`|`361.6ns`|`129.97ns - 380.97ns`|`150.93ns ± 8.35ns`|`319.42ns`|`178.07ns - 925.5ns`|
+|map|`524288`|`168.24ns ± 3.52ns`|`359.9ns`|`137.81ns - 369.54ns`|`168.24ns ± 6.37ns`|`470.72ns`|`188.75ns - 513.78ns`|
+|two object buckets|`524288`|`319.5ns ± 3.88ns`|`538.63ns`|`298.44ns - 539.1ns`|`319.5ns ± 8.36ns`|`400.17ns`|`195.36ns - 560.88ns`|
 ### get non-expired key
 |case|runs|mean|p99|range|gc mean|gc p99|gc range|
 |-|-|-|-|-|-|-|-|
-|linked list map|`524288`|`15.51ns ± 351.04ps`|`29.23ns`|`8.36ns - 30.72ns`|`15.51ns ± 20.61ns`|`538.1ns`|`189.37ns - 1.02μs`|
-|map|`524288`|`15.85ns ± 273.18ps`|`26.48ns`|`10.41ns - 36.45ns`|`15.85ns ± 19.37ns`|`322.33ns`|`181.82ns - 917.8ns`|
-|two map buckets|`524288`|`23.66ns ± 382.42ps`|`34.26ns`|`18.46ns - 44.77ns`|`23.66ns ± 26.48ns`|`970.49ns`|`190.23ns - 1.82μs`|
-|two object buckets|`524288`|`111.33ns ± 1.36ns`|`175.63ns`|`100.35ns - 176.88ns`|`111.33ns ± 14.77ns`|`474.98ns`|`199.66ns - 811.08ns`|
+|map|`524288`|`12.05ns ± 206.28ps`|`20.09ns`|`9.16ns - 24ns`|`12.05ns ± 16.25ns`|`248.98ns`|`168.55ns - 274.81ns`|
+|linked list map|`524288`|`12.64ns ± 309.31ps`|`23.17ns`|`5.49ns - 28.17ns`|`12.64ns ± 599.39ns`|`17.05μs`|`170.38ns - 17.22μs`|
+|two map buckets|`524288`|`20.76ns ± 279.26ps`|`31.14ns`|`15.75ns - 38.32ns`|`20.76ns ± 20.13ns`|`822.54ns`|`176.36ns - 1.11μs`|
+|two object buckets|`524288`|`104.23ns ± 1.26ns`|`175.29ns`|`94.42ns - 181.49ns`|`104.23ns ± 11.02ns`|`434.29ns`|`180.38ns - 473.92ns`|
 ### update non-expired key
 |case|runs|mean|p99|range|gc mean|gc p99|gc range|
 |-|-|-|-|-|-|-|-|
-|two map buckets|`524288`|`49.54ns ± 738.24ps`|`87.3ns`|`39.89ns - 87.65ns`|`49.54ns ± 20.28ns`|`796.19ns`|`190.99ns - 836.74ns`|
-|linked list map|`524288`|`110.32ns ± 1.72ns`|`174.12ns`|`95.79ns - 175.07ns`|`110.32ns ± 16.6ns`|`976.49ns`|`198.77ns - 1.16μs`|
-|map|`524288`|`117.24ns ± 2.42ns`|`183.91ns`|`100.68ns - 365.09ns`|`117.24ns ± 12.28ns`|`499.32ns`|`195.98ns - 518.79ns`|
-|two object buckets|`524288`|`261.62ns ± 845.45ps`|`279.04ns`|`253.88ns - 358.59ns`|`261.62ns ± 11.32ns`|`1.01μs`|`225.2ns - 1.44μs`|
+|two map buckets|`524288`|`43.69ns ± 560.15ps`|`82.82ns`|`40.84ns - 87.23ns`|`43.69ns ± 14.39ns`|`299.26ns`|`175.44ns - 309.34ns`|
+|linked list map|`524288`|`95.97ns ± 1.73ns`|`164.94ns`|`84.43ns - 170.57ns`|`95.97ns ± 10.92ns`|`358.7ns`|`176.86ns - 477.57ns`|
+|map|`524288`|`109.66ns ± 3.82ns`|`193.03ns`|`96.34ns - 560.74ns`|`109.66ns ± 9.15ns`|`313.51ns`|`178.9ns - 345.35ns`|
+|two object buckets|`524288`|`241.5ns ± 2.52ns`|`424.75ns`|`229.79ns - 430.38ns`|`241.5ns ± 5.51ns`|`415.35ns`|`204.54ns - 849.76ns`|
 ## capacity 64
 ### set new key
 |case|runs|mean|p99|range|gc mean|gc p99|gc range|
 |-|-|-|-|-|-|-|-|
-|two map buckets|`524288`|`87.08ns ± 1.45ns`|`153.66ns`|`75.7ns - 163.06ns`|`87.08ns ± 18.67ns`|`851.8ns`|`209.35ns - 1.24μs`|
-|linked list map|`524288`|`152.51ns ± 4.27ns`|`447.35ns`|`129.4ns - 475.78ns`|`152.51ns ± 13.83ns`|`394.92ns`|`213.96ns - 1.37μs`|
-|map|`524288`|`243.27ns ± 5.7ns`|`512.74ns`|`204.32ns - 522.03ns`|`243.27ns ± 5.92ns`|`582.85ns`|`210.85ns - 742.29ns`|
-|two object buckets|`524288`|`340.03ns ± 3.05ns`|`595.2ns`|`324.12ns - 601.28ns`|`340.03ns ± 7.66ns`|`590.38ns`|`235.79ns - 885.18ns`|
+|two map buckets|`524288`|`85.4ns ± 1.74ns`|`148.87ns`|`72.97ns - 154.52ns`|`85.4ns ± 13.17ns`|`438.71ns`|`191.55ns - 448.27ns`|
+|linked list map|`524288`|`138.01ns ± 5.76ns`|`453.17ns`|`114.42ns - 534.13ns`|`138.01ns ± 9.14ns`|`403.06ns`|`189.37ns - 652.24ns`|
+|map|`524288`|`216.46ns ± 5.18ns`|`550.85ns`|`192.25ns - 557.91ns`|`216.46ns ± 7.06ns`|`674.04ns`|`188.79ns - 840.71ns`|
+|two object buckets|`524288`|`323.65ns ± 4.3ns`|`557.43ns`|`300.89ns - 563.37ns`|`323.65ns ± 8.58ns`|`480.05ns`|`202.41ns - 940.45ns`|
 ### get non-expired key
 |case|runs|mean|p99|range|gc mean|gc p99|gc range|
 |-|-|-|-|-|-|-|-|
-|map|`524288`|`13.85ns ± 240.3ps`|`22.91ns`|`8.48ns - 22.99ns`|`13.85ns ± 22.73ns`|`495.99ns`|`204.22ns - 952.7ns`|
-|linked list map|`524288`|`16.92ns ± 332.76ps`|`26.4ns`|`7.24ns - 29.96ns`|`16.92ns ± 26.78ns`|`1.11μs`|`205.73ns - 1.53μs`|
-|two map buckets|`524288`|`31.33ns ± 384.57ps`|`45.01ns`|`24.81ns - 45.32ns`|`31.33ns ± 21.95ns`|`605.52ns`|`198.78ns - 697.19ns`|
-|two object buckets|`524288`|`120.68ns ± 522.71ps`|`137.8ns`|`104.45ns - 138.77ns`|`120.68ns ± 17.55ns`|`742.77ns`|`199.84ns - 1.33μs`|
+|map|`524288`|`13.63ns ± 246.26ps`|`22.64ns`|`7.82ns - 22.65ns`|`13.63ns ± 20.47ns`|`431.68ns`|`179.32ns - 1.24μs`|
+|linked list map|`524288`|`16.18ns ± 382.86ps`|`30.43ns`|`10.86ns - 40.05ns`|`16.18ns ± 20.17ns`|`552.26ns`|`187.92ns - 865.53ns`|
+|two map buckets|`524288`|`30.9ns ± 608.92ps`|`50.62ns`|`23.08ns - 90.23ns`|`30.9ns ± 20.66ns`|`657.54ns`|`186.82ns - 1.4μs`|
+|two object buckets|`524288`|`110.86ns ± 959.05ps`|`169.06ns`|`102.08ns - 198.1ns`|`110.86ns ± 10.06ns`|`311.33ns`|`186.84ns - 487.14ns`|
 ### update non-expired key
 |case|runs|mean|p99|range|gc mean|gc p99|gc range|
 |-|-|-|-|-|-|-|-|
-|two map buckets|`524288`|`47.38ns ± 1.06ns`|`109.29ns`|`41.51ns - 122.73ns`|`47.38ns ± 19.7ns`|`500.44ns`|`199.12ns - 618.97ns`|
-|linked list map|`524288`|`103.35ns ± 3.97ns`|`194.33ns`|`86.81ns - 577.99ns`|`103.35ns ± 18.96ns`|`1.04μs`|`204.12ns - 1.26μs`|
-|map|`524288`|`191.5ns ± 4.43ns`|`475.86ns`|`160.52ns - 504.51ns`|`191.5ns ± 6.66ns`|`385.73ns`|`197.87ns - 502.9ns`|
-|two object buckets|`524288`|`270.47ns ± 2.96ns`|`485.8ns`|`259.51ns - 497.68ns`|`270.47ns ± 6.14ns`|`715.68ns`|`236.87ns - 731.41ns`|
+|two map buckets|`524288`|`43.99ns ± 1.42ns`|`130.07ns`|`35.74ns - 156.07ns`|`43.99ns ± 16.33ns`|`495.97ns`|`182.75ns - 537.89ns`|
+|linked list map|`524288`|`91.77ns ± 2.21ns`|`159.5ns`|`77.25ns - 293.89ns`|`91.77ns ± 15.22ns`|`542.05ns`|`183.92ns - 1.16μs`|
+|map|`524288`|`162.47ns ± 5.54ns`|`554.57ns`|`143.47ns - 603.69ns`|`162.47ns ± 7.67ns`|`528.82ns`|`184.13ns - 538.52ns`|
+|two object buckets|`524288`|`245.56ns ± 2.45ns`|`421.43ns`|`233.15ns - 427.16ns`|`245.56ns ± 13.49ns`|`1.18μs`|`210.13ns - 1.64μs`|
 ## capacity 512
 ### set new key
 |case|runs|mean|p99|range|gc mean|gc p99|gc range|
 |-|-|-|-|-|-|-|-|
-|two map buckets|`524288`|`89.96ns ± 1.55ns`|`164.03ns`|`77.41ns - 165.46ns`|`89.96ns ± 18.85ns`|`513.54ns`|`236.79ns - 542.82ns`|
-|linked list map|`524288`|`152.32ns ± 1.71ns`|`244.55ns`|`132.39ns - 252.85ns`|`152.32ns ± 15.62ns`|`888.14ns`|`238.47ns - 990ns`|
-|two object buckets|`524288`|`270.88ns ± 2.83ns`|`485.25ns`|`258.52ns - 517.98ns`|`270.88ns ± 15.32ns`|`434.74ns`|`278.79ns - 2.02μs`|
-|map|`524288`|`827.53ns ± 8.73ns`|`1.14μs`|`575.68ns - 1.61μs`|`827.53ns ± 45.83ns`|`454.76ns`|`244.82ns - 893.99ns`|
+|two map buckets|`524288`|`82.57ns ± 1.56ns`|`169.55ns`|`72.46ns - 204.86ns`|`82.57ns ± 20.27ns`|`594.09ns`|`231.06ns - 1.12μs`|
+|linked list map|`524288`|`143.59ns ± 2.97ns`|`278.27ns`|`116.9ns - 284.58ns`|`143.59ns ± 12.31ns`|`725.73ns`|`202.92ns - 758.41ns`|
+|two object buckets|`524288`|`255.82ns ± 3.16ns`|`416.37ns`|`238.6ns - 420.41ns`|`255.82ns ± 9.9ns`|`834.33ns`|`238.89ns - 1.13μs`|
+|map|`524288`|`672.17ns ± 9.52ns`|`1.26μs`|`568.29ns - 1.38μs`|`672.17ns ± 35.22ns`|`472.98ns`|`203.12ns - 1.18μs`|
 ### get non-expired key
 |case|runs|mean|p99|range|gc mean|gc p99|gc range|
 |-|-|-|-|-|-|-|-|
-|linked list map|`524288`|`21.24ns ± 418.18ps`|`35.8ns`|`12.64ns - 40.5ns`|`21.24ns ± 33.42ns`|`1.07μs`|`256.82ns - 1.48μs`|
-|map|`524288`|`26.49ns ± 448.23ps`|`50.39ns`|`18.83ns - 51.3ns`|`26.49ns ± 29.23ns`|`535.75ns`|`262.11ns - 1.5μs`|
-|two map buckets|`524288`|`30.91ns ± 700.57ps`|`47.28ns`|`23.74ns - 103.88ns`|`30.91ns ± 27.72ns`|`767.45ns`|`243.92ns - 983.74ns`|
-|two object buckets|`524288`|`118.4ns ± 1.12ns`|`180.04ns`|`95.67ns - 180.32ns`|`118.4ns ± 23.37ns`|`1.17μs`|`267.24ns - 1.18μs`|
+|linked list map|`524288`|`21.87ns ± 435.94ps`|`37.69ns`|`14.27ns - 40.34ns`|`21.87ns ± 26.29ns`|`793.02ns`|`230.87ns - 820.05ns`|
+|map|`524288`|`25.43ns ± 355.32ps`|`38.06ns`|`17.77ns - 44.18ns`|`25.43ns ± 29.5ns`|`868.24ns`|`257.48ns - 1.55μs`|
+|two map buckets|`524288`|`29.74ns ± 567.47ps`|`52.56ns`|`22.85ns - 59.52ns`|`29.74ns ± 27.54ns`|`594.74ns`|`238.27ns - 1.22μs`|
+|two object buckets|`524288`|`114.74ns ± 1.84ns`|`193.23ns`|`85.5ns - 196.14ns`|`114.74ns ± 17.35ns`|`629.49ns`|`207.78ns - 1.02μs`|
 ### update non-expired key
 |case|runs|mean|p99|range|gc mean|gc p99|gc range|
 |-|-|-|-|-|-|-|-|
-|two map buckets|`524288`|`50.37ns ± 1.25ns`|`130.22ns`|`39.64ns - 155.05ns`|`50.37ns ± 31.06ns`|`896.91ns`|`314.7ns - 1.22μs`|
-|linked list map|`524288`|`106.35ns ± 1.45ns`|`175.65ns`|`87.72ns - 178.62ns`|`106.35ns ± 38.37ns`|`1.82μs`|`298.94ns - 2.89μs`|
-|two object buckets|`524288`|`165.85ns ± 2.16ns`|`300.96ns`|`155.13ns - 301.34ns`|`165.85ns ± 21.38ns`|`712.22ns`|`320.07ns - 739.83ns`|
-|map|`524288`|`778.95ns ± 11.46ns`|`1.48μs`|`557.32ns - 1.54μs`|`778.95ns ± 34.93ns`|`526.62ns`|`295.63ns - 541.01ns`|
+|two map buckets|`524288`|`43.39ns ± 439.69ps`|`71.54ns`|`36.5ns - 71.81ns`|`43.39ns ± 28.42ns`|`759.44ns`|`272.99ns - 1.01μs`|
+|linked list map|`524288`|`96.36ns ± 2.13ns`|`177.38ns`|`77.14ns - 238.04ns`|`96.36ns ± 31.85ns`|`1.68μs`|`262.5ns - 1.8μs`|
+|two object buckets|`524288`|`153.99ns ± 2.45ns`|`268.67ns`|`138.74ns - 286.48ns`|`153.99ns ± 22.76ns`|`1.09μs`|`263.86ns - 1.11μs`|
+|map|`524288`|`616.83ns ± 11.08ns`|`1.31μs`|`496.27ns - 1.41μs`|`616.83ns ± 22.18ns`|`657.27ns`|`286.33ns - 675.57ns`|
 ## capacity 4096
 ### set new key
 |case|runs|mean|p99|range|gc mean|gc p99|gc range|
 |-|-|-|-|-|-|-|-|
-|two map buckets|`524288`|`91.14ns ± 1.8ns`|`155ns`|`73.44ns - 155.18ns`|`91.14ns ± 40.72ns`|`907.96ns`|`384.37ns - 2.1μs`|
-|linked list map|`524288`|`203.04ns ± 6.39ns`|`499.32ns`|`135.81ns - 519.22ns`|`203.04ns ± 39.21ns`|`1.25μs`|`477.78ns - 1.38μs`|
-|two object buckets|`524288`|`248.52ns ± 4.97ns`|`416.56ns`|`205.01ns - 596.54ns`|`248.52ns ± 22.93ns`|`910.11ns`|`363.81ns - 1.16μs`|
-|map|`524288`|`5.14μs ± 180.65ns`|`9.15μs`|`1.41μs - 11.06μs`|`5.14μs ± 393.68ns`|`958.02ns`|`523.62ns - 1.02μs`|
+|two map buckets|`524288`|`89.14ns ± 1.44ns`|`148ns`|`76.58ns - 156.47ns`|`89.14ns ± 35.58ns`|`999.46ns`|`351.27ns - 1.05μs`|
+|linked list map|`524288`|`206.65ns ± 7.7ns`|`440.17ns`|`127.19ns - 475.56ns`|`206.65ns ± 34.76ns`|`1.22μs`|`387.11ns - 1.7μs`|
+|two object buckets|`524288`|`226.83ns ± 4.73ns`|`456.19ns`|`185.44ns - 534.33ns`|`226.83ns ± 21.63ns`|`897.63ns`|`319.71ns - 1.03μs`|
+|map|`524288`|`4.02μs ± 142.04ns`|`6.95μs`|`1.1μs - 7.71μs`|`4.02μs ± 295.87ns`|`949.16ns`|`503.61ns - 1.3μs`|
 ### get non-expired key
 |case|runs|mean|p99|range|gc mean|gc p99|gc range|
 |-|-|-|-|-|-|-|-|
-|two map buckets|`524288`|`23.92ns ± 457.04ps`|`49.32ns`|`15.24ns - 52.65ns`|`23.92ns ± 73.04ns`|`1.34μs`|`658.28ns - 1.71μs`|
-|linked list map|`524288`|`43.71ns ± 1.17ns`|`81.9ns`|`33.56ns - 162.07ns`|`43.71ns ± 69.81ns`|`1.41μs`|`580.23ns - 2.26μs`|
-|map|`524288`|`75.69ns ± 1.66ns`|`158.28ns`|`59.6ns - 159.05ns`|`75.69ns ± 57.1ns`|`1.09μs`|`503.69ns - 1.21μs`|
-|two object buckets|`524288`|`77.62ns ± 961.68ps`|`128.59ns`|`65.23ns - 129.98ns`|`77.62ns ± 72ns`|`1.51μs`|`707.36ns - 2.05μs`|
+|two map buckets|`524288`|`29.01ns ± 615.27ps`|`56.39ns`|`18.22ns - 56.76ns`|`29.01ns ± 63ns`|`1.37μs`|`568.1ns - 1.54μs`|
+|linked list map|`524288`|`45.21ns ± 597.29ps`|`74.97ns`|`34.74ns - 75.66ns`|`45.21ns ± 66.25ns`|`1.53μs`|`559.01ns - 1.9μs`|
+|two object buckets|`524288`|`73.22ns ± 995.92ps`|`134.18ns`|`62.98ns - 136.04ns`|`73.22ns ± 49.81ns`|`1.44μs`|`441.53ns - 1.64μs`|
+|map|`524288`|`84.41ns ± 2.37ns`|`195.01ns`|`68.41ns - 251.71ns`|`84.41ns ± 58.28ns`|`1.1μs`|`557.39ns - 1.29μs`|
 ### update non-expired key
 |case|runs|mean|p99|range|gc mean|gc p99|gc range|
 |-|-|-|-|-|-|-|-|
-|two map buckets|`524288`|`39.24ns ± 607.26ps`|`68.45ns`|`27.28ns - 68.57ns`|`39.24ns ± 92.7ns`|`1.42μs`|`761.16ns - 2.43μs`|
-|linked list map|`524288`|`44.46ns ± 514.43ps`|`67.01ns`|`36.43ns - 80.81ns`|`44.46ns ± 98.62ns`|`1.42μs`|`854.85ns - 1.43μs`|
-|map|`524288`|`72.23ns ± 2.36ns`|`177.14ns`|`52ns - 183.55ns`|`72.23ns ± 96.16ns`|`1.49μs`|`823.54ns - 2.43μs`|
-|two object buckets|`524288`|`215.16ns ± 1.58ns`|`314.11ns`|`192.63ns - 346.12ns`|`215.16ns ± 75.6ns`|`1.27μs`|`709.53ns - 2.45μs`|
+|two map buckets|`524288`|`38.67ns ± 564.39ps`|`62.59ns`|`29.64ns - 77.87ns`|`38.67ns ± 79.7ns`|`1.33μs`|`699.35ns - 1.73μs`|
+|linked list map|`524288`|`47.81ns ± 463.07ps`|`61.76ns`|`42.63ns - 84.83ns`|`47.81ns ± 72.98ns`|`1.11μs`|`602.84ns - 1.11μs`|
+|map|`524288`|`78.26ns ± 1.59ns`|`151.73ns`|`62.15ns - 155.61ns`|`78.26ns ± 77.06ns`|`1.25μs`|`643.6ns - 1.65μs`|
+|two object buckets|`524288`|`212.62ns ± 2.52ns`|`385.23ns`|`178.44ns - 415.3ns`|`212.62ns ± 70.15ns`|`1.36μs`|`681.6ns - 1.69μs`|
+# Web APIs
+## Response
+### with headers
+|case|runs|mean|p99|range|
+|-|-|-|-|-|
+|headers record|`1048576`|`624.02ns ± 3.06ns`|`782.22ns`|`532ns - 928.17ns`|
+|header pairs|`1048576`|`724.15ns ± 2.96ns`|`880.56ns`|`617.63ns - 894.57ns`|
+|new Headers().set()|`1048576`|`787.57ns ± 12.87ns`|`1.46μs`|`566.2ns - 1.72μs`|
+|new Headers().append()|`1048576`|`794.67ns ± 12.45ns`|`1.51μs`|`555.92ns - 1.79μs`|
+|new Headers(record)|`1048576`|`923.69ns ± 11.04ns`|`1.62μs`|`706.7ns - 1.89μs`|
+|new Headers(pairs)|`1048576`|`1.02μs ± 9.18ns`|`1.7μs`|`823.64ns - 1.96μs`|
 
