@@ -3,7 +3,11 @@ import { bench, category } from 'measure-loop';
 const all = category();
 if ('Response' in globalThis) {
   if ('Headers' in globalThis) {
-    const b = bench();
+    const b = bench({
+      gcOnce: true,
+      iters: 256,
+      warmupIters: 64,
+    });
     all.it('with headers', b);
 
     const params = [() => ('' + Math.random()).padEnd(20)] as const;
