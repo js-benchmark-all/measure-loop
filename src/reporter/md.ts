@@ -6,6 +6,11 @@ import {
   calcVariance,
   formatMs,
 } from './utils.ts';
+import {
+  runtime,
+  runtimePlatform,
+  runtimeVersion,
+} from '../env/runtime.ts';
 
 export interface CategoryResult {
   type: 'category';
@@ -70,10 +75,20 @@ const reporter: Reporter<
   },
   string
 > = {
-  start: () => ({
-    heading: '# ',
-    content: '',
-  }),
+  start: () => {
+    let content = '';
+
+    if (runtime != null) {
+      content += '\n* runtime: ' + runtime;
+      runtimeVersion && (content += ' ' + runtimeVersion);
+      runtimePlatform && (content += ' (' + runtimePlatform + ')');
+    }
+
+    return {
+      heading: '## ',
+      content,
+    };
+  },
   end: (store) => store.content,
 
   categoryStart: (id, parentStore) => ({

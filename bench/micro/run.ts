@@ -82,17 +82,6 @@ switch (target) {
     break;
   }
 
-  case 'deno': {
-    spawn(
-      'deno',
-      'run',
-      '--v8-flags=--expose-gc',
-      '--allow-env',
-      'run.js',
-    );
-    break;
-  }
-
   case 'node': {
     spawn('node', '--expose-gc', 'run.js');
     break;
