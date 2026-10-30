@@ -94,9 +94,7 @@ const buildArgs = (idx: string, paramLen: number) => {
 /**
  * Benchmark a function.
  */
-export const compileLoop: <
-  const P extends Params,
->(
+export const compileLoop: <const P extends Params>(
   params: P,
   fn: (
     ...args: {

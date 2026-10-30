@@ -1,5 +1,5 @@
-import { unzipSync } from "fflate";
-import { chmodSync, constants } from "node:fs";
+import { unzipSync } from 'fflate';
+import { chmodSync, constants } from 'node:fs';
 
 if (process.argv.length < 5) {
   console.error('missing arguments.');
@@ -25,7 +25,9 @@ switch (res.status) {
   }
 
   case 404: {
-    console.error(`container binary for ${process.arch} does not exist!`);
+    console.error(
+      `container binary for ${process.arch} does not exist!`,
+    );
     break;
   }
 

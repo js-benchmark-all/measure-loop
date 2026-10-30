@@ -10,10 +10,11 @@ const filter = (str: string, pred: (value: string) => boolean) =>
         i = 0;
 
       while (i < str.length) {
-        if (pred(str[i])) {
-          if (start !== i) res += str.slice(start, i);
+        if (pred(str[i])) i++;
+        else {
+          res += str.slice(start, i);
           start = ++i;
-        } else i++;
+        }
       }
 
       return res + str.slice(start, i);

@@ -1,4 +1,4 @@
-import { chmodSync, constants } from "node:fs";
+import { chmodSync, constants } from 'node:fs';
 
 const { 2: release } = process.argv;
 if (release == null) {
@@ -14,7 +14,8 @@ switch (res.status) {
   case 200: {
     const blob = await res.blob();
 
-    let size = blob.size, unit = 'b';
+    let size = blob.size,
+      unit = 'b';
     if (size >= 1e3) {
       size /= 1e3;
       unit = 'kb';
@@ -37,7 +38,9 @@ switch (res.status) {
   }
 
   case 404: {
-    console.error(`container binary for ${process.arch} does not exist!`);
+    console.error(
+      `container binary for ${process.arch} does not exist!`,
+    );
     break;
   }
 
