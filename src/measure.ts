@@ -74,11 +74,13 @@ export interface MeasureResult {
   gcs: number[] | undefined;
 }
 
+export type Params = ((idx: number) => any)[];
+
 export type Loop = (
   hrtime: () => number,
   gc: () => void,
   fn: () => any,
-  params: readonly ((idx: number) => any)[],
+  params: Params,
   iters: number,
 ) => MeasureResult | Promise<MeasureResult>;
 
@@ -93,12 +95,12 @@ const buildArgs = (idx: string, paramLen: number) => {
  * Benchmark a function.
  */
 export const compileLoop: <
-  const Params extends readonly ((idx: number) => any)[],
+  const P extends Params,
 >(
-  params: Params,
+  params: P,
   fn: (
     ...args: {
-      [K in keyof Params]: Awaited<ReturnType<Params[K]>>;
+      [K in keyof P]: Awaited<ReturnType<P[K]>>;
     }
   ) => any,
   options?: CompileOptions,
@@ -114,10 +116,6 @@ export const compileLoop: <
         gcOnce = false,
       } = {},
     ) => {
-      gcOnce &&
-        measureGC &&
-        console.warn('gcOnce has no effect when measureGC is on.');
-
       let isFnAsync: boolean,
         paramLen = params.length,
         hasParam = paramLen > 0,
@@ -246,13 +244,13 @@ export const compileLoop: <
  * Benchmark a function.
  */
 export const measure: <
-  const Params extends ((idx: number) => any)[],
+  const P extends Params,
   Options extends MeasureOptions,
 >(
-  params: Params,
+  params: P,
   fn: (
     ...args: {
-      [K in keyof Params]: Awaited<ReturnType<Params[K]>>;
+      [K in keyof P]: Awaited<ReturnType<P[K]>>;
     }
   ) => any,
   gc: () => void,
