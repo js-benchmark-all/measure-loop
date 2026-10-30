@@ -3,7 +3,7 @@ on:
     branches:
       - main
     paths:
-      - 'bench/micro/**/*'
+      - 'bench/micro/**/*.ts'
       - 'src/**/*'
 
 jobs:
