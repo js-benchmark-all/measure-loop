@@ -87,21 +87,6 @@ switch (target) {
     break;
   }
 
-  case 'v8': {
-    spawn(jsvuBin('v8'), '--expose-gc', '--module', 'run.js');
-    break;
-  }
-
-  case 'jsc': {
-    spawn(jsvuBin('jsc'), '-m', 'run.js');
-    break;
-  }
-
-  case 'spidermonkey': {
-    spawn(jsvuBin('sm'), '-m', 'run.js');
-    break;
-  }
-
   // case 'llrt': {
   //   spawn(globSync('engines/llrt/bin/*/*')[0] ?? 'llrt', 'run.js');
   //   break;
