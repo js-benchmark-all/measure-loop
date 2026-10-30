@@ -1,5 +1,5 @@
 import { bench, category } from 'measure-loop';
-import { randomKey, setupRandomSeed, type VTable } from './utils.ts';
+import { randomKey, type VTable } from './utils.ts';
 
 import map from './map.ts';
 import linked_list_map from './linked-list-map.ts';
@@ -30,8 +30,6 @@ for (const capacity of [8, 64, 512, 4096]) {
   );
 
   for (const name in vtables) {
-    // Predictable keys
-    setupRandomSeed();
     let { init, get, set } = vtables[name];
 
     // set new keys

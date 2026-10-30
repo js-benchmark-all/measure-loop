@@ -41,12 +41,14 @@ const dim: ColorFn = supportsColor
 const displayResults = (tab: string, runs: number[]): number => {
   runs.sort((a, b) => a - b);
 
-  const len = runs.length;
-  const avg = calcAvg(runs);
+  const len = runs.length,
+    avg = calcAvg(runs);
+
+  tab += '- ';
 
   print(
     tab +
-      '- mean: ' +
+      'mean: ' +
       yellowBright(formatMs(avg)) +
       ' ± ' +
       yellowBright(
@@ -55,12 +57,17 @@ const displayResults = (tab: string, runs: number[]): number => {
   );
   print(
     tab +
-      '- p99: ' +
+      'p75: ' +
+      yellowBright(formatMs(calcPercentile(runs, 0.75))),
+  );
+  print(
+    tab +
+      'p99: ' +
       yellowBright(formatMs(calcPercentile(runs, 0.99))),
   );
   print(
     tab +
-      '- range: ' +
+      'range: ' +
       yellowBright(formatMs(runs[0])) +
       ' - ' +
       yellowBright(formatMs(runs[len - 1])),
@@ -114,7 +121,7 @@ const reporter: Reporter<
       benchStart: (id, { tab, heading }) => {
         print(tab + bold(heading + id));
         return {
-          tab: tab + '  ',
+          tab,
           results: [],
         };
       },
@@ -125,13 +132,13 @@ const reporter: Reporter<
         { runs, gcs, calls },
       ) => {
         if (runs.length === 0) {
-          print(tab + '* ' + boldCyan(caseId) + ': no result');
+          print(tab + '- ' + boldCyan(caseId) + ': no result');
           return;
         }
 
         print(
           tab +
-            '* ' +
+            '- ' +
             boldCyan(caseId) +
             ': ' +
             yellowBright(calls) +
@@ -151,7 +158,7 @@ const reporter: Reporter<
       },
 
       benchError: ({ tab }, caseId, e) => {
-        print(tab + '* ' + boldCyan(caseId) + ': error');
+        print(tab + '- ' + boldCyan(caseId) + ': error');
         print(e);
       },
 
@@ -159,20 +166,23 @@ const reporter: Reporter<
         if (results.length < 2) return;
         results.sort((a, b) => a.runsAvg - b.runsAvg);
 
-        print(tab + '& ' + boldCyan(results[0].key));
+        print('\n' + tab + '- ' + boldCyan(results[0].key) + ':');
 
         tab += '  - ';
         for (
           let i = 1, baseline = results[0].runsAvg;
           i < results.length;
           i++
-        )
+        ) {
+          const { runsAvg } = results[i];
+
           print(
             tab +
-              green(trunc(results[i].runsAvg / baseline) + 'x') +
-              ' faster than ' +
+              green(trunc(runsAvg / baseline) + 'x') +
+              ` (${yellowBright(formatMs(runsAvg - baseline))}) faster than ` +
               boldCyan(results[i].key),
           );
+        }
       },
     };
 
