@@ -49,23 +49,6 @@ jobs:
         continue-on-error: true
         run: bun run.ts node . md
 
-      # Engines
-      - name: setup jsvu
-        run: |
-          bun jsvu --os=linux64 --engines=v8,javascriptcore,spidermonkey
-
-      - name: v8
-        continue-on-error: true
-        run: bun run.ts v8 . md
-
-      - name: jsc
-        continue-on-error: true
-        run: bun run.ts jsc . md
-
-      - name: spidermonkey
-        continue-on-error: true
-        run: bun run.ts spidermonkey . md
-
       # Push results
       - name: Commit results
         run: |

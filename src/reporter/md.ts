@@ -79,7 +79,7 @@ const reporter: Reporter<
     let content = '';
 
     if (runtime != null) {
-      content += '\n* runtime: ' + runtime;
+      content += '* runtime: ' + runtime;
       runtimeVersion && (content += ' ' + runtimeVersion);
       runtimePlatform && (content += ' (' + runtimePlatform + ')');
     }
@@ -107,7 +107,7 @@ const reporter: Reporter<
     runs.sort((a, b) => a - b);
     const avg = calcAvg(runs);
 
-    let content = `|${caseId}|\`${calls}\`|` + resultRow(runs, avg);
+    let content = `\n|${caseId}|\`${calls}\`|` + resultRow(runs, avg);
 
     if (gcs) {
       store.collectGC = true;
@@ -118,22 +118,23 @@ const reporter: Reporter<
 
     store.rows.push({
       key: avg,
-      content: content + '\n',
+      content,
     });
   },
   benchError: (store, caseId) => {
     store.rows.push({
       key: Infinity,
-      content: `|${caseId}|error|\n`,
+      content: `\n|${caseId}|error|`,
     });
   },
   benchEnd: ({ rows, collectGC }, id, parentStore) => {
     parentStore.content +=
+      '\n' +
       parentStore.heading +
       id +
       (collectGC
-        ? '\n|case|runs|mean|p99|range|gc mean|gc p99|gc range|\n|-|-|-|-|-|-|-|-|\n'
-        : '\n|case|runs|mean|p99|range|\n|-|-|-|-|-|\n');
+        ? '\n|case|runs|mean|p99|range|gc mean|gc p99|gc range|\n|-|-|-|-|-|-|-|-|'
+        : '\n|case|runs|mean|p99|range|\n|-|-|-|-|-|');
 
     rows.sort((a, b) => a.key - b.key);
     for (let i = 0; i < rows.length; i++)
