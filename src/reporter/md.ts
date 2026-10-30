@@ -4,6 +4,7 @@ import {
   calcAvg,
   calcPercentile,
   calcVariance,
+  emptyFn,
   formatMs,
 } from './utils.ts';
 import {
@@ -73,6 +74,7 @@ const reporter: Reporter<
     }[];
     collectGC: boolean;
   },
+  void,
   string
 > = {
   start: () => {
@@ -103,7 +105,9 @@ const reporter: Reporter<
     rows: [],
     collectGC: false,
   }),
-  benchResult: (store, caseId, { runs, gcs, calls }) => {
+
+  caseStart: emptyFn,
+  caseResult: (_, caseId, { runs, gcs, calls }, store) => {
     runs.sort((a, b) => a - b);
     const avg = calcAvg(runs);
 
@@ -121,12 +125,13 @@ const reporter: Reporter<
       content,
     });
   },
-  benchError: (store, caseId) => {
+  caseError: (_, caseId, _1, store) => {
     store.rows.push({
       key: Infinity,
       content: `\n|${caseId}|error|`,
     });
   },
+
   benchEnd: ({ rows, collectGC }, id, parentStore) => {
     parentStore.content +=
       '\n' +

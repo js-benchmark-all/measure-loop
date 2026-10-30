@@ -8,6 +8,7 @@ export interface RuntimeEnv {
 export interface Reporter<
   in out CategoryStore,
   in out BenchStore,
+  in out CaseStore,
   out Result,
 > {
   start: () => CategoryStore | Promise<CategoryStore>;
@@ -27,12 +28,24 @@ export interface Reporter<
     id: string,
     parentStore: CategoryStore,
   ): BenchStore | Promise<BenchStore>;
-  benchResult(
-    store: BenchStore,
-    caseId: string,
+
+  caseStart(
+    id: string,
+    parentStore: BenchStore,
+  ): CaseStore | Promise<CaseStore>;
+  caseResult(
+    store: CaseStore,
+    id: string,
     result: MeasureResult,
+    parentStore: BenchStore,
   ): any;
-  benchError(store: BenchStore, caseId: string, error: unknown): any;
+  caseError(
+    store: CaseStore,
+    id: string,
+    error: unknown,
+    parentStore: BenchStore,
+  ): any;
+
   benchEnd(
     store: BenchStore,
     id: string,
@@ -41,7 +54,7 @@ export interface Reporter<
 }
 
 export interface RunOptions<in out CategoryStore, out Result> {
-  reporter: Reporter<CategoryStore, any, Result>;
+  reporter: Reporter<CategoryStore, any, any, Result>;
   env: RuntimeEnv;
   shuffle?: boolean;
 }

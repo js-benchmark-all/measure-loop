@@ -66,3 +66,5 @@ export const calcPercentile = (
   p: number,
 ): number =>
   sortedResult[(p * (sortedResult.length - 1) + 0.5) >>> 0];
+
+export const emptyFn = (): void => { };

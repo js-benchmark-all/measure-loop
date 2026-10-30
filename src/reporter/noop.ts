@@ -1,16 +1,20 @@
 import type { Reporter } from '../api/types.ts';
+import { emptyFn } from './utils.ts';
 
-const reporter: Reporter<void, void, void> = {
-  start: () => {},
-  end: (_) => {},
+const reporter: Reporter<void, void, void, void> = {
+  start: emptyFn,
+  end: emptyFn,
 
-  categoryStart: (_, _1) => {},
-  categoryEnd: (_, _1, _2) => {},
+  categoryStart: emptyFn,
+  categoryEnd: emptyFn,
 
-  benchStart: (_, _1) => {},
-  benchResult: (_, _1, _2) => {},
-  benchError: (_, _1, _2) => {},
-  benchEnd: (_, _1, _2) => {},
+  benchStart: emptyFn,
+
+  caseStart: emptyFn,
+  caseResult: emptyFn,
+  caseError: emptyFn,
+
+  benchEnd: emptyFn,
 };
 
 export default reporter;

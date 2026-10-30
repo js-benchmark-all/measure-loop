@@ -125,12 +125,17 @@ export class Bench {
           i < benchCnt;
           i++
         ) {
-          const shuffledIdx = doShuffle ? shuffleMap![i] : i;
+          let shuffledIdx = doShuffle ? shuffleMap![i] : i,
+            id = benchIds[shuffledIdx],
+            childStore = reporter.caseStart(id, store);
+
+          childStore instanceof Promise &&
+            (childStore = await childStore);
 
           try {
-            const res = reporter.benchResult(
-              store,
-              benchIds[shuffledIdx],
+            const res = reporter.caseResult(
+              childStore,
+              id,
               await measure(
                 benchParams[shuffledIdx],
                 benchFns[shuffledIdx],
@@ -143,14 +148,11 @@ export class Bench {
                     }
                   : benchOptionList[shuffledIdx],
               ),
+              store,
             );
             res instanceof Promise && (await res);
           } catch (e) {
-            const res = reporter.benchError(
-              store,
-              benchIds[shuffledIdx],
-              e,
-            );
+            const res = reporter.caseError(childStore, id, e, store);
             res instanceof Promise && (await res);
           }
         }

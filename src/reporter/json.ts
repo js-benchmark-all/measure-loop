@@ -1,5 +1,6 @@
 import type { MeasureResult } from '../measure.ts';
 import type { Reporter } from '../api/types.ts';
+import { emptyFn } from './utils.ts';
 
 export interface CategoryResult {
   /**
@@ -40,6 +41,7 @@ const start = () => ({
 const reporter: Reporter<
   CategoryResult,
   BenchResult,
+  void,
   CategoryResult
 > = {
   start,
@@ -54,12 +56,15 @@ const reporter: Reporter<
     results: {},
     errors: undefined,
   }),
-  benchResult: (store, caseId, res) => {
+
+  caseStart: emptyFn,
+  caseResult: (_, caseId, res, store) => {
     store.results[caseId] = res;
   },
-  benchError: (store, caseId, e) => {
+  caseError: (_, caseId, e, store) => {
     (store.errors ??= {})[caseId] = e;
   },
+
   benchEnd: (store, id, parentStore) => {
     (parentStore.benchmarks ??= {})[id] = store;
   },

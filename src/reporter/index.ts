@@ -12,6 +12,7 @@ import {
   calcAvg,
   calcPercentile,
   calcVariance,
+  emptyFn,
   formatMs,
   trunc,
 } from './utils.ts';
@@ -57,11 +58,6 @@ const displayResults = (tab: string, runs: number[]): number => {
   );
   print(
     tab +
-      'p75: ' +
-      yellowBright(formatMs(calcPercentile(runs, 0.75))),
-  );
-  print(
-    tab +
       'p99: ' +
       yellowBright(formatMs(calcPercentile(runs, 0.99))),
   );
@@ -85,6 +81,7 @@ const reporter: Reporter<
     tab: string;
     results: { key: string; runsAvg: number }[];
   },
+  void,
   void
 > = IS_BUILD
   ? (noop as any)
@@ -105,7 +102,7 @@ const reporter: Reporter<
           heading: '# ',
         };
       },
-      end: (_) => {},
+      end: emptyFn,
 
       categoryStart: (id, parentStore) => {
         const { tab, heading } = parentStore;
@@ -116,7 +113,7 @@ const reporter: Reporter<
           heading: '#' + heading,
         };
       },
-      categoryEnd: (_, _1, _2) => {},
+      categoryEnd: emptyFn,
 
       benchStart: (id, { tab, heading }) => {
         print(tab + bold(heading + id));
@@ -126,28 +123,21 @@ const reporter: Reporter<
         };
       },
 
-      benchResult: (
-        { tab, results },
-        caseId,
-        { runs, gcs, calls },
-      ) => {
+      caseStart: (id, parentStore) => {
+        print(parentStore.tab + '- ' + boldCyan(id) + ':');
+      },
+      caseResult: (_, id, { runs, gcs, calls }, { tab, results }) => {
+        tab += '  ';
+
         if (runs.length === 0) {
-          print(tab + '- ' + boldCyan(caseId) + ': no result');
+          print(tab + '- no result');
           return;
         }
 
-        print(
-          tab +
-            '- ' +
-            boldCyan(caseId) +
-            ': ' +
-            yellowBright(calls) +
-            ' runs',
-        );
-        tab += '  ';
+        print(tab + '- runs: ' + yellowBright(calls));
 
         results.push({
-          key: caseId,
+          key: id,
           runsAvg: displayResults(tab, runs),
         });
 
@@ -157,8 +147,8 @@ const reporter: Reporter<
         }
       },
 
-      benchError: ({ tab }, caseId, e) => {
-        print(tab + '- ' + boldCyan(caseId) + ': error');
+      caseError: (_, _1, e, { tab }) => {
+        print(tab + '  - error:');
         print(e);
       },
 
