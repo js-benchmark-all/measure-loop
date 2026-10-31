@@ -6,28 +6,28 @@ export interface CategoryResult {
   /**
    * Child benchmarks results.
    */
-  benchmarks?: Record<string, BenchResult> | undefined;
+  benchmarks: Record<string, BenchResult> | undefined;
 
   /**
    * Child categories results.
    */
-  categories?: Record<string, CategoryResult> | undefined;
+  categories: Record<string, CategoryResult> | undefined;
 }
 
 export interface BenchResult {
   /**
    * Cases results.
    */
-  results: Record<string, MeasureResult>;
+  results: Record<string, MeasureResult> | undefined;
 
   /**
    * Cases with errors.
    */
-  errors?: Record<string, unknown> | undefined;
+  errors: Record<string, unknown> | undefined;
 }
 
-const start = () => ({
-  bench: undefined,
+const start = (): CategoryResult => ({
+  benchmarks: undefined,
   categories: undefined,
 });
 
@@ -53,13 +53,13 @@ const reporter: Reporter<
   },
 
   benchStart: () => ({
-    results: {},
+    results: undefined,
     errors: undefined,
   }),
 
   caseStart: emptyFn,
   caseResult: (_, caseId, res, store) => {
-    store.results[caseId] = res;
+    (store.results ??= {})[caseId] = res;
   },
   caseError: (_, caseId, e, store) => {
     (store.errors ??= {})[caseId] = e;
